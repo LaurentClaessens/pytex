@@ -18,7 +18,7 @@
 ###########################################################################
 
 # copyright (c) Laurent Claessens, 2010
-# email: laurent.claessens@uclouvain.be
+# email: moky.math@gmail.com
 
 """
 This is a very basic LaTeX parser intended to be used within phystricks.
@@ -115,7 +115,6 @@ def SearchUseOfMacro(code,name,number_of_arguments=None):
 
 	if number_of_arguments == None :
 		number_of_arguments = code.dict_of_definition_macros()[name].number_of_arguments
-		#print "I have the impression that %s has %s arguments"%(name,number_of_arguments)
 	use = []
 
 	while position != -1 :
@@ -133,7 +132,7 @@ def SearchUseOfMacro(code,name,number_of_arguments=None):
 	
 
 def MacroDefinition(code,name):
-	"""
+	r"""
 	Finds the (last) definition of a macro and returns the corresponding object
 
 	text : the text (a LaTeX source file) where we are searching in
@@ -159,7 +158,7 @@ def MacroDefinition(code,name):
 		return CodeLaTeX(code).dict_of_definition_macros()[name]
 
 class Occurrence_newlabel(object):
-	"""
+	r"""
 	takes an occurrence of \\newlabel and creates an object which contains the information.
 	"""
 	def __init__(self,occurrence):
@@ -246,7 +245,7 @@ class CodeLaTeX(object):
 	def statistics_of_the_macro(self,name):
 		return StatisticsOfTheMacro(self,name)
 	def dict_of_definition_macros(self):
-		"""
+		r"""
 		Returns a dictionnary wich gives, for each name of macros found to be defined in self.text, the occurrence 
 		in which it was defined.
 		If X is the output of dict_of_definition_macro, X.keys() is the list of the names of the macros and
@@ -280,7 +279,7 @@ class CodeLaTeX(object):
 		return self._list_of_input_files
 
 	def substitute_input(self,filename,text):
-		""" 
+		r""" 
 		replace \input{...} by the text 
 
 		This function is recursive but I pity the fool who makes recursion in his LaTeX document.
