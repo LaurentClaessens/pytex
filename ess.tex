@@ -1,0 +1,63 @@
+% This is an test tex file for LaTeXparser
+
+\documentclass{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+
+\usepackage{textcomp}
+\usepackage{lmodern}
+\usepackage[a4paper]{geometry} 
+\usepackage[english,frenchb]{babel}
+
+\usepackage{hyperref}
+
+\newcommand{\MyMacro}[2]{First \emph{#1} and second {\it #2}}
+\newcommand{\SecondMacro}{Hello}
+\renewcommand{\MyMacro}{heu}
+
+\begin{document}
+
+I use it once : \MyMacro{foo}{bar}, 
+and a second time  \MyMacro {refoo, using a macro 
+	\SecondMacro{klmk} and some text}
+	{rebar}.
+
+%####################################
+%#
+\section{This is a section}
+%#
+%####################################
+\label{SecUne}
+
+Hi !
+\begin{equation}		\label{Eqan}
+	a=n
+\end{equation}
+
+\begin{equation}	\label{Eqop}
+	o=p
+\end{equation}
+
+
+This input should be changed by one of the tests
+	\input{fichier}			% To be changed
+
+This one should not be changed
+\input{autre_fichier}
+
+This one should not be changed
+\input{fichier1}
+
+%####################################
+%#
+\section{This is a second section}
+%#
+%####################################
+\label{SecDeux}
+
+
+\end{document}
+
+This is some text after the end of the document.
+
