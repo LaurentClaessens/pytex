@@ -49,7 +49,8 @@ def use_of_input(filename):
 		print input.filename
 
 def remove_comments(filename):
-	""" print the given file with no comments.
+	""" 
+	print the given file with no comments.
 	It does not remove the % symbol, since it is sometimes written by purpose.
 	"""
 	codeLaTeX =  LaTeXparser.FileToCodeLaTeX(filename+".tex")
@@ -74,6 +75,4 @@ def test_all():
 	remove_comments("ess")
 
 
-substitute_input("ess","fichier","bla\n bla")
-#substitute_input("ess")
-
+test_all()
