@@ -24,6 +24,8 @@
 This is a very basic LaTeX parser intended to be used within phystricks.
 """
 
+import os		# For the compilations.
+
 class Compilation(object):
 	"""
 	Launch the compilation of a document in various ways.
@@ -31,7 +33,7 @@ class Compilation(object):
 	"""
 	def __init__(self,filename):
 		self.filename=filename
-		self.generic_filename = self.filename[:self.nom.rindex(".")]
+		self.generic_filename = self.filename[:self.filename.rindex(".")]
 	def Bibtex(self):
 		commande_e="bibtex "+self.generic_filename
 		os.system(commande_e)
@@ -46,7 +48,26 @@ class Compilation(object):
 		self.Makeindex()
 		self.Nomenclature()
 	def latex(self):
+		"""Produce a dvi file"""
 		commande_e="/usr/bin/latex --src-specials "+self.generic_filename
+		os.system(commande_e)
+	def chain_dvi_ps(self):
+		"""
+		Produce a ps file via the dvi
+		
+		Be careful: a A4 format is hard-coded here.
+		"""
+		self.latex()
+		commande_e="dvips -t a4   "+self.generic_filename+".dvi"
+		os.system(commande_e)
+	def chain_dvi_ps_pdf(self):
+		"""
+		Produce a pdf file via dvi->ps->ps->pdf
+
+		Mostly useful for documents containing pstricks fugures.
+		"""
+		self.chain_dvi_ps()
+		commande_e="ps2pdf "+self.generic_filename+".ps" 
 		os.system(commande_e)
 	def latex_more(self):
 		self.Fioritures()
