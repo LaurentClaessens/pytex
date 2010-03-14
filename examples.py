@@ -8,14 +8,12 @@ def use_of_newlabel(filename):
 	For each label, gives some details : name, value, page, section name
 	"""
 	codeLaTeX =  LaTeXparser.FileToCodeLaTeX(filename+".aux")
-	x = codeLaTeX.search_use_of_macro("\\newlabel",2)
-	for occurrence in x:
-		newlabel = occurrence.analyse()
+	for newlabel in codeLaTeX.analyse_use_of_macro("\\newlabel",2) :
 		print "+++"
 		print "name :",newlabel.name
 		print "value : ",newlabel.value
 		print "page : ",newlabel.page
-		print "section : ",newlabel.section_name
+		print "section name : ",newlabel.section_name
 
 def use_of_macros(filename):
 	"""
@@ -74,5 +72,5 @@ def test_all():
 	text_of_macro("ess","\MyMacro")
 	remove_comments("ess")
 
-
-test_all()
+#test_all()		# Uncomment if you want to test everything.
+use_of_newlabel("ess_big")

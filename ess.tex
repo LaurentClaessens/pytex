@@ -2,6 +2,12 @@
 
 \documentclass{article}
 
+\usepackage{latexsym}
+\usepackage{amsfonts}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{amssymb}
+
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 
@@ -25,7 +31,7 @@ and a second time  \MyMacro {refoo, using a macro
 
 %####################################
 %#
-\section{This is a section}
+\section{This is the title of a section}
 %#
 %####################################
 \label{SecUne}
@@ -41,7 +47,7 @@ Hi !
 
 
 This input should be changed by one of the tests
-	\input{fichier}			% To be changed
+   \input{fichier}			% To be changed
 
 This one should not be changed
 \input{autre_fichier}
@@ -51,13 +57,14 @@ This one should not be changed
 
 %####################################
 %#
-\section{This is a second section}
+\section{This is the title of an other section}
 %#
 %####################################
 \label{SecDeux}
 
 
+I'm in the section \ref{SecDeux} and I can make a reference to equation \eqref{Eqan}
+
 \end{document}
 
 This is some text after the end of the document.
-

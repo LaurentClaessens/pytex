@@ -90,7 +90,7 @@ def FileToCodeLaTeX(name):
 	file = open(name,"r")
 	list_content = [l for l in file]
 	file.close()
-	return codeLaTeX("".join(list_content))
+	return CodeLaTeX("".join(list_content))
 
 def compactization(text,accepted_between_arguments):		
 	for acc in accepted_between_arguments :
@@ -223,6 +223,8 @@ def MacroDefinition(code,name):
 class Occurrence_newlabel(object):
 	r"""
 	takes an occurrence of \\newlabel and creates an object which contains the information.
+
+	In the self.section_name we remove "\relax" of the string.
 	"""
 	def __init__(self,occurrence):
 		self.occurrence = occurrence
@@ -230,14 +232,16 @@ class Occurrence_newlabel(object):
 		if len(self.arguments) == 0 :
 			self.name = "Non interesting; probably the definition"
 			self.listoche = [None,None,None,None,None]
+			self.value,self.page,self.section_name,self.fourth,self.fifth=(None,None,None,None,None)
+
 		else :
 			self.name = self.arguments[0][0]
-			self.listoche = [a[0] for a in SearchArguments(self.arguments[1][0],5)]
-		self.value = self.listoche[0]
-		self.page = self.listoche[1]
-		self.section_name = self.listoche[2]
-		self.fourth = self.listoche[3]		# I don't know the role of the fourth argument
-		self.fifth = self.listoche[4]		# I don't know the role of the fifth argument
+			self.listoche = [a[0] for a in SearchArguments(self.arguments[1][0],5)[0]]
+			self.value = self.listoche[0]
+			self.page = self.listoche[1]
+			self.section_name = self.listoche[2].replace(r"\relax","")
+			self.fourth = self.listoche[3]		# I don't know the role of the fourth argument
+			self.fifth = self.listoche[4]		# I don't know the role of the fifth argument
 
 class Occurrence_newcommand(object):
 	def __init__(self,occurrence):
@@ -294,15 +298,27 @@ class CodeLaTeX(object):
 	""" Contains the informations about a tex file """
 	def __init__(self,text_brut):
 		"""
-		self.text_brut	contains the tex code as given
-		self.text 	contains the tex code from which one removed the comments.
+		self.text_brut			contains the tex code as given
+		self.text_without_comments 	contains the tex code from which one removed the comments.
 		"""
 		self.text_brut = text_brut
 		self.text_without_comments = RemoveComments(self.text_brut)
 		self._dict_of_definition_macros = {}
 		self._list_of_input_files = []
 	def search_use_of_macro(self,name,number_of_arguments=None):
+		"""
+		Return a list of Occurrence of a given macro
+
+		Optional argument: number_of_arguments=None
+		"""
 		return SearchUseOfMacro(self,name,number_of_arguments)
+	def analyse_use_of_macro(self,name,number_of_arguments=None):
+		"""
+		Provide a list of analyse of the occurrences of a macro.
+
+		Optional argument: number_of_arguments=None, to be passed to search_use_of_macro
+		"""
+		return [occurence.analyse() for occurence in self.search_use_of_macro("\\newlabel",2) ]
 	def macro_definition(self,name):
 		return MacroDefinition(self,name)
 	def statistics_of_the_macro(self,name):
