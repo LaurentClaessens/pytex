@@ -34,45 +34,52 @@ class Compilation(object):
 	def __init__(self,filename):
 		self.filename=filename
 		self.generic_filename = self.filename[:self.filename.rindex(".")]
-	def Bibtex(self):
+	def bibtex(self):
 		commande_e="bibtex "+self.generic_filename
 		os.system(commande_e)
-	def Makeindex(self):
+	def makeindex(self):
 		commande_e="makeindex "+self.generic_filename
 		os.system(commande_e)
-	def Nomenclature(self):
+	def nomenclature(self):
 		commande_e="makeindex -s nomencl.ist -o "+self.generic_filename+".nls "+self.generic_filename+".nlo"		
 		os.system(commande_e)
-	def Fioritures(self):
-		self.Bibtex()
-		self.Makeindex()
-		self.Nomenclature()
+	def special_stuffs(self):
+		self.bibtex()
+		self.makeindex()
+		self.nomenclature()
 	def latex(self):
 		"""Produce a dvi file"""
 		commande_e="/usr/bin/latex --src-specials "+self.generic_filename
 		os.system(commande_e)
-	def chain_dvi_ps(self):
+	def chain_dvi_ps(self,papertype="a4"):
 		"""
-		Produce a ps file via the dvi
+		The chain tex->div->ps
+
+		After compiling by self.latex(), produce a ps file from the dvi by the command
+		dvips -t <papertype> <self.filename>.dvi
 		
-		Be careful: a A4 format is hard-coded here.
+		Optional parameter : papertype is "a4" by default
 		"""
 		self.latex()
-		commande_e="dvips -t a4   "+self.generic_filename+".dvi"
+		commande_e="dvips -t %s %s.dvi"%(papertype,self.generic_filename)
 		os.system(commande_e)
-	def chain_dvi_ps_pdf(self):
+	def chain_dvi_ps_pdf(self,papertype="a4"):
 		"""
-		Produce a pdf file via dvi->ps->ps->pdf
+		The chain tex->dvi-ps->pdf 
+		This is more or less the only way to produce a pdf file containing pstricsk figures and hyperref links.
 
-		Mostly useful for documents containing pstricks fugures.
+		After having produced the ps by self.chain_dvi_ps(), produce a pdf file from the ps by the command
+		ps2pdf <self.filename>.ps
+		
+		Optional parameter : papertype is "a4" by default (to be passed to dvips)
 		"""
-		self.chain_dvi_ps()
+		self.chain_dvi_ps(papertype)
 		commande_e="ps2pdf "+self.generic_filename+".ps" 
 		os.system(commande_e)
 	def latex_more(self):
-		self.Fioritures()
+		self.special_stuffs()
 		self.latex()
-		self.Fioritures()
+		self.special_stuffs()
 
 paires = { "{":"}","[":"]" }
 accepted_between_arguments = ["%","\n"," ","	"] # the last one is a TAB
