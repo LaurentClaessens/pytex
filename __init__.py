@@ -224,7 +224,7 @@ class Occurrence_newlabel(object):
 	r"""
 	takes an occurrence of \\newlabel and creates an object which contains the information.
 
-	In the self.section_name we remove "\relax" of the string.
+	In the self.section_name we remove "\relax" from the string.
 	"""
 	def __init__(self,occurrence):
 		self.occurrence = occurrence
