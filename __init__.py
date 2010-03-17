@@ -357,16 +357,23 @@ class CodeLaTeX(object):
 			self._list_of_input_files = list
 		return self._list_of_input_files
 
-	def substitute_input(self,filename,text):
+	def substitute_input(self,filename,text=None):
 		r""" 
-		replace \input{...} by the text 
+		replace \input{...} by the text.
+
+		By default, it replaces by the content of <filename> (add .tex if no extension is given) which is taken in the current directory.
 
 		This function is recursive but I pity the fool who makes recursion in his LaTeX document.
 		"""
 		list = []
+		if text==None:
+			strict_filename = filename
+			if "." not in filename:
+				strict_filename=filename+".tex"
+			text = "".join( open(strict_filename,"r") )
 		for occurrence in self.search_use_of_macro("\input",1):
 			x = occurrence.analyse()
-			if x.filename == filename :
+			if x.filename == filename :			# Create the list of all the texts of the form \input{<filename>}
 				list.append(x.occurrence.as_written)
 		A = CodeLaTeX(self.text_brut)
 		for as_written in list :

@@ -56,7 +56,7 @@ def remove_comments(filename):
 	print x.text_brut
 	print x.text_brut == x.remove_comments().text_brut		# should print "True"
 
-def substitute_input(filename,inputname,text):
+def substitute_input(filename,inputname,text=None):
 	"""
 	substitute the \input{inputname} by the given text.
 	"""
@@ -71,6 +71,11 @@ def test_all():
 	use_of_input("ess_big")
 	text_of_macro("ess","\MyMacro")
 	remove_comments("ess")
+	use_of_newlabel("ess_big")
+	# Return the file as string with the text instead of \input{fichier}
+	substitute_input("ess","fichier","HERE WAS AN INPUT OF THE FILE ess")	
+	# Return the file as string with the content of fichier.tex instead of \input{fichier}
+	substitute_input("ess","fichier")				
+
 
 #test_all()		# Uncomment if you want to test everything.
-use_of_newlabel("ess_big")
