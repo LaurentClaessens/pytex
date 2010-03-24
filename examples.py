@@ -21,7 +21,7 @@ def use_of_macros(filename):
 	For each defined macro, says how many times it was used.
 	"""
 	codeLaTeX =  LaTeXparser.FileToCodeLaTeX(filename+".tex")
-	for name in liste:
+	for name in codeLaTeX.dict_of_definition_macros():
 		num = codeLaTeX.statistics_of_the_macro(name).number_of_use
 		print "La macro %s est utilisée %s fois"%(name,str(num))
 
