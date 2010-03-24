@@ -348,7 +348,7 @@ class CodeLaTeX(object):
 					else :
 						dico[name]=newcommand
 			self._dict_of_definition_macros = dico
-			return self._dict_of_definition_macros
+		return self._dict_of_definition_macros
 	def list_of_input_files(self):
 		if self._list_of_input_files == []:
 			list = []

@@ -15,12 +15,13 @@ def use_of_newlabel(filename):
 		print "page : ",newlabel.page
 		print "section name : ",newlabel.section_name
 
+
 def use_of_macros(filename):
 	"""
 	For each defined macro, says how many times it was used.
 	"""
 	codeLaTeX =  LaTeXparser.FileToCodeLaTeX(filename+".tex")
-	for name in codeLaTeX.dict_of_definition_macros():
+	for name in liste:
 		num = codeLaTeX.statistics_of_the_macro(name).number_of_use
 		print "La macro %s est utilisée %s fois"%(name,str(num))
 
@@ -79,3 +80,4 @@ def test_all():
 
 
 #test_all()		# Uncomment if you want to test everything.
+use_of_macros("ess")
