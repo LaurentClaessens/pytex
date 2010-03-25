@@ -222,7 +222,7 @@ def MacroDefinition(code,name):
 
 class Occurrence_newlabel(object):
 	r"""
-	takes an occurrence of \\newlabel and creates an object which contains the information.
+	takes an occurrence of \newlabel and creates an object which contains the information.
 
 	In the self.section_name we remove "\relax" from the string.
 	"""
@@ -294,6 +294,11 @@ def RemoveComments(text):
 		final_code = code_withoutPC.split("\end{document}")[0]+"\end{document}"
 	return final_code
 
+class newlabelNotFound(object):
+	"""Exception class for CodeLaTeX.get_newlabel_value"""
+	def __init__(self,label_name):
+		self.label_name = label_name
+
 class CodeLaTeX(object):
 	""" Contains the informations about a tex file """
 	def __init__(self,text_brut):
@@ -305,6 +310,17 @@ class CodeLaTeX(object):
 		self.text_without_comments = RemoveComments(self.text_brut)
 		self._dict_of_definition_macros = {}
 		self._list_of_input_files = []
+	def get_newlabel_value(self,label_name):
+		r"""
+		Assumes that self is a .aux file. Return the value associated to the line \newlabel{<label_name>}
+
+		If not found, raise an newlabelNotFound exception 
+		"""
+		list_newlabel = self.analyse_use_of_macro("\\newlabel",2)
+		if label_name not in [x.name for x in list_newlabel] :
+			raise newlabelNotFound(label_name)
+		
+
 	def search_use_of_macro(self,name,number_of_arguments=None):
 		"""
 		Return a list of Occurrence of a given macro
@@ -318,7 +334,7 @@ class CodeLaTeX(object):
 
 		Optional argument: number_of_arguments=None, to be passed to search_use_of_macro
 		"""
-		return [occurence.analyse() for occurence in self.search_use_of_macro("\\newlabel",2) ]
+		return [occurence.analyse() for occurence in self.search_use_of_macro(name,number_of_arguments) ]
 	def macro_definition(self,name):
 		return MacroDefinition(self,name)
 	def statistics_of_the_macro(self,name):

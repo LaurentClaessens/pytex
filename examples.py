@@ -15,7 +15,6 @@ def use_of_newlabel(filename):
 		print "page : ",newlabel.page
 		print "section name : ",newlabel.section_name
 
-
 def use_of_macros(filename):
 	"""
 	For each defined macro, says how many times it was used.
