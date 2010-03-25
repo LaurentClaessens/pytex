@@ -50,7 +50,7 @@ def use_of_input(filename):
 def remove_comments(filename):
 	""" 
 	print the given file with no comments.
-	It does not remove the % symbol, since it is sometimes written by purpose.
+	It does not remove the % symbol itself, since it is often written by purpose.
 	"""
 	codeLaTeX =  LaTeXparser.FileToCodeLaTeX(filename+".tex")
 	x = codeLaTeX.remove_comments()
