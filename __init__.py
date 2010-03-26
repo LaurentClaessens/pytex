@@ -314,11 +314,17 @@ class CodeLaTeX(object):
 		r"""
 		Assumes that self is a .aux file. Return the value associated to the line \newlabel{<label_name>}
 
+		It it appears many times, return the last time, and prints a warning.
+
 		If not found, raise an newlabelNotFound exception 
 		"""
 		list_newlabel = self.analyse_use_of_macro("\\newlabel",2)
 		if label_name not in [x.name for x in list_newlabel] :
 			raise newlabelNotFound(label_name)
+		list_interesting  = [x for x in list_newlabel if x.name==label_name]
+		if len(list_interseting) > 1 :
+			print "Warning : label %s has %s different values"%(label_name,str(len(list_interesting)))
+		return list_interesting[-1].value
 		
 
 	def search_use_of_macro(self,name,number_of_arguments=None):
