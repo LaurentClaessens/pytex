@@ -90,7 +90,7 @@ def FileToCodeLaTeX(name):
 	file = open(name,"r")
 	list_content = [l for l in file]
 	file.close()
-	return CodeLaTeX("".join(list_content))
+	return CodeLaTeX("".join(list_content),filename=name)
 
 def compactization(text,accepted_between_arguments):		
 	for acc in accepted_between_arguments :
@@ -101,7 +101,7 @@ def SearchFitBrace(text,position,open):
 	"""
 	return a tuple containing the text withing the next pair of open/close brace and the position where the pair closes in text
 
-	Consider the string 
+	As an example, consider the string 
 	s="Hello (Louis) how are you ?"
 	SearchFitBrace(s,4,[" (",")"])
 	returns ('Louis', 6, 12)
@@ -120,12 +120,15 @@ def SearchFitBrace(text,position,open):
 			return text[startPosition+1:i],startPosition,i
 
 class Occurrence(object):
+	"""
+	self.as_written : the code as it appears in the file, including \MyMacro, including the backslash.
+	"""
 	def __init__(self,name,arguments,as_written=""):
 		self.arguments = arguments
 		self.number_of_arguments = len(arguments)
 		self.name = name
 		self.as_written = as_written
-
+		self.arguments_list = [ a[0] for a in self.arguments ]
 	def analyse(self):
 		return globals()["Occurrence_"+self.name[1:]](self)		# We have to remove the initial "\" in the name of the macro.
 	def __getitem__(self,a):
@@ -188,7 +191,7 @@ def SearchUseOfMacro(code,name,number_of_arguments=None):
 		if test_newcommand not in [defs+"{" for defs in definition_commands]:
 			remaining = remaining_text
 			arguments, as_written = SearchArguments(remaining,number_of_arguments)
-			as_written = name+as_written
+			as_written = "\\"+name+as_written
 			use.append(Occurrence(name,arguments,as_written))
 		position = remaining_text.find(name)
 	return use
@@ -301,7 +304,7 @@ class newlabelNotFound(object):
 
 class CodeLaTeX(object):
 	""" Contains the informations about a tex file """
-	def __init__(self,text_brut):
+	def __init__(self,text_brut,filename=None):
 		"""
 		self.text_brut			contains the tex code as given
 		self.text_without_comments 	contains the tex code from which one removed the comments.
@@ -310,6 +313,16 @@ class CodeLaTeX(object):
 		self.text_without_comments = RemoveComments(self.text_brut)
 		self._dict_of_definition_macros = {}
 		self._list_of_input_files = []
+		self.filename = filename
+	def save(self,filename=None):
+		"""
+		Save the code in a file. The optional argument provides a file name that overrides the self.filename. If none of filename and self.filename are give, an exception is raised.
+		"""
+		if not filename :
+			filename = self.filename
+		f = open(filename,"w")
+		f.write(self.text_brut)
+		f.close()
 	def get_newlabel_value(self,label_name):
 		r"""
 		Assumes that self is a .aux file. Return the value associated to the line \newlabel{<label_name>}
@@ -385,14 +398,21 @@ class CodeLaTeX(object):
 
 		By default, it replaces by the content of <filename> (add .tex if no extension is given) which is taken in the current directory.
 
-		This function is recursive but I pity the fool who makes recursion in his LaTeX document.
+		Some remarks
+		> This function is recursive but I pity the fool who makes recursion in his LaTeX document.
+		> It does not really check the context. A \input in a verbatim environment will be replaced !
+		> If a file is not found, a warning is printed and no replacement are done.
 		"""
 		list = []
 		if text==None:
 			strict_filename = filename
 			if "." not in filename:
 				strict_filename=filename+".tex"
-			text = "".join( open(strict_filename,"r") )
+			try:
+				text = "".join( open(strict_filename,"r") )
+			except IOError :
+				print "Warning : file «%s» not found. No replacement done."%strict_filename
+				return self
 		for occurrence in self.search_use_of_macro("\input",1):
 			x = occurrence.analyse()
 			if x.filename == filename :			# Create the list of all the texts of the form \input{<filename>}
@@ -401,10 +421,8 @@ class CodeLaTeX(object):
 		for as_written in list :
 			A = A.replace(as_written,text)
 		return A
-	
 	def remove_comments(self):
 		return CodeLaTeX(self.text_without_comments)
-
 	def find(self,arg):
 		return self.text.find(arg)
 	def replace(self,textA,textB):
