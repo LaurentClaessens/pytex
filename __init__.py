@@ -30,6 +30,11 @@ class Compilation(object):
 	"""
 	Launch the compilation of a document in various ways.
 	Takes a filename as argument
+
+	Usage examples
+	X=LaTeXparser.Compilation("MyLaTeXFile.tex")	# Creates the Compilation object
+	X.bibtex()					# Apply bibtex
+	X.chain_dvi_ps_pdf()				# Produce the pdf file
 	"""
 	def __init__(self,filename):
 		self.filename=filename
@@ -49,7 +54,7 @@ class Compilation(object):
 		self.nomenclature()
 	def latex(self):
 		"""Produce a dvi file"""
-		commande_e="/usr/bin/latex --src-specials "+self.generic_filename
+		commande_e="/usr/bin/latex --src-specials "+self.filename
 		os.system(commande_e)
 	def chain_dvi_ps(self,papertype="a4"):
 		"""
