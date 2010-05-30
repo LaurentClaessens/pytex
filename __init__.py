@@ -404,9 +404,9 @@ class CodeLaTeX(object):
 		By default, it replaces by the content of <filename> (add .tex if no extension is given) which is taken in the current directory.
 
 		Some remarks
-		> This function is recursive but I pity the fool who makes recursion in his LaTeX document.
-		> It does not really check the context. A \input in a verbatim environment will be replaced !
-		> If a file is not found, a warning is printed and no replacement are done.
+		1. This function is recursive but I pity the fool who makes recursion in his LaTeX document.
+		2. It does not really check the context. A \input in a verbatim environment will be replaced !
+		3. If a file is not found, a warning is printed and no replacement are done.
 		"""
 		list = []
 		if text==None:
