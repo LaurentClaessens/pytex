@@ -21,7 +21,7 @@
 # email: moky.math@gmail.com
 
 """
-This is a very basic LaTeX parser intended to be used within phystricks.
+This is a very basic LaTeX parser and manipulation intended to be used within phystricks and other of my scripts.
 """
 
 import os		# For the compilations.
