@@ -24,7 +24,8 @@
 This is a very basic LaTeX parser and manipulation intended to be used within phystricks and other of my scripts.
 """
 
-import os		# For the compilations.
+import os
+import re
 
 class Compilation(object):
 	"""
@@ -298,6 +299,32 @@ class newlabelNotFound(object):
 	def __init__(self,label_name):
 		self.label_name = label_name
 
+def CodeLaTeXToRoughSource(codeLaTeX,filename):
+	"""
+	Return a file containing rough self-contained sources that are ready for upload to Arxiv.
+	This function return the filename of the produced file.
+	What it does
+		1. Perform all the \input recursively
+		2. Remove the commented lines (it leavec the % symbol itself)
+		3. Include the bibliography, include .bbl file (no bibtex needed)
+		4. Include the index, include .ind file (no makeindex needed)
+	What is does not
+		1. Check for pdflatex compliance. If you are using phystricks, please refer to the documentation in order to produce a pdflatex compliant source code.
+	The result is extremely hard-coded. One has not to understand it as a workable LaTeX source file.
+	"""
+	new_code = CodeLaTeX(codeLaTeX.text_without_comments)
+	new_code.substitute_all_input()
+	resultBib = re.search("\\\\bibliography\{.*\}",code)
+	if resultBib != None :
+		ligne_biblio = resultBib.group()
+		code = code.replace(ligne_biblio,"".join(medicament.bibliographie().contenu()))
+	resultIndex = re.search("\printindex",code)
+	if resultIndex != None :
+		code = code.replace("\printindex","".join(medicament.index().contenu()))
+	new_code.write(code,"w")
+	print "The source file is",source_file.filename
+	return source_file.chemin
+
 class CodeLaTeX(object):
 	""" Contains the informations about a tex file """
 	def __init__(self,text_brut,filename=None):
@@ -390,12 +417,12 @@ class CodeLaTeX(object):
 
 	def substitute_input(self,filename,text=None):
 		r""" 
-		replace \input{...} by the text.
+		replace \input{<filename>} by <text>.
 
 		By default, it replaces by the content of <filename> (add .tex if no extension is given) which is taken in the current directory.
 
 		Some remarks
-		1. This function is recursive but I pity the fool who makes recursion in his LaTeX document.
+		1. This function is not recursive
 		2. It does not really check the context. A \input in a verbatim environment will be replaced !
 		3. If a file is not found, a warning is printed and no replacement are done.
 		"""
@@ -417,6 +444,11 @@ class CodeLaTeX(object):
 		for as_written in list :
 			A = A.replace(as_written,text)
 		return A
+	def substitute_all_input(self):
+		r"""
+		Recursively change all the \input{...} by the content of the corresponding file.
+		"""
+
 	def remove_comments(self):
 		return CodeLaTeX(self.text_without_comments)
 	def find(self,arg):
@@ -437,24 +469,7 @@ class CodeLaTeX(object):
 		return CodeLaTeX(new_text)
 	def rough_source(self,filename):
 		"""
-		Return a file containing rough self-contained sources that are ready for upload to Arxiv.
-		This function return the filename of the produced file.
-		What it does
-			1. Perform all the \input recursively
-			2. Remove the commented lines (it leavec the % symbol itself)
-			3. Include the bibliography, include .bbl file (no bibtex needed)
-			4. Include the index, include .ind file (no makeindex needed)
-		What is does not
-			1. Check for pdflatex compliance. If you are using phystricks, please refer to the documentation in order to produce a pdflatex compliant source code.
-		The result is extremely hard-coded. One has not to understand it as a workable LaTeX source file.
+		Return the name of a file where there is a rough latex code ready to be published to Arxiv
+		See the docstring of LaTeXparser.CodeLaTeXToRoughSource
 		"""
-		resultBib = re.search("\\\\bibliography\{.*\}",code)
-		if resultBib != None :
-			ligne_biblio = resultBib.group()
-			code = code.replace(ligne_biblio,"".join(medicament.bibliographie().contenu()))
-		resultIndex = re.search("\printindex",code)
-		if resultIndex != None :
-			code = code.replace("\printindex","".join(medicament.index().contenu()))
-		source_file.write(code,"w")
-		print "The source file is",source_file.filename
-		return source_file.chemin
+		return CodeLaTeXToRoughSource(self,filename)
