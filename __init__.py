@@ -151,6 +151,7 @@ def SearchArguments(remaining,number_of_arguments):
 	while (next_can_be_open in paires.keys()) and (still_to_be_done == True) and (len(arguments) < number_of_arguments) :
 		arg,start,end = SearchFitBrace(remaining,0,next_can_be_open)
 		as_written = as_written + remaining[:end]+"}"
+		print "153",as_written
 		arguments.append((arg,next_can_be_open+paires[next_can_be_open]))
 		remaining = remaining[end+1:]
 		compact = compactization(remaining,accepted_between_arguments)
@@ -162,22 +163,26 @@ def SearchArguments(remaining,number_of_arguments):
 			# remaining is empty. Thus the search of new arguments ceases when the remaining is empty 
 			# (the condition still_to_be_done) or when the remaining does not begin by an opening brace
 			# (the condion next_can_be_open).
+	print "166",as_written
 	return arguments, as_written
 
 def SearchUseOfMacro(code,name,number_of_arguments=None):
-	"""
+	r"""
 	number_of_arguments is the number of arguments expected. 
 				Giving a too large number produces wrong results in the following example case where \MyMacro
 				is supposed to have 3 arguments :
 				\MyMacro{A}{B}{C}
-				{\\bf An other text}
-				The {\\bf ...} group is not a parameter of \MyMacro, while it will be fitted as a parameter.
+				{\bf An other text}
+				The {\bf ...} group is not a parameter of \MyMacro, while it will be fitted as a parameter.
 			It None is given, we search first for the definition and then the expected number of arguments is deduced.
 
 			Notice that the number_of_arguments is supposed to be the number of non optional arguments. We do not count the arguments
 			within [] in the number.
 	We do not fit the macros that are used in the comments.
+
+	name is the name of the macro to be fitted like \MyMacro (including the backslash).
 	"""
+	print "183 Je cherche la macro",name
 	text = code.text_without_comments
 	remaining_text = text
 	position  = remaining_text.find(name)
@@ -195,7 +200,7 @@ def SearchUseOfMacro(code,name,number_of_arguments=None):
 		if test_newcommand not in [defs+"{" for defs in definition_commands]:
 			remaining = remaining_text
 			arguments, as_written = SearchArguments(remaining,number_of_arguments)
-			as_written = "\\"+name+as_written
+			as_written = name+as_written
 			use.append(Occurrence(name,arguments,as_written))
 		position = remaining_text.find(name)
 	return use
@@ -299,10 +304,9 @@ class newlabelNotFound(object):
 	def __init__(self,label_name):
 		self.label_name = label_name
 
-def CodeLaTeXToRoughSource(codeLaTeX,filename):
+def CodeLaTeXToRoughSource(codeLaTeX,filename,bibliography_bbl_filename=None,index_ind_filename=None):
 	"""
 	Return a file containing rough self-contained sources that are ready for upload to Arxiv.
-	This function return the filename of the produced file.
 	What it does
 		1. Perform all the \input recursively
 		2. Remove the commented lines (it leavec the % symbol itself)
@@ -310,20 +314,38 @@ def CodeLaTeXToRoughSource(codeLaTeX,filename):
 		4. Include the index, include .ind file (no makeindex needed)
 	What is does not
 		1. Check for pdflatex compliance. If you are using phystricks, please refer to the documentation in order to produce a pdflatex compliant source code.
+
+	Input 
+		codeLaTeX : an object of type LaTeXparser.CodeLaTeX
+		filename : the name of the file in which the new code will be written
+	Optional
+		bibliography_bbl_filename : the name of the .bbl file. If not give, will be guesse by changing ".tex"->".bbl" in codeLaTeX.filename
+		index_ind_filename :        the name of the .bbl file. If not give, will be guesse by changing ".tex"->".ind" in codeLaTeX.filename
+	Output
+		Create the file named <filename>
+		return the new code as LaTeXparser.CodeLaTeX
+
 	The result is extremely hard-coded. One has not to understand it as a workable LaTeX source file.
 	"""
+	if not bibliography_bbl_filename :
+		bibliography_bbl_filename = codeLaTeX.filename.replace(".tex",".bbl")
+	if not index_ind_filename :
+		index_ind_filename = codeLaTeX.filename.replace(".tex",".ind")
+	code_biblio = FileToCodeLaTeX(bibliography_bbl_filename)
+	code_index = FileToCodeLaTeX(index_ind_filename)
+
 	new_code = CodeLaTeX(codeLaTeX.text_without_comments)
-	new_code.substitute_all_input()
-	resultBib = re.search("\\\\bibliography\{.*\}",code)
+	new_code = new_code.substitute_all_input()
+	resultBib = re.search("\\\\bibliography\{.*\}",new_code.text_brut)
 	if resultBib != None :
 		ligne_biblio = resultBib.group()
-		code = code.replace(ligne_biblio,"".join(medicament.bibliographie().contenu()))
-	resultIndex = re.search("\printindex",code)
+		new_code = new_code.replace(ligne_biblio,code_biblio.text_brut)
+	resultIndex = re.search("\printindex",new_code.text_brut)
 	if resultIndex != None :
-		code = code.replace("\printindex","".join(medicament.index().contenu()))
-	new_code.write(code,"w")
-	print "The source file is",source_file.filename
-	return source_file.chemin
+		new_code = new_code.replace("\printindex",code_index.text_brut)
+	new_code.filename = filename
+	new_code.save()
+	return new_code
 
 class CodeLaTeX(object):
 	""" Contains the informations about a tex file """
@@ -436,7 +458,9 @@ class CodeLaTeX(object):
 			except IOError :
 				print "Warning : file «%s» not found. No replacement done."%strict_filename
 				return self
-		for occurrence in self.search_use_of_macro("\input",1):
+		list_input = self.search_use_of_macro("\input",1)
+		print "457 J'ai les inputs ",str(  [oc.as_written for oc in list_input] )
+		for occurrence in list_input:
 			x = occurrence.analyse()
 			if x.filename == filename :			# Create the list of all the texts of the form \input{<filename>}
 				list.append(x.occurrence.as_written)
@@ -446,8 +470,17 @@ class CodeLaTeX(object):
 		return A
 	def substitute_all_input(self):
 		r"""
-		Recursively change all the \input{...} by the content of the corresponding file.
+		Recursively change all the \input{...} by the content of the corresponding file. Return a new object CodeLaTeX
 		"""
+		A = CodeLaTeX(self.text_brut)
+		list_input = A.search_use_of_macro("\input",1)
+		while list_input :
+			print "471",str(  [oc.analyse().filename for oc in list_input] )
+			for occurrence in list_input :
+				x = occurrence.analyse()
+				print "456 Je remplace ",x.filename
+				A = A.substitute_input(x.filename)
+			list_input = A.search_use_of_macro("\input",1)
 
 	def remove_comments(self):
 		return CodeLaTeX(self.text_without_comments)
