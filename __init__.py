@@ -151,7 +151,6 @@ def SearchArguments(remaining,number_of_arguments):
 	while (next_can_be_open in paires.keys()) and (still_to_be_done == True) and (len(arguments) < number_of_arguments) :
 		arg,start,end = SearchFitBrace(remaining,0,next_can_be_open)
 		as_written = as_written + remaining[:end]+"}"
-		print "153",as_written
 		arguments.append((arg,next_can_be_open+paires[next_can_be_open]))
 		remaining = remaining[end+1:]
 		compact = compactization(remaining,accepted_between_arguments)
@@ -163,7 +162,6 @@ def SearchArguments(remaining,number_of_arguments):
 			# remaining is empty. Thus the search of new arguments ceases when the remaining is empty 
 			# (the condition still_to_be_done) or when the remaining does not begin by an opening brace
 			# (the condion next_can_be_open).
-	print "166",as_written
 	return arguments, as_written
 
 def SearchUseOfMacro(code,name,number_of_arguments=None):
@@ -459,7 +457,6 @@ class CodeLaTeX(object):
 				print "Warning : file «%s» not found. No replacement done."%strict_filename
 				return self
 		list_input = self.search_use_of_macro("\input",1)
-		print "457 J'ai les inputs ",str(  [oc.as_written for oc in list_input] )
 		for occurrence in list_input:
 			x = occurrence.analyse()
 			if x.filename == filename :			# Create the list of all the texts of the form \input{<filename>}
@@ -478,10 +475,9 @@ class CodeLaTeX(object):
 			print "471",str(  [oc.analyse().filename for oc in list_input] )
 			for occurrence in list_input :
 				x = occurrence.analyse()
-				print "456 Je remplace ",x.filename
 				A = A.substitute_input(x.filename)
 			list_input = A.search_use_of_macro("\input",1)
-
+		return A
 	def remove_comments(self):
 		return CodeLaTeX(self.text_without_comments)
 	def find(self,arg):
@@ -500,9 +496,9 @@ class CodeLaTeX(object):
 				new_line = line[:placePC+1].replace(textA,textB)+line[placePC+1:]+"\n"
 			new_text = new_text + new_line
 		return CodeLaTeX(new_text)
-	def rough_source(self,filename):
+	def rough_source(self,filename,bibliography_bbl_filename=None,index_ind_filename=None):
 		"""
 		Return the name of a file where there is a rough latex code ready to be published to Arxiv
 		See the docstring of LaTeXparser.CodeLaTeXToRoughSource
 		"""
-		return CodeLaTeXToRoughSource(self,filename)
+		return CodeLaTeXToRoughSource(self,filename,bibliography_bbl_filename,index_ind_filename)
