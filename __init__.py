@@ -434,7 +434,27 @@ class CodeLaTeX(object):
 			else:
 				new_line = line[:placePC+1].replace(textA,textB)+line[placePC+1:]+"\n"
 			new_text = new_text + new_line
-			#print line
-			#print "->"
-			#print new_line
 		return CodeLaTeX(new_text)
+	def rough_source(self,filename):
+		"""
+		Return a file containing rough self-contained sources that are ready for upload to Arxiv.
+		This function return the filename of the produced file.
+		What it does
+			1. Perform all the \input recursively
+			2. Remove the commented lines (it leavec the % symbol itself)
+			3. Include the bibliography, include .bbl file (no bibtex needed)
+			4. Include the index, include .ind file (no makeindex needed)
+		What is does not
+			1. Check for pdflatex compliance. If you are using phystricks, please refer to the documentation in order to produce a pdflatex compliant source code.
+		The result is extremely hard-coded. One has not to understand it as a workable LaTeX source file.
+		"""
+		resultBib = re.search("\\\\bibliography\{.*\}",code)
+		if resultBib != None :
+			ligne_biblio = resultBib.group()
+			code = code.replace(ligne_biblio,"".join(medicament.bibliographie().contenu()))
+		resultIndex = re.search("\printindex",code)
+		if resultIndex != None :
+			code = code.replace("\printindex","".join(medicament.index().contenu()))
+		source_file.write(code,"w")
+		print "The source file is",source_file.filename
+		return source_file.chemin
