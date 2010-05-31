@@ -92,9 +92,7 @@ definition_commands = [ "\\newcommand","\\renewcommand" ]	# In the method dict_o
 								# these definition commands have 3 arguments.
 def FileToCodeLaTeX(name):
 	""" return a codeLaTeX from a file """
-	file = open(name,"r")
-	list_content = [l for l in file]
-	file.close()
+	list_content = list(open(name,"r"))
 	return CodeLaTeX("".join(list_content),filename=name)
 
 def compactization(text,accepted_between_arguments):		
@@ -215,13 +213,6 @@ def MacroDefinition(code,name):
 
 	A crash is probably raised if the macro is not defined in the text :(
 	"""
-	#print "Je recherche la définition de ",name
-	#for definer in definition_commands :
-	#	for newcommand in [Occurrence_newcommand(a) for a in [SearchUseOfMacro(text,definer,3) for definer in definition_commands]]:
-	#		print "J'ai trouvé la définition de ",newcommand.name
-	#		if newcommand.name == name :
-	#			 found = newcommand
-	#return found
 	if type(code) == CodeLaTeX :
 		return code.dict_of_definition_macros()[name]
 	else :
