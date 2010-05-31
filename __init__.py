@@ -180,7 +180,6 @@ def SearchUseOfMacro(code,name,number_of_arguments=None):
 
 	name is the name of the macro to be fitted like \MyMacro (including the backslash).
 	"""
-	print "183 Je cherche la macro",name
 	text = code.text_without_comments
 	remaining_text = text
 	position  = remaining_text.find(name)
