@@ -96,6 +96,23 @@ def FileToCodeLaTeX(name):
 	list_content = list(open(name,"r"))
 	return CodeLaTeX("".join(list_content),filename=name)
 
+class Occurrence(object):
+	"""
+	self.as_written : the code as it appears in the file, including \MyMacro, including the backslash.
+	"""
+	def __init__(self,name,arguments,as_written=""):
+		self.arguments = arguments
+		self.number_of_arguments = len(arguments)
+		self.name = name
+		self.as_written = as_written
+		self.arguments_list = [ a[0] for a in self.arguments ]
+	def analyse(self):
+		return globals()["Occurrence_"+self.name[1:]](self)		# We have to remove the initial "\" in the name of the macro.
+	def __getitem__(self,a):
+		return self.arguments[a]
+	def __str__(self):
+		return str(self.arguments)
+
 def compactization(text,accepted_between_arguments):		
 	for acc in accepted_between_arguments :
 		text=text.replace(acc,"")
@@ -122,23 +139,6 @@ def SearchFitBrace(text,position,open):
 			level = level-1
 		if level == 0:
 			return text[startPosition+1:i],startPosition,i
-
-class Occurrence(object):
-	"""
-	self.as_written : the code as it appears in the file, including \MyMacro, including the backslash.
-	"""
-	def __init__(self,name,arguments,as_written=""):
-		self.arguments = arguments
-		self.number_of_arguments = len(arguments)
-		self.name = name
-		self.as_written = as_written
-		self.arguments_list = [ a[0] for a in self.arguments ]
-	def analyse(self):
-		return globals()["Occurrence_"+self.name[1:]](self)		# We have to remove the initial "\" in the name of the macro.
-	def __getitem__(self,a):
-		return self.arguments[a]
-	def __str__(self):
-		return str(self.arguments)
 
 def SearchArguments(remaining,number_of_arguments):
 	"""
@@ -258,11 +258,6 @@ class Occurrence_input(object):
 	def __init__(self,occurrence):
 		self.occurrence = occurrence
 		self.filename = self.occurrence[0][0]
-
-class Occurrence_MyMacro(object):
-	def __init__(self,arguments):
-		self.arguments = arguments
-		print "J'ai repréré le premier argument ",arguments[0]
 
 class StatisticsOfTheMacro(object):
 	def __init__(self,code,name):
