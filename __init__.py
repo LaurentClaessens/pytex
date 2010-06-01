@@ -362,6 +362,8 @@ class CodeLaTeX(object):
 		"""
 		if not filename :
 			filename = self.filename
+		if not self.filename:
+			self.filename=filename
 		f = open(filename,"w")
 		f.write(self.text_brut)
 		f.close()
@@ -466,12 +468,12 @@ class CodeLaTeX(object):
 		return A
 	def substitute_all_input(self):
 		r"""
-		Recursively change all the \input{...} by the content of the corresponding file. Return a new object CodeLaTeX
+		Recursively change all the \input{...} by the content of the corresponding file. 
+		Return a new object LaTeXparser.CodeLaTeX
 		"""
 		A = CodeLaTeX(self.text_brut)
 		list_input = A.search_use_of_macro("\input",1)
 		while list_input :
-			print "471",str(  [oc.analyse().filename for oc in list_input] )
 			for occurrence in list_input :
 				x = occurrence.analyse()
 				A = A.substitute_input(x.filename)
