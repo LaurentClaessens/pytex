@@ -356,6 +356,11 @@ class CodeLaTeX(object):
 		self._dict_of_definition_macros = {}
 		self._list_of_input_files = []
 		self.filename = filename
+	def copy(self):
+		"""
+		Return a copy of self in a new object
+		"""
+		return CodeLaTeX(self.text_brut)
 	def save(self,filename=None):
 		"""
 		Save the code in a file. The optional argument provides a file name that overrides the self.filename. If none of filename and self.filename are give, an exception is raised.
@@ -486,6 +491,7 @@ class CodeLaTeX(object):
 	def replace(self,textA,textB):
 		"""
 		Replaces textA by textB in self.text_brut, but without performing the replacement in the comments.
+		This is not able to replace multiline texts. For that, see self.replace_full()
 		"""
 		lines = self.text_brut.split("\n")
 		new_text = ""
@@ -496,6 +502,10 @@ class CodeLaTeX(object):
 			else:
 				new_line = line[:placePC+1].replace(textA,textB)+line[placePC+1:]+"\n"
 			new_text = new_text + new_line
+		return CodeLaTeX(new_text)
+	def replace_full(self,textA,textB):
+		""" Replace textA by textB including in the comments """
+		new_text = self.text_brut.replace(textA,textB)
 		return CodeLaTeX(new_text)
 	def rough_source(self,filename,bibliography_bbl_filename=None,index_ind_filename=None):
 		"""
