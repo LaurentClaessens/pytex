@@ -141,9 +141,21 @@ def SearchFitBrace(text,position,open):
 			return text[startPosition+1:i],startPosition,i
 
 def SearchArguments(remaining,number_of_arguments):
+	r"""
+	From a string of the form {A}...{B}...{C}, returns the list ["A","B","C"] where the dots are elements of the list accepted_between_arguments.
+	Inside A,B and C you can have anything including the elements of the list accepted_between_arguments.
+	/!\ (THIS IS BUGGY : for the moment we erase most of accepted_between_arguments inside A,B and C. The consequence is that as_written is wrong) /!\
 	"""
-	From a string of the form {A}{B}{C}, returns the list ["A","B","C"].
-	"""
+	# The way it will work after debug
+	# Let be the string s=«{A}...{B}...{C}» 					(1)
+	# 	where A,B and C are strings and the dots are elements of the list accepted_between_arguments.
+	# First we start on the first «{» and we determine the corresponding closing bracket. This is the first argument.
+	# 	We add in the list of argument the string s[0:fin] where fin is the position of the closing bracket
+	# Then we find the next opening bracket, that is the next «{» and we determine if there is something between it and the previous closing bracket that
+	#	is not in the accepted_between_arguments. In other terms, we study the content of what is represented by dots in (1)
+	# We put the whole in a loop.
+	# at the end, as_written is then set as the string s[0:end] where end is the last closing bracket.
+	# The string s itself is never changed and all the positions of characters are computed as offset inside s.
 	next_can_be_open = compactization(remaining,accepted_between_arguments)[0] 
 	still_to_be_done = True
 	arguments = []
