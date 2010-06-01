@@ -118,22 +118,22 @@ def compactization(text,accepted_between_arguments):
 		text=text.replace(acc,"")
 	return text
 
-def SearchFitBrace(text,position,open):
+def SearchFitBrace(text,position,opening):
 	"""
 	return a tuple containing the text withing the next pair of open/close brace and the position where the pair closes in text
 
 	As an example, consider the string 
 	s="Hello (Louis) how are you ?"
-	SearchFitBrace(s,4,[" (",")"])
+	SearchFitBrace(s,4,["(",")"])
 	returns ('Louis', 6, 12)
 	because the next brace begins at position 6, finishes at position 12 and the text within in "Louis"
 	"""
-	close = paires[open]
+	close = paires[opening]
 	level = 0
 	giventext = text[position:]
-	startPosition = position+giventext.find(open)
+	startPosition = position+giventext.find(opening)
 	for i in range(startPosition,len(text)):
-		if text[i] == open :
+		if text[i] == opening :
 			level = level+1
 		if text[i] == close :
 			level = level-1
@@ -144,6 +144,7 @@ def SearchArguments(remaining,number_of_arguments):
 	r"""
 	From a string of the form {A}...{B}...{C}, returns the list ["A","B","C"] where the dots are elements of the list accepted_between_arguments.
 	Inside A,B and C you can have anything including the elements of the list accepted_between_arguments.
+	It is important that the string remaining begins on an opening bracket «{»
 	/!\ (THIS IS BUGGY : for the moment we erase most of accepted_between_arguments inside A,B and C. The consequence is that as_written is wrong) /!\
 	"""
 	# The way it will work after debug
@@ -156,6 +157,7 @@ def SearchArguments(remaining,number_of_arguments):
 	# We put the whole in a loop.
 	# at the end, as_written is then set as the string s[0:end] where end is the last closing bracket.
 	# The string s itself is never changed and all the positions of characters are computed as offset inside s.
+	turtle = 0
 	next_can_be_open = compactization(remaining,accepted_between_arguments)[0] 
 	still_to_be_done = True
 	arguments = []
