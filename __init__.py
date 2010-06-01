@@ -113,11 +113,6 @@ class Occurrence(object):
 	def __str__(self):
 		return str(self.arguments)
 
-def compactization(text,accepted_between_arguments):		
-	for acc in accepted_between_arguments :
-		text=text.replace(acc,"")
-	return text
-
 def SearchFitBrace(text,position,opening):
 	"""
 	return a tuple containing the text withing the next pair of open/close brace and the position where the pair closes in text
@@ -156,19 +151,26 @@ def ContinueSearch(s,opening):
 	close = paires[opening]
 	turtle = 0
 	while turtle < len(s):
+		if s[turtle]=="%":
+			a=s[turtle:]
+			pos = a.find("\n")
+			if pos == -1:
+				return False,-1
+			turtle = turtle+pos
+		if s[turtle] == opening :
+			return True,turtle
 		if s[turtle] not in accepted_between_arguments :
 			return False,-1
-		if s[turtle]="%":
-			A FAIRE
 		else :
 			turtle=turtle+1
+	return False,-1
 
 
-def SearchArguments(remaining,number_of_arguments):
+def SearchArguments(s,number_of_arguments):
 	r"""
 	From a string of the form {A}...{B}...{C}, returns the list ["A","B","C"] where the dots are elements of the list accepted_between_arguments.
 	Inside A,B and C you can have anything including the elements of the list accepted_between_arguments.
-	It is important that the string remaining begins on an opening bracket «{»
+	It is important that the string s begins on an opening bracket «{»
 	/!\ (THIS IS BUGGY : for the moment we erase most of accepted_between_arguments inside A,B and C. The consequence is that as_written is wrong) /!\
 	"""
 	# The way it will work after debug
@@ -182,25 +184,22 @@ def SearchArguments(remaining,number_of_arguments):
 	# at the end, as_written is then set as the string s[0:end] where end is the last closing bracket.
 	# The string s itself is never changed and all the positions of characters are computed as offset inside s.
 	turtle = 0
-	next_can_be_open = compactization(remaining,accepted_between_arguments)[0] 
-	still_to_be_done = True
 	arguments = []
-	as_written = ""		# We will put in that variable the precise text that appears
-	while (next_can_be_open in paires.keys()) and (still_to_be_done == True) and (len(arguments) < number_of_arguments) :
-		arg,start,end = SearchFitBrace(remaining,0,next_can_be_open)
-		as_written = as_written + remaining[:end]+"}"
-		arguments.append((arg,next_can_be_open+paires[next_can_be_open]))
-		remaining = remaining[end+1:]
-		compact = compactization(remaining,accepted_between_arguments)
-		if len(compact) >= 1:
-			next_can_be_open = compact[0]
-		else :
-			still_to_be_done = False
-			# If we have \MyMacro{foo}\MyMacro{bar}, at the end of the parsing of the first,
-			# remaining is empty. Thus the search of new arguments ceases when the remaining is empty 
-			# (the condition still_to_be_done) or when the remaining does not begin by an opening brace
-			# (the condion next_can_be_open).
-	return arguments, as_written
+	while len(arguments) < number_of_arguments :
+		arg,start,end=SearchFitBrace(s,turtle,"{")
+		arguments.append(arg)
+		turtle=end+1
+		if turtle >= len(s):
+			as_written = s
+			return arguments,as_written
+		if s[turtle] <> "{":
+			boo,offset = ContinueSearch(s[turtle:],"{")
+			if boo:
+				turtle=turtle+offset-1
+			if (not boo) or (len(arguments)==number_of_arguments):
+				as_written = s[0:turtle]
+				return arguments,as_written
+
 
 def SearchUseOfMacro(code,name,number_of_arguments=None):
 	r"""
@@ -257,7 +256,7 @@ def MacroDefinition(code,name):
 	if type(code) == CodeLaTeX :
 		return code.dict_of_definition_macros()[name]
 	else :
-		print "Je recrée, mais ce n'est pas supposé arriver."
+		print "Warning: something is wrong. I'm not supposed to be here. Please contact the developer"
 		return CodeLaTeX(code).dict_of_definition_macros()[name]
 
 class Occurrence_newlabel(object):
