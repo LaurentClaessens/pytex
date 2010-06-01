@@ -140,6 +140,30 @@ def SearchFitBrace(text,position,opening):
 		if level == 0:
 			return text[startPosition+1:i],startPosition,i
 
+def ContinueSearch(s,opening):
+	r"""
+	Given the string s and the position s, return True if there is still a good candidate.
+	A «good» candidate is an opening bracket which is separated from the previous closing one by only elements of accepted_between_arguments. It does not takes into accounts stuff between a % and a \n 
+	Return a tuple (boolean,int) where the integer is the position (in s) of the found opening bracket.
+	
+	Id the result is False, the returned offset is -1
+
+	Example
+	s=" \n % blahblah \n { other  "
+	CntinueSearch(s,"{")
+	return True and the offset of the last opening bracket
+	"""
+	close = paires[opening]
+	turtle = 0
+	while turtle < len(s):
+		if s[turtle] not in accepted_between_arguments :
+			return False,-1
+		if s[turtle]="%":
+			A FAIRE
+		else :
+			turtle=turtle+1
+
+
 def SearchArguments(remaining,number_of_arguments):
 	r"""
 	From a string of the form {A}...{B}...{C}, returns the list ["A","B","C"] where the dots are elements of the list accepted_between_arguments.
