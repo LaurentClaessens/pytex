@@ -566,8 +566,6 @@ class CodeLaTeX(object):
 		A = self.copy()
 		liste_occurrences = A.search_use_of_macro(macro_name,number_of_arguments)
 		for occurrence in liste_occurrences :
-			print "569", occurrence.as_written
-			print "570",occurrence.arguments[0]
 			A=A.replace_full(occurrence.as_written,occurrence.arguments[0])
 		return A
 	def find(self,arg):
@@ -577,6 +575,9 @@ class CodeLaTeX(object):
 		Replaces textA by textB in self.text_brut, but without performing the replacement in the comments.
 		This is not able to replace multiline texts. For that, see self.replace_full()
 		"""
+		if "\n" in textA :
+			print r"""Warning : the method CodeLaTeX.replace() is not intended to perform multiline replacements.
+				Consider using CodeLaTeX.replace_full() instead"""
 		lines = self.text_brut.split("\n")
 		new_text = ""
 		for line in lines :
