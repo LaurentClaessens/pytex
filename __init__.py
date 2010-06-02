@@ -566,7 +566,9 @@ class CodeLaTeX(object):
 		A = self.copy()
 		liste_occurrences = A.search_use_of_macro(macro_name,number_of_arguments)
 		for occurrence in liste_occurrences :
-			A=A.replace(occurrence.as_written,occurrence.arguments[0])
+			print "569", occurrence.as_written
+			print "570",occurrence.arguments[0]
+			A=A.replace_full(occurrence.as_written,occurrence.arguments[0])
 		return A
 	def find(self,arg):
 		return self.text.find(arg)
