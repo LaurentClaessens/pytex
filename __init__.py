@@ -170,9 +170,8 @@ def SearchArguments(s,number_of_arguments):
 	From a string of the form {A}...{B}...{C}, returns the list ["A","B","C"] where the dots are elements of the list accepted_between_arguments.
 	Inside A,B and C you can have anything including the elements of the list accepted_between_arguments.
 	It is important that the string s begins on an opening bracket «{»
-	/!\ (THIS IS BUGGY : for the moment we erase most of accepted_between_arguments inside A,B and C. The consequence is that as_written is wrong) /!\
 	"""
-	# The way it will work after debug
+	# The way it works
 	# Let be the string s=«{A}...{B}...{C}» 					(1)
 	# 	where A,B and C are strings and the dots are elements of the list accepted_between_arguments.
 	# First we start on the first «{» and we determine the corresponding closing bracket. This is the first argument.
@@ -207,7 +206,7 @@ def compactization(text,accepted_between_arguments):
 def NextMacroCandidate(s,macro_name):
 	turtle = 0
 	while turtle < len(s):
-		if s[turtle:turtle+len(macro_name)+1] == "\\"+macro_name :
+		if s[turtle:turtle+len(macro_name)] == macro_name :
 			return True,turtle
 		if s[turtle]=="%":
 			a=s[turtle:]
@@ -217,8 +216,7 @@ def NextMacroCandidate(s,macro_name):
 			turtle = turtle+pos
 		turtle=turtle+1
 
-
-def SearchUseOfMacro(code,name,number_of_arguments=None):
+def SearchUseOfMacro(code,macro_name,number_of_arguments=None):
 	r"""
 	number_of_arguments is the number of arguments expected. 
 				Giving a too large number produces wrong results in the following example case where \MyMacro
@@ -232,13 +230,29 @@ def SearchUseOfMacro(code,name,number_of_arguments=None):
 			within [] in the number.
 	We do not fit the macros that are used in the comments.
 
-	name is the name of the macro to be fitted like \MyMacro (including the backslash).
+	macro_name is the name of the macro to be fitted like \MyMacro (including the backslash).
+
+	/!\	We do not manage the case where the first argument is not immediatly after the macro name, i.e.
+			\MyMacro {argument} (with a space between \MyMacro and the first opening bracket)
+		will be buggy.
+		
 	"""
 	turtle = 0
-	remaining = code.text_brut
-	while name in remaining :
-		turtle = 
-
+	s = code.text_brut
+	remaining = s
+	use = []
+	while macro_name in remaining :
+		remaining=s[turtle:]
+		boo,offset = NextMacroCandidate(remaining,macro_name)
+		if boo==False:
+			return use
+		if boo :
+			turtle = turtle+offset+len(macro_name)
+			remaining=s[turtle:]
+			arguments,as_written=SearchArguments(remaining,number_of_arguments)
+			occurrence=Occurrence(macro_name,arguments,macro_name+as_written)
+			use.append(occurrence)
+	return use
 
 
 def MacroDefinition(code,name):
