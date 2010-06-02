@@ -533,6 +533,41 @@ class CodeLaTeX(object):
 		return A
 	def remove_comments(self):
 		return CodeLaTeX(self.text_without_comments)
+
+	def remove_macro_content(self,macro_name,number_of_arguments):
+		r"""
+		Remove the presence of a macro (not its definition). 
+		Example
+
+		Hello \MyMacro{guy} how do you do ?
+
+		will become 
+		Hello how do you do ?
+
+		Return a new LaTeXparser.CodeLaTeX object.
+		"""
+		A = self.copy()
+		liste_occurrences = A.search_use_of_macro(macro_name,number_of_arguments)
+		for occurrence in liste_occurrences :
+			A=A.replace_full(occurrence.as_written,"")
+		return A
+	def remove_macro_name(self,macro_name,number_of_arguments):
+		r"""
+		Remove the macro name, but leaves the argument.
+		Example
+
+		Hello \MyMacro{guy} how do you do ?
+
+		will become 
+		Hello guy how do you do ?
+
+		This function only works with a macro which has only one argument.
+		"""
+		A = self.copy()
+		liste_occurrences = A.search_use_of_macro(macro_name,number_of_arguments)
+		for occurrence in liste_occurrences :
+			A=A.replace(occurrence.as_written,occurrence.arguments[0])
+		return A
 	def find(self,arg):
 		return self.text.find(arg)
 	def replace(self,textA,textB):
