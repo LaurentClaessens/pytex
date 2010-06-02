@@ -165,7 +165,6 @@ def ContinueSearch(s,opening):
 			turtle=turtle+1
 	return False,-1
 
-
 def SearchArguments(s,number_of_arguments):
 	r"""
 	From a string of the form {A}...{B}...{C}, returns the list ["A","B","C"] where the dots are elements of the list accepted_between_arguments.
@@ -205,6 +204,20 @@ def compactization(text,accepted_between_arguments):
 		text=text.replace(acc,"")
 	return text
 
+def NextMacroCandidate(s,macro_name):
+	turtle = 0
+	while turtle < len(s):
+		if s[turtle:turtle+len(macro_name)+1] == "\\"+macro_name :
+			return True,turtle
+		if s[turtle]=="%":
+			a=s[turtle:]
+			pos = a.find("\n")
+			if pos == -1:
+				return False,-1
+			turtle = turtle+pos
+		turtle=turtle+1
+
+
 def SearchUseOfMacro(code,name,number_of_arguments=None):
 	r"""
 	number_of_arguments is the number of arguments expected. 
@@ -221,28 +234,12 @@ def SearchUseOfMacro(code,name,number_of_arguments=None):
 
 	name is the name of the macro to be fitted like \MyMacro (including the backslash).
 	"""
-	text = code.text_without_comments
-	remaining_text = text
-	position  = remaining_text.find(name)
-	starting_position = position
+	turtle = 0
+	remaining = code.text_brut
+	while name in remaining :
+		turtle = 
 
-	if number_of_arguments == None :
-		number_of_arguments = code.dict_of_definition_macros()[name].number_of_arguments
-	use = []
 
-	while position != -1 :
-		# We don't want to fit the place where the name is defined. Thus we test if it is preceded by
-		# \newcommand or \renewcommand
-		test_newcommand = "\\"+compactization(remaining_text[:position],accepted_between_arguments).split("\\")[-1]
-		remaining_text = remaining_text[position+len(name):]
-		if test_newcommand not in [defs+"{" for defs in definition_commands]:
-			remaining = remaining_text
-			arguments, as_written = SearchArguments(remaining,number_of_arguments)
-			as_written = name+as_written
-			use.append(Occurrence(name,arguments,as_written))
-		position = remaining_text.find(name)
-	return use
-	
 
 def MacroDefinition(code,name):
 	r"""
@@ -298,7 +295,7 @@ class Occurrence_newcommand(object):
 class Occurrence_input(object):
 	def __init__(self,occurrence):
 		self.occurrence = occurrence
-		self.filename = self.occurrence[0][0]
+		self.filename = self.occurrence[0]
 
 class StatisticsOfTheMacro(object):
 	def __init__(self,code,name):
