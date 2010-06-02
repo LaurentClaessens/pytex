@@ -200,6 +200,10 @@ def SearchArguments(s,number_of_arguments):
 				as_written = s[0:turtle]
 				return arguments,as_written
 
+def compactization(text,accepted_between_arguments):		
+	for acc in accepted_between_arguments :
+		text=text.replace(acc,"")
+	return text
 
 def SearchUseOfMacro(code,name,number_of_arguments=None):
 	r"""
