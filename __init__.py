@@ -215,6 +215,7 @@ def NextMacroCandidate(s,macro_name):
 				return False,-1
 			turtle = turtle+pos
 		turtle=turtle+1
+	return False,-1
 
 def SearchUseOfMacro(code,macro_name,number_of_arguments=None):
 	r"""
@@ -441,8 +442,10 @@ class CodeLaTeX(object):
 		Return a list of Occurrence of a given macro
 
 		Optional argument: number_of_arguments=None
+		If no occurrence are found, return an empty list.
 		"""
-		return SearchUseOfMacro(self,name,number_of_arguments)
+		A = SearchUseOfMacro(self,name,number_of_arguments)
+		return A
 	def analyse_use_of_macro(self,name,number_of_arguments=None):
 		"""
 		Provide a list of analyse of the occurrences of a macro.
@@ -497,7 +500,7 @@ class CodeLaTeX(object):
 		Some remarks
 		1. This function is not recursive
 		2. It does not really check the context. A \input in a verbatim environment will be replaced !
-		3. If a file is not found, a warning is printed and no replacement are done.
+		3. If a file is not found, a IOError exception is raised
 		"""
 		list = []
 		if text==None:
@@ -508,7 +511,7 @@ class CodeLaTeX(object):
 				text = "".join( open(strict_filename,"r") )
 			except IOError :
 				print "Warning : file «%s» not found. No replacement done."%strict_filename
-				return self
+				raise
 		list_input = self.search_use_of_macro("\input",1)
 		for occurrence in list_input:
 			x = occurrence.analyse()
