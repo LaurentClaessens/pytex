@@ -490,7 +490,6 @@ class CodeLaTeX(object):
 				list.append(occurrence.analyse().filename)
 			self._list_of_input_files = list
 		return self._list_of_input_files
-
 	def substitute_input(self,filename,text=None):
 		r""" 
 		replace \input{<filename>} by <text>.
@@ -508,9 +507,9 @@ class CodeLaTeX(object):
 			if "." not in filename:
 				strict_filename=filename+".tex"
 			try:
-				text = "".join( open(strict_filename,"r") )
+				text = "".join( open(strict_filename,"r") )[:-1]	# Without [:-1] I got an artificial empty line at the end.
 			except IOError :
-				print "Warning : file «%s» not found. No replacement done."%strict_filename
+				print "Warning : file «%s» not found."%strict_filename
 				raise
 		list_input = self.search_use_of_macro("\input",1)
 		for occurrence in list_input:
@@ -586,10 +585,10 @@ class CodeLaTeX(object):
 		for line in lines :
 			placePC = line.find("%")
 			if placePC == -1:
-				new_line = line.replace(textA,textB)+"\n"
+				new_line = line.replace(textA,textB)
 			else:
-				new_line = line[:placePC+1].replace(textA,textB)+line[placePC+1:]+"\n"
-			new_text = new_text + new_line
+				new_line = line[:placePC+1].replace(textA,textB)+line[placePC+1:]
+			new_text = new_text +"\n"+ new_line
 		return CodeLaTeX(new_text)
 	def replace_full(self,textA,textB):
 		""" Replace textA by textB including in the comments """
