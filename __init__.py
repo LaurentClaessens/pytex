@@ -413,10 +413,10 @@ class CodeLaTeX(object):
 		"""
 		Save the code in a file. The optional argument provides a file name that overrides the self.filename. If none of filename and self.filename are give, an exception is raised.
 		"""
-		if not filename :
-			filename = self.filename
-		if not self.filename:
+		if filename:
 			self.filename=filename
+		else :
+			filename = self.filename
 		f = open(filename,"w")
 		f.write(self.text_brut)
 		f.close()
