@@ -434,7 +434,6 @@ class CodeBox(dict):
 			A=A.replace(occurrence.as_written,self[label].text_brut)
 		return A
 	
-
 class CodeLaTeX(object):
 	"""
 	Contains the informations about a LaTeX code.
