@@ -379,7 +379,7 @@ def CodeLaTeXToRoughSource(codeLaTeX,filename,bibliography_bbl_filename=None,ind
 	code_biblio = FileToCodeLaTeX(bibliography_bbl_filename)
 	code_index = FileToCodeLaTeX(index_ind_filename)
 
-	new_code = CodeLaTeX(codeLaTeX.text_without_comments)
+	new_code = CodeLaTeX(codeLaTeX.text_without_comments())
 	new_code = new_code.substitute_all_input()
 	resultBib = re.search("\\\\bibliography\{.*\}",new_code.text_brut)
 	if resultBib != None :
@@ -436,14 +436,18 @@ class CodeBox(dict):
 	
 
 class CodeLaTeX(object):
-	""" Contains the informations about a tex file """
+	"""
+	Contains the informations about a LaTeX code.
+
+	If your code is in a file, please use the function FileToCodeLaTeX :
+	FileToCodeLaTeX("MyFile.tex")
+	"""
 	def __init__(self,text_brut,filename=None):
 		"""
 		self.text_brut			contains the tex code as given
-		self.text_without_comments 	contains the tex code from which one removed the comments.
+		self.text_without_comments() 	contains the tex code from which one removed the comments.
 		"""
 		self.text_brut = text_brut
-		self.text_without_comments = RemoveComments(self.text_brut)
 		self._dict_of_definition_macros = {}
 		self._list_of_input_files = []
 		self.filename = filename
@@ -478,8 +482,6 @@ class CodeLaTeX(object):
 		if len(list_interseting) > 1 :
 			print "Warning : label %s has %s different values"%(label_name,str(len(list_interesting)))
 		return list_interesting[-1].value
-		
-
 	def search_use_of_macro(self,name,number_of_arguments=None):
 		"""
 		Return a list of Occurrence of a given macro
@@ -576,8 +578,12 @@ class CodeLaTeX(object):
 				A = A.substitute_input(x.filename)
 			list_input = A.search_use_of_macro("\input",1)
 		return A
+	def text_without_comments(self):
+		if not self._text_without_comments :
+			self._text_without_comments = RemoveComments(self.text_brut)
+		return self._text_without_comments
 	def remove_comments(self):
-		return CodeLaTeX(self.text_without_comments)
+		return CodeLaTeX(self.text_without_comments())
 
 	def remove_macro_content(self,macro_name,number_of_arguments):
 		r"""
