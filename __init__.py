@@ -392,6 +392,32 @@ def CodeLaTeXToRoughSource(codeLaTeX,filename,bibliography_bbl_filename=None,ind
 	new_code.save()
 	return new_code
 
+class CodeBox(dict):
+	"""
+	This class is intended to keep some portions of LaTeX code in a fresh box, allowing to retrieve them later.
+	"""
+	def __init__(self,a=None):
+		if not a :
+			a={}
+		dict.__init__(a)
+	def read_code(self,codeLaTeX,magic_macro):
+		r"""
+		Read the code and fill the dictionary.
+
+		magic_macro is a macro name which is supposed to have 2 arguments.
+
+		Example with magic_macro = \MyMacro
+
+		\MyMacro{thislabel}{This is my \LaTeX\ code}
+
+		will add the code «This is my \LaTeX\ code» in the dictionary with the key «thislabel»
+		"""
+		liste_occurrences = codeLaTeX.search_use_of_macro(magic_macro,2)
+		for occurrence in liste_occurrences :
+			label = occurrence.arguments[0]
+			code = CodeLaTeX(occurrence.arguments[1])
+			self[label]=code
+
 class CodeLaTeX(object):
 	""" Contains the informations about a tex file """
 	def __init__(self,text_brut,filename=None):
