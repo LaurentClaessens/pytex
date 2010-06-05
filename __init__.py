@@ -391,48 +391,6 @@ def CodeLaTeXToRoughSource(codeLaTeX,filename,bibliography_bbl_filename=None,ind
 	new_code.filename = filename
 	new_code.save()
 	return new_code
-
-class CodeBox(dict):
-	"""
-	This class is intended to keep some portions of LaTeX code in a fresh box, allowing to retrieve them later.
-	"""
-	def __init__(self,name):
-		dict.__init__({})
-		self.name=name
-		self.feed_macro="\\Feed"+self.name
-		self.put_macro="\Put"+self.name
-	def feed(self,codeLaTeX):
-		r"""
-		Read the code and fill the dictionary.
-			Example
-			If self.name is "mydict", codeLaTeX is parsed. Let consider the following line :
-
-			\feed_mydict{thislabel}{This is my \LaTeX\ code}
-
-			will add the code «This is my \LaTeX\ code» in the dictionary with the key «thislabel»
-		"""
-		liste_occurrences = codeLaTeX.search_use_of_macro(self.feed_macro,2)
-		for occurrence in liste_occurrences :
-			label = occurrence.arguments[0]
-			code = CodeLaTeX(occurrence.arguments[1])
-			self[label]=code
-	def put(self,codeLaTeX):
-		r"""
-		Substitute the dictionary inside codeLaTeX. 
-			If we continue the example of the method self.feed, the line
-			\put_mydict{mylabel}
-			will be changed to
-			This is my \LaTeX\ code.
-		You can (this is the aim!) substitute the code at several places.
-
-		return a new object LaTeXparser.CodeLaTeX
-		"""
-		A=codeLaTeX.copy()
-		liste_occurrences = A.search_use_of_macro(self.put_macro,1)
-		for occurrence in liste_occurrences :
-			label=occurrence.arguments[0]
-			A=A.replace(occurrence.as_written,self[label].text_brut)
-		return A
 	
 class CodeLaTeX(object):
 	"""
