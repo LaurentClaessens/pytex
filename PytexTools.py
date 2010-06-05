@@ -26,6 +26,8 @@ Contains tools (using LaTeXparser) intended to create good plugins for pytex.
 pytex is a non-yet published pre-compilation system. Don't try to understand what this module serves to.
 """
 
+import LaTeXparser
+
 class CodeBox(dict):
 	"""
 	This class is intended to keep some portions of LaTeX code in a fresh box, allowing to retrieve them later.
@@ -48,7 +50,7 @@ class CodeBox(dict):
 		liste_occurrences = codeLaTeX.search_use_of_macro(self.feed_macro,2)
 		for occurrence in liste_occurrences :
 			label = occurrence.arguments[0]
-			code = CodeLaTeX(occurrence.arguments[1])
+			code = LaTeXparser.CodeLaTeX(occurrence.arguments[1])
 			self[label]=code
 	def put(self,codeLaTeX):
 		r"""
@@ -68,7 +70,7 @@ class CodeBox(dict):
 			A=A.replace(occurrence.as_written,self[label].text_brut)
 		return A
 
-class Request(object)
+class Request(object):
 	""" Contains what a lst-foo.py file has to contain """
 	def __init__(self):
 		self.plugin_list = []
@@ -76,10 +78,10 @@ class Request(object)
 		self.ok_filenames_list = []
 		self.prerequiste=[]
 	def create_magic_box(self,filename,boxname):
-		self.magic_box_code = LaTeXparser.FileToCodeLaTeX(filename)
+		magic_box_code = LaTeXparser.FileToCodeLaTeX(filename)
 		self.magic_box = CodeBox(boxname)
 		self.magic_box.feed(magic_box_code)
 		self.plugin_list.append(self.magic_box.put)
-	def run_prerequistes(self):
+	def run_prerequistes(self,*arg,**args):
 		for plug in self.prerequiste:
 			plug
