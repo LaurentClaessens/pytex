@@ -26,6 +26,7 @@ Contains tools (using LaTeXparser) intended to create good plugins for pytex.
 pytex is a non-yet published pre-compilation system. Don't try to understand what this module serves to.
 """
 
+import os
 import LaTeXparser
 
 class Compilation(object):

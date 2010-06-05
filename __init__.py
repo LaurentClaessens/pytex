@@ -25,9 +25,11 @@ This is a very basic LaTeX parser and manipulation intended to be used within ph
 """
 
 import os
+import commands
 import re
 
-paires = { "{":"}","[":"]" }
+paires = { "{":"}","[":"]","`":"'"}
+
 accepted_between_arguments = ["%","\n"," ","	"] # the last one is a TAB
 definition_commands = [ "\\newcommand","\\renewcommand" ]	# In the method dict_of_definition_macros, I hard-code the fact that 
 								# these definition commands have 3 arguments.
@@ -35,6 +37,12 @@ def FileToCodeLaTeX(name):
 	""" return a codeLaTeX from a file """
 	list_content = list(open(name,"r"))
 	return CodeLaTeX("".join(list_content),filename=name)
+
+def FileToCodeLog(name):
+	""" return a codeLog from a file """
+	list_content = list(open(name,"r"))
+	return CodeLog("".join(list_content),filename=name)
+
 
 class Occurrence(object):
 	"""
@@ -195,7 +203,6 @@ def SearchUseOfMacro(code,macro_name,number_of_arguments=None):
 			use.append(occurrence)
 	return use
 
-
 def MacroDefinition(code,name):
 	r"""
 	Finds the (last) definition of a macro and returns the corresponding object
@@ -331,6 +338,80 @@ def CodeLaTeXToRoughSource(codeLaTeX,filename,bibliography_bbl_filename=None,ind
 	new_code.filename = filename
 	new_code.save()
 	return new_code
+
+class LaTeXWarning(object):
+	def __init__(self,label,page):
+		self.label = label
+		self.page = page
+		command_e="grep --color=always -n {"+self.label+"} *.tex"
+		self.grep_result=commands.getoutput(command_e)
+class ReferenceWarning(LaTeXWarning):
+	def __init__(self,label,page):
+		LaTeXWarning.__init__(self,label,page)
+	def __str__(self):
+		return " \033[35;40m ------ Undefined reference \033[35;33m %s \033[35;40m à la page \033[35;33m %s ------"%(self.label,str(self.page))+"\n"+self.grep_result+"\n"
+class CitationWarning(LaTeXWarning):
+	def __init__(self,label,page):
+		LaTeXWarning.__init__(self,label,page)
+	def __str__(self):
+		return " ------ \033[35;40m Undefined citation \033[35;33m %s \033[35;40m à la page \033[35;33m %s ------"%(self.label,str(self.page))+"\n"+self.grep_result+"\n"
+class LabelWarning(LaTeXWarning):
+	def __init__(self,label,page):
+		LaTeXWarning.__init__(self,label,page)
+	def __str__(self):
+		return " ------ \033[35;40m Multiply defined label \033[35;33m %s --------- "%self.label+"\n"+self.grep_result+"\n"
+
+class CodeLog(object):
+	"""
+	Contains informations about log file.
+
+	If your code is in a file, please use the function FileToCodeLaTeX :
+	FileToCodeLog("MyFile.log")
+	"""
+	def __init__(self,text_brut,filename=None):
+		"""
+		self.text_brut			contains the tex code as given
+		"""
+		self.text_brut = text_brut
+		self.filename = filename
+		self.undefined_references=[]
+		self.undefined_citations=[]
+		self.multiply_labels=[]
+		print "Analysing log file",self.filename
+		Warns = self.text_brut.split("Warning: ")
+		for warn in Warns[1:]:
+			try :
+				text = warn[0:warn.find(".")]
+				mots=text.split(" ")
+				genre = mots[0]
+				label = mots[1][1:-1]
+				try :
+					page = mots[mots.index("page")+1]
+				except ValueError :
+					page = -1
+				if genre == "Reference" :
+					self.undefined_references.append(ReferenceWarning(label,page))
+				if genre == "Label" :
+					self.multiply_labels.append(LabelWarning(label,page))
+				if genre == "Citation" :
+					self.undefined_citations.append(CitationWarning(label,page))
+			except ValueError :
+				pass
+		self.probs_number=len(self.undefined_references)+len(self.undefined_citations)+len(self.multiply_labels)
+		print "Analyse finished"
+	def __str__(self):
+		a=[]
+		for warn in self.undefined_references :
+			a.append(warn.__str__())
+		for warn in self.multiply_labels :
+			a.append(warn.__str__())
+		for warn in self.undefined_citations :
+			a.append(warn.__str__())
+		if self.probs_number > 1:
+			a.append("Il reste encore %s problèmes à régler. Bon travail."%str(self.probs_number))
+		if self.probs_number == 1:
+			a.append("C'est ton dernier problème à régler. Encore un peu de courage !")
+		return "\n".join(a)
 
 class CodeLaTeX(object):
 	"""
