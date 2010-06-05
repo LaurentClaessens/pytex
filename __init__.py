@@ -391,7 +391,7 @@ def CodeLaTeXToRoughSource(codeLaTeX,filename,bibliography_bbl_filename=None,ind
 	new_code.filename = filename
 	new_code.save()
 	return new_code
-	
+
 class CodeLaTeX(object):
 	"""
 	Contains the informations about a LaTeX code.

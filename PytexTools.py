@@ -74,8 +74,12 @@ class Request(object)
 		self.plugin_list = []
 		self.original_filename = ""
 		self.ok_filenames_list = []
+		self.prerequiste=[]
 	def create_magic_box(self,filename,boxname):
 		self.magic_box_code = LaTeXparser.FileToCodeLaTeX(filename)
 		self.magic_box = CodeBox(boxname)
 		self.magic_box.feed(magic_box_code)
 		self.plugin_list.append(self.magic_box.put)
+	def run_prerequistes(self):
+		for plug in self.prerequiste:
+			plug
