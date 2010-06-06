@@ -214,7 +214,7 @@ def MacroDefinition(code,name):
 	\newcommand{\name}[n]{definitio}
 	\newcommand{\name}{definitio}
 
-	A crash is probably raised if the macro is not defined in the text :(
+	I'm not sure of the behaviour if the macro is not found in the text. (update me)
 	"""
 	if type(code) == CodeLaTeX :
 		return code.dict_of_definition_macros()[name]
