@@ -113,7 +113,7 @@ class CodeBox(dict):
 			label = occurrence.arguments[0]
 			code = LaTeXparser.CodeLaTeX(occurrence.arguments[1])
 			self[label]=code
-	def put(self,codeLaTeX):
+	def put(self,codeLaTeX,tag=None):
 		r"""
 		Substitute the dictionary inside codeLaTeX. 
 			If we continue the example of the method self.feed, the line
@@ -125,10 +125,12 @@ class CodeBox(dict):
 		return a new object LaTeXparser.CodeLaTeX
 		"""
 		A=codeLaTeX.copy()
-		liste_occurrences = A.search_use_of_macro(self.put_macro,1)
+		liste_occurrences = A.search_use_of_macro(self.put_macro,2)
 		for occurrence in liste_occurrences :
-			label=occurrence.arguments[0]
-			A=A.replace(occurrence.as_written,self[label].text_brut)
+			tags=occurrences.arguments[0].split(",")
+			if tags = [""] or tag in tags :
+				label=occurrence.arguments[1]
+				A=A.replace(occurrence.as_written,self[label].text_brut)
 		return A
 
 class Request(object):
