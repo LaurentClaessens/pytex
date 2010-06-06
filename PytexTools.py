@@ -93,8 +93,9 @@ class CodeBox(dict):
 	"""
 	This class is intended to keep some portions of LaTeX code in a fresh box, allowing to retrieve them later.
 	"""
-	def __init__(self,name):
+	def __init__(self,name,tag):
 		dict.__init__({})
+		self.tag=tag
 		self.name=name
 		self.feed_macro="\\Feed"+self.name
 		self.put_macro="\Put"+self.name
@@ -113,7 +114,7 @@ class CodeBox(dict):
 			label = occurrence.arguments[0]
 			code = LaTeXparser.CodeLaTeX(occurrence.arguments[1])
 			self[label]=code
-	def put(self,codeLaTeX,tag=None):
+	def put(self,codeLaTeX):
 		r"""
 		Substitute the dictionary inside codeLaTeX. 
 			If we continue the example of the method self.feed, the line
@@ -127,10 +128,15 @@ class CodeBox(dict):
 		A=codeLaTeX.copy()
 		liste_occurrences = A.search_use_of_macro(self.put_macro,2)
 		for occurrence in liste_occurrences :
-			tags=occurrences.arguments[0].split(",")
-			if tags = [""] or tag in tags :
-				label=occurrence.arguments[1]
-				A=A.replace(occurrence.as_written,self[label].text_brut)
+			tags=occurrence.arguments[0].split(",")
+			if tags == [""] or self.tag in tags :	# If we don't mention a tag, they are all good
+				try :
+					label=occurrence.arguments[1]
+					A=A.replace(occurrence.as_written,self[label].text_brut)
+				except IndexError :
+					print "PytexTools error : \Put... needs two arguments. Don't forget the tag"
+					print occurrence.as_written
+					raise
 		return A
 
 class Request(object):
@@ -140,9 +146,9 @@ class Request(object):
 		self.original_filename = ""
 		self.ok_filenames_list = []
 		self.prerequiste=[]
-	def create_magic_box(self,filename,boxname):
+	def create_magic_box(self,filename,boxname,tag):
 		magic_box_code = LaTeXparser.FileToCodeLaTeX(filename)
-		self.magic_box = CodeBox(boxname)
+		self.magic_box = CodeBox(boxname,tag)
 		self.magic_box.feed(magic_box_code)
 		self.plugin_list.append(self.magic_box.put)
 	def run_prerequistes(self,*arg,**args):
