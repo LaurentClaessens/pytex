@@ -181,10 +181,9 @@ def SearchUseOfMacro(code,macro_name,number_of_arguments=None):
 
 	macro_name is the name of the macro to be fitted like \MyMacro (including the backslash).
 
-	/!\	We do not manage the case where the first argument is not immediatly after the macro name, i.e.
+	/!\	We do not manage the case where the first argument is not immediately after the macro name, i.e.
 			\MyMacro {argument} (with a space between \MyMacro and the first opening bracket)
 		will be buggy.
-		
 	"""
 	turtle = 0
 	s = code.text_brut
@@ -349,17 +348,17 @@ class ReferenceWarning(LaTeXWarning):
 	def __init__(self,label,page):
 		LaTeXWarning.__init__(self,label,page)
 	def __str__(self):
-		return " \033[35;40m ------ Undefined reference \033[35;33m %s \033[35;40m à la page \033[35;33m %s ------"%(self.label,str(self.page))+"\n"+self.grep_result+"\n"
+		return "\033[35;33m------ Undefined reference \033[35;33m %s \033[35;40m à la page \033[35;33m %s ------"%(self.label,str(self.page))+"\n"+self.grep_result+"\n"
 class CitationWarning(LaTeXWarning):
 	def __init__(self,label,page):
 		LaTeXWarning.__init__(self,label,page)
 	def __str__(self):
-		return " ------ \033[35;40m Undefined citation \033[35;33m %s \033[35;40m à la page \033[35;33m %s ------"%(self.label,str(self.page))+"\n"+self.grep_result+"\n"
+		return "\033[35;33m------ \033[35;40m Undefined citation \033[35;33m %s \033[35;40m à la page \033[35;33m %s ------"%(self.label,str(self.page))+"\n"+self.grep_result+"\n"
 class LabelWarning(LaTeXWarning):
 	def __init__(self,label,page):
 		LaTeXWarning.__init__(self,label,page)
 	def __str__(self):
-		return " ------ \033[35;40m Multiply defined label \033[35;33m %s --------- "%self.label+"\n"+self.grep_result+"\n"
+		return "\033[35;33m------ \033[35;40m Multiply defined label \033[35;33m %s --------- "%self.label+"\n"+self.grep_result+"\n"
 
 class CodeLog(object):
 	"""
