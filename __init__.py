@@ -396,11 +396,14 @@ class CodeLog(object):
 				except ValueError :
 					page = -1
 				if genre == "Reference" :
-					self.undefined_references.append(ReferenceWarning(label,page))
+					if label not in [w.label for w in self.undefined_references]:
+						self.undefined_references.append(ReferenceWarning(label,page))
 				if genre == "Label" :
-					self.multiply_labels.append(LabelWarning(label,page))
+					if label not in [w.label for w in self.undefined_labels]:
+						self.multiply_labels.append(LabelWarning(label,page))
 				if genre == "Citation" :
-					self.undefined_citations.append(CitationWarning(label,page))
+					if label not in [w.label for w in self.undefined_citations]:
+						self.undefined_citations.append(CitationWarning(label,page))
 			except ValueError :
 				pass
 		self.probs_number=len(self.undefined_references)+len(self.undefined_citations)+len(self.multiply_labels)
