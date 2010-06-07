@@ -355,17 +355,17 @@ class ReferenceWarning(LaTeXWarning):
 	def __init__(self,label,page):
 		LaTeXWarning.__init__(self,label,page)
 	def __str__(self):
-		return "\033[35;33m------ Undefined reference \033[35;40m %s \033[35;33m à la page \033[35;40m %s \033[35;33m------"%(self.label,str(self.page))+"\n"+self.grep_result+"\n"
+		return "\033[35;33m------ Undefined reference \033[35;37m %s \033[35;33m à la page\033[35;40m %s \033[35;33m------"%(self.label,str(self.page))+"\n"+self.grep_result#+"\n"
 class CitationWarning(LaTeXWarning):
 	def __init__(self,label,page):
 		LaTeXWarning.__init__(self,label,page)
 	def __str__(self):
-		return "\033[35;33m------ Undefined citation \033[35;40m %s \033[35;33m à la page \033[35;40m %s \033[35;33m------"%(self.label,str(self.page))+"\n"+self.grep_result+"\n"
+		return "\033[35;33m------ Undefined citation \033[35;43m %s \033[35;33m à la page\033[35;40m %s \033[35;33m------"%(self.label,str(self.page))+"\n"+self.grep_result#+"\n"
 class LabelWarning(LaTeXWarning):
 	def __init__(self,label,page):
 		LaTeXWarning.__init__(self,label,page)
 	def __str__(self):
-		return "\033[35;33m------ \033[35;40m Multiply defined label \033[35;33m %s --------- "%self.label+"\n"+self.grep_result+"\n"
+		return "\033[35;33m------ \033[35;40m Multiply defined label \033[35;33m %s --------- "%self.label+"\n"+self.grep_result#+"\n"
 
 class CodeLog(object):
 	"""
