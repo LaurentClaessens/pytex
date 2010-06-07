@@ -132,7 +132,14 @@ def SearchArguments(s,number_of_arguments):
 	turtle = 0
 	arguments = []
 	while len(arguments) < number_of_arguments :
-		arg,start,end=SearchFitBrace(s,turtle,"{")
+		try :
+			arg,start,end=SearchFitBrace(s,turtle,"{")
+		except :
+			print "LaTeXparser Error : fitting brace not found"
+			print "We were at position %s in the string"%str(turtle)
+			print s
+			print "------------------------------"
+			raise
 		arguments.append(arg)
 		turtle=end+1
 		if turtle >= len(s):

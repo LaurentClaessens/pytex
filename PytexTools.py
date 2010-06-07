@@ -137,6 +137,8 @@ class CodeBox(dict):
 					print "PytexTools error : \Put... needs two arguments. Don't forget the tag"
 					print occurrence.as_written
 					raise
+			else :
+				A=A.replace(occurrence.as_written,"")
 		return A
 
 class Request(object):
