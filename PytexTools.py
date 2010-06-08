@@ -132,7 +132,9 @@ class CodeBox(dict):
 			if tags == [""] or self.tag in tags :	# If we don't mention a tag, they are all good
 				try :
 					label=occurrence.arguments[1]
-					A=A.replace(occurrence.as_written,self[label].text_brut)
+					B=self[label]
+					B=self.put(B)					# This function is recursive !
+					A=A.replace(occurrence.as_written,B.text_brut)
 				except IndexError :
 					print "PytexTools error : \Put... needs two arguments. Don't forget the tag"
 					print occurrence.as_written
