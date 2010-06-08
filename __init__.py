@@ -420,6 +420,9 @@ class CodeLog(object):
 			a.append("Il reste encore %s problèmes à régler. Bon travail."%str(self.probs_number))
 		if self.probs_number == 1:
 			a.append("C'est ton dernier problème à régler. Encore un peu de courage !")
+		maybeMore ="LaTeX Warning: Label(s) may have changed. Rerun to get cross-references right."
+		if maybeMore in self.text_brut :
+			a.append(maybeMore)
 		return "\n".join(a)
 
 class CodeLaTeX(object):
