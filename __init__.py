@@ -407,7 +407,11 @@ class CodeLog(object):
 			except ValueError :
 				pass
 		self.probs_number=len(self.undefined_references)+len(self.undefined_citations)+len(self.multiply_labels)
-		print "Analyse finished"
+		self.maybeMore ="LaTeX Warning: Label(s) may have changed. Rerun to get cross-references right."
+	def rerun_to_get_cross_references(self):
+		if self.maybeMore in self.text_brut :
+			return True
+		return False
 	def __str__(self):
 		a=[]
 		for warn in self.undefined_references :
@@ -420,9 +424,8 @@ class CodeLog(object):
 			a.append("Il reste encore %s problèmes à régler. Bon travail."%str(self.probs_number))
 		if self.probs_number == 1:
 			a.append("C'est ton dernier problème à régler. Encore un peu de courage !")
-		maybeMore ="LaTeX Warning: Label(s) may have changed. Rerun to get cross-references right."
-		if maybeMore in self.text_brut :
-			a.append(maybeMore)
+		if self.rerun_to_get_cross_references():
+			a.append(self.maybeMore)
 		return "\n".join(a)
 
 class CodeLaTeX(object):
