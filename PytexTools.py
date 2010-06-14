@@ -27,6 +27,8 @@ pytex is a non-yet published pre-compilation system. Don't try to understand wha
 """
 
 import os
+import hashlib
+from xml.dom import minidom
 import LaTeXparser
 
 class Compilation(object):
@@ -149,12 +151,28 @@ class Request(object):
 		self.plugin_list = []
 		self.original_filename = ""
 		self.ok_filenames_list = []
-		self.prerequiste=[]
+		self.followed_files_list = []
+		self.prerequiste_list = []
 	def create_magic_box(self,filename,boxname,tag):
 		magic_box_code = LaTeXparser.FileToCodeLaTeX(filename)
 		self.magic_box = CodeBox(boxname,tag)
 		self.magic_box.feed(magic_box_code)
 		self.plugin_list.append(self.magic_box.put)
+	def follow_file(self,f):
+		"""
+		At the end of run_prerequistes, write the sha1 sum of the files in pytextools.xml
+		"""
+		self.followed_files_list.append(f)
 	def run_prerequistes(self,*arg,**args):
-		for plug in self.prerequiste:
+		for plug in self.prerequiste_list:
 			plug
+		followed_files_xml = minidom.Document()
+		the_sha = followed_files_xml.createElement("Followed files")
+		for f in self.followed_files_list :
+			text = str(open(f).read())
+			sha = hashlib.sha1(text).hexdigest()
+			xml = followed_files_xml.createElement(f)
+			xml.setAttribute('sha1sum',sha)
+			the_sha.appendChild(xml)
+		followed_files_xml.appendChild(the_sha)
+		open("pytextools.xml","w").write(followed_files_xml.toprettyxml())
