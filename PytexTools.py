@@ -179,7 +179,7 @@ class Request(object):
 		sha_now = FileToSha1sum(f)
 		if f not in self.followed_files_list :
 			return True
-		return sha_now == self.old_sha(f)
+		return not sha_now == self.old_sha(f)
 	def follow_file(self,f):
 		"""
 		At the end of run_prerequistes, write the sha1 sum of the files in pytextools.xml
