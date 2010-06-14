@@ -145,6 +145,9 @@ class CodeBox(dict):
 				A=A.replace(occurrence.as_written,"")
 		return A
 
+def FileToSha1sum(f):
+	text = str(open(f).read())
+	return hashlib.sha1(text).hexdigest()
 
 ELEMENT_FOLLOWED_FILES = "Followed_files"
 TAG_FICHIER="fichier"
@@ -164,7 +167,7 @@ class Request(object):
 		self.plugin_list.append(self.magic_box.put)
 	def xml_record(self):
 		return minidom.parse(self.xml_filename)
-	def xml2sha(self,f):
+	def old_sha(self,f):
 		""" Return the sha1 of f recorded in pytextools.xml """
 		root = self.xml_record()
 		fileNodes = root.getElementsByTagName(ELEMENT_FOLLOWED_FILES)
@@ -173,9 +176,10 @@ class Request(object):
 				if fich.getAttribute("name")==f:
 					return fich.getAttribute("sha1sum")
 	def is_file_changed(self,f):
+		sha_now = FileToSha1sum(f)
 		if f not in self.followed_files_list :
 			return True
-		return False
+		return sha_now == self.old_sha(f)
 	def follow_file(self,f):
 		"""
 		At the end of run_prerequistes, write the sha1 sum of the files in pytextools.xml
@@ -186,8 +190,7 @@ class Request(object):
 		followed_files_xml = minidom.Document()
 		the_sha = followed_files_xml.createElement(ELEMENT_FOLLOWED_FILES)
 		for f in self.followed_files_list :
-			text = str(open(f).read())
-			sha = hashlib.sha1(text).hexdigest()
+			sha=FileToSha1sum(f)
 			xml = followed_files_xml.createElement(TAG_FICHIER)
 			xml.setAttribute('name',f)
 			xml.setAttribute('sha1sum',sha)
