@@ -163,9 +163,9 @@ class Request(object):
 		At the end of run_prerequistes, write the sha1 sum of the files in pytextools.xml
 		"""
 		self.followed_files_list.append(f)
-	def run_prerequistes(self,*arg,**args):
+	def run_prerequistes(self,medicament):
 		for plug in self.prerequiste_list:
-			plug
+			plug(medicament)
 		followed_files_xml = minidom.Document()
 		the_sha = followed_files_xml.createElement("Followed files")
 		for f in self.followed_files_list :

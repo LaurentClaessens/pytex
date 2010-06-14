@@ -623,14 +623,15 @@ class CodeLaTeX(object):
 			print r"""Warning : the method CodeLaTeX.replace() is not intended to perform multiline replacements.
 				Consider using CodeLaTeX.replace_full() instead"""
 		lines = self.text_brut.split("\n")
-		new_text = ""
+		new_lines = []
 		for line in lines :
 			placePC = line.find("%")
 			if placePC == -1:
 				new_line = line.replace(textA,textB)
 			else:
 				new_line = line[:placePC+1].replace(textA,textB)+line[placePC+1:]
-			new_text = new_text +"\n"+ new_line
+			new_lines.append(new_line)
+			new_text = "\n".join(new_lines)
 		return CodeLaTeX(new_text)
 	def replace_full(self,textA,textB):
 		""" Replace textA by textB including in the comments """
