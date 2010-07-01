@@ -1,6 +1,5 @@
 The XML file in which are recorded the sha1sum of the followed files is of the form 
 
-
 +++++++++++++++++++++++++++++++++++++++++
 <?xml version="1.0" ?>
 <Followed_files>
