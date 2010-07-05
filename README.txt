@@ -1,3 +1,9 @@
+--------------------------------------------
+HOW DOES THE SHA1SUM RECORD WORKS
+--------------------------------------------
+
+
+
 The XML file in which are recorded the sha1sum of the followed files is of the form 
 
 +++++++++++++++++++++++++++++++++++++++++
@@ -28,4 +34,37 @@ The first element of that list represents the line
 If F = fileNode.getElementsByTagName("fichier")[0], then we get the name by
 F.getAttribute("sha1sum")
 
+
+--------------------------------------------
+HOW DOES THE MAGICAL BOX WORKS
+--------------------------------------------
+
+See the "DOM example" in "Python Library Reference Release 2.3.5".
+
+
+The file containing the pieces of LaTeX code have the structure
++++++++++++++++++++++++++++++++++++++++++++
+<?xml version="1.0" ?>
+
+<TheBoxes>
+
+<CodeBox label="My first example">
+	Bonjour
+</CodeBox>
+<CodeBox label="My second example">
+	Au revoir
+</CodeBox>
+
+</TheBoxes>
++++++++++++++++++++++++++++++++++++++++++++
+
+We extract the interesting informations in the following way :
+
+
+
+dom = minidom.parse("ess.xml")
+for box in dom.getElementsByTagName("CodeBox"):
+	print box.getAttribute("label")
+	text = getText(box.childNodes)
+	print "\n".join(text.split("\n")[1:-1])	# Because minidom adds an empty line at first and last position.
 
