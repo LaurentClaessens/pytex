@@ -27,16 +27,24 @@ This is a very basic LaTeX parser and manipulation intended to be used within ph
 import os
 import commands
 import re
+import codecs
 
 paires = { "{":"}","[":"]","`":"'"}
 
 accepted_between_arguments = ["%","\n"," ","	"] # the last one is a TAB
 definition_commands = [ "\\newcommand","\\renewcommand" ]	# In the method dict_of_definition_macros, I hard-code the fact that 
 								# these definition commands have 3 arguments.
+def FileToText(name):
+	""" return the content of a file """
+	l=[]
+	for line in open(name,"r"):
+		l.append(line)
+	return "".join(l)
+
 def FileToCodeLaTeX(name):
 	""" return a codeLaTeX from a file """
-	list_content = list(open(name,"r"))
-	return CodeLaTeX("".join(list_content),filename=name)
+	content = FileToText(name)
+	return CodeLaTeX(content,filename=name)
 
 def FileToCodeLog(name):
 	""" return a codeLog from a file """
@@ -192,6 +200,9 @@ def SearchUseOfMacro(code,macro_name,number_of_arguments=None):
 			\MyMacro {argument} (with a space between \MyMacro and the first opening bracket)
 		will be buggy.
 	"""
+	if not macro_name in code.text_brut :
+		print "non"
+		return []
 	turtle = 0
 	s = code.text_brut
 	remaining = s
@@ -428,11 +439,17 @@ class CodeLog(object):
 			a.append(self.maybeMore)
 		return "\n".join(a)
 
+def ConvertToUTF8(text):
+	try :
+		return unicode(text,"utf_8")
+	except TypeError :
+		return text
+
 class CodeLaTeX(object):
 	"""
 	Contains the informations about a LaTeX code.
 
-	If your code is in a file, please use the function FileToCodeLaTeX :
+	If your code is in a file, please use the function FileToCodeLaTeX:
 	FileToCodeLaTeX("MyFile.tex")
 	"""
 	def __init__(self,text_brut,filename=None):
@@ -440,7 +457,7 @@ class CodeLaTeX(object):
 		self.text_brut			contains the tex code as given
 		self.text_without_comments() 	contains the tex code from which one removed the comments.
 		"""
-		self.text_brut = text_brut
+		self.text_brut = ConvertToUTF8(text_brut)
 		self._dict_of_definition_macros = {}
 		self._list_of_input_files = []
 		self.filename = filename
@@ -457,7 +474,7 @@ class CodeLaTeX(object):
 			self.filename=filename
 		else :
 			filename = self.filename
-		f = open(filename,"w")
+		f = codecs.open(filename,"w","utf_8")
 		f.write(self.text_brut)
 		f.close()
 	def get_newlabel_value(self,label_name):
@@ -625,13 +642,23 @@ class CodeLaTeX(object):
 		lines = self.text_brut.split("\n")
 		new_lines = []
 		for line in lines :
+			print "645 Commence à convertir"
+			textA=ConvertToUTF8(textA)
+			textB=ConvertToUTF8(textB)
+			print "648 fini de convertir"
 			placePC = line.find("%")
 			if placePC == -1:
 				new_line = line.replace(textA,textB)
 			else:
-				new_line = line[:placePC+1].replace(textA,textB)+line[placePC+1:]
+				line_effective = line[:placePC+1]
+				line_after = line[placePC+1:]
+				new_line = line_effective.replace(textA,textB)
+				new_line = ConvertToUTF8(new_line)
+				line_after = ConvertToUTF8(line_after)
+				new_line = new_line+line_after
 			new_lines.append(new_line)
 			new_text = "\n".join(new_lines)
+		print "661"
 		return CodeLaTeX(new_text)
 	def replace_full(self,textA,textB):
 		""" Replace textA by textB including in the comments """

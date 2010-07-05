@@ -44,6 +44,7 @@ class Compilation(object):
 	def __init__(self,filename):
 		self.filename=filename
 		self.generic_filename = self.filename[:self.filename.rindex(".")]
+		print "47 Fini le __init de Compilation"
 	def bibtex(self):
 		commande_e="bibtex "+self.generic_filename
 		os.system(commande_e)
@@ -87,9 +88,17 @@ class Compilation(object):
 		commande_e="ps2pdf "+self.generic_filename+".ps" 
 		os.system(commande_e)
 	def latex_more(self):
+		print "90 latex_more"
 		self.special_stuffs()
 		self.latex()
 		self.special_stuffs()
+
+def getText(nodelist):
+	rc = ""
+	for node in nodelist:
+		if node.nodeType == node.TEXT_NODE:
+			rc = rc + node.data
+	return unicode(rc)
 
 class CodeBox(dict):
 	"""
@@ -99,23 +108,32 @@ class CodeBox(dict):
 		dict.__init__({})
 		self.tag=tag
 		self.name=name
-		self.feed_macro="\\Feed"+self.name
 		self.put_macro="\Put"+self.name
-	def feed(self,codeLaTeX):
+	def feed(self,xmlCode):
 		r"""
 		Read the code and fill the dictionary.
 			Example
-			If self.name is "mydict", codeLaTeX is parsed. Let consider the following line :
+			xmlCode is parsed. Let consider the following lines :
 
-			\feed_mydict{thislabel}{This is my \LaTeX\ code}
+				<CodeBox label="an example box">
+				This is my \LaTeX\ code.
+				</CodeBox>
 
-			will add the code «This is my \LaTeX\ code» in the dictionary with the key «thislabel»
+			will add the code «This is my \LaTeX\ code» in the dictionary with the key «an example box»
 		"""
-		liste_occurrences = codeLaTeX.search_use_of_macro(self.feed_macro,2)
-		for occurrence in liste_occurrences :
-			label = occurrence.arguments[0]
-			code = LaTeXparser.CodeLaTeX(occurrence.arguments[1])
-			self[label]=code
+		xmlCode_corrected=xmlCode.replace("&","[PytexSpecial amp]")
+		try :
+			dom = minidom.parseString(xmlCode_corrected)
+		except UnicodeEncodeError:
+			print xmlCode_corrected[2620:2630]
+			raise
+		for box in dom.getElementsByTagName("CodeBox"):
+			dict_name = box.getAttribute("dictName")
+			if dict_name == self.name :
+				label = box.getAttribute("label")
+				pre_code = getText(box.childNodes)
+				code = "\n".join(pre_code.split("\n")[1:-1])	# Because minidom adds an empty line at first and last position.
+				self[label]=LaTeXparser.CodeLaTeX(code.replace("[PytexSpecial amp]","&"))
 	def put(self,codeLaTeX):
 		r"""
 		Substitute the dictionary inside codeLaTeX. 
@@ -127,16 +145,24 @@ class CodeBox(dict):
 
 		return a new object LaTeXparser.CodeLaTeX
 		"""
+		print "----"
+		print "148 je copie"
 		A=codeLaTeX.copy()
+		print "150 fini de copier"
+		print "149 cherche"
 		liste_occurrences = A.search_use_of_macro(self.put_macro,2)
+		print "151 fini de chercher"
 		for occurrence in liste_occurrences :
 			tags=occurrence.arguments[0].split(",")
 			if tags == [""] or self.tag in tags :	# If we don't mention a tag, they are all good
 				try :
 					label=occurrence.arguments[1]
 					B=self[label]
-					B=self.put(B)					# This function is recursive !
+					print "162 je put dans",label
+					B=self.put(B)			# This function is recursive !
+					print "163 fini de",label
 					A=A.replace(occurrence.as_written,B.text_brut)
+					print "166 Fini le replace"
 				except IndexError :
 					print "PytexTools error : \Put... needs two arguments. Don't forget the tag"
 					print occurrence.as_written
@@ -161,7 +187,7 @@ class Request(object):
 		self.prerequiste_list = []
 		self.xml_filename = "pytextools.xml"
 	def create_magic_box(self,filename,boxname,tag):
-		magic_box_code = LaTeXparser.FileToCodeLaTeX(filename)
+		magic_box_code = LaTeXparser.FileToText(filename)
 		self.magic_box = CodeBox(boxname,tag)
 		self.magic_box.feed(magic_box_code)
 		self.plugin_list.append(self.magic_box.put)
