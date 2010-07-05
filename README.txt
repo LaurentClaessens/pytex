@@ -68,3 +68,4 @@ for box in dom.getElementsByTagName("CodeBox"):
 	text = getText(box.childNodes)
 	print "\n".join(text.split("\n")[1:-1])	# Because minidom adds an empty line at first and last position.
 
+See also tests.py and magical_box.tex
