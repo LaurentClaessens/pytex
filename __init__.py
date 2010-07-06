@@ -449,8 +449,9 @@ class CodeLaTeX(object):
 	"""
 	Contains the informations about a LaTeX code.
 
-	If your code is in a file, please use the function FileToCodeLaTeX:
+	If your code is in a file, use the function FileToCodeLaTeX:
 	FileToCodeLaTeX("MyFile.tex")
+	returns a CodeLaTeX instance.
 	"""
 	def __init__(self,text_brut,filename=None):
 		"""
