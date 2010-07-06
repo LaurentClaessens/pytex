@@ -298,8 +298,8 @@ def RemoveComments(text):
 		to_be_removed = lineC[placePC:]
 		if placePC != -1:
 			ligne = ligne.replace(to_be_removed,"%")
-		line_withoutPC.append(ligne+"\n")
-	code_withoutPC = "".join(line_withoutPC)
+		line_withoutPC.append(ligne)
+	code_withoutPC = "\n".join(line_withoutPC)
 
 	final_code = code_withoutPC
 	# Now we remove what is after \end{document}
