@@ -201,7 +201,6 @@ def SearchUseOfMacro(code,macro_name,number_of_arguments=None):
 		will be buggy.
 	"""
 	if not macro_name in code.text_brut :
-		print "non"
 		return []
 	turtle = 0
 	s = code.text_brut
@@ -449,16 +448,22 @@ class CodeLaTeX(object):
 	"""
 	Contains the informations about a LaTeX code.
 
+	This class does not take track of the comments in the code. The symbol % is however kept because it
+	is important for paragraphs in LaTeX.
+
 	If your code is in a file, use the function FileToCodeLaTeX:
 	FileToCodeLaTeX("MyFile.tex")
 	returns a CodeLaTeX instance.
 	"""
-	def __init__(self,text_brut,filename=None):
+	# In a previous version, we were keeping the comments, but it caused some difficulties because, for example, we had to only perform the
+	# replacements outside the comments, so that we had always to replace line by line. It was painfully slow. 
+	# If you have any idea how to keep track of the comments without slow down the process, please send a patch :)
+	def __init__(self,given_text,filename=None):
 		"""
-		self.text_brut			contains the tex code as given
-		self.text_without_comments() 	contains the tex code from which one removed the comments.
+		self.text_brut			contains the tex code as given, without the comments
 		"""
-		self.text_brut = ConvertToUTF8(text_brut)
+		self.given_text = given_text
+		self.text_brut = ConvertToUTF8(RemoveComments(self.given_text))
 		self._dict_of_definition_macros = {}
 		self._list_of_input_files = []
 		self.filename = filename
@@ -589,13 +594,6 @@ class CodeLaTeX(object):
 				A = A.substitute_input(x.filename)
 			list_input = A.search_use_of_macro("\input",1)
 		return A
-	def text_without_comments(self):
-		if not self._text_without_comments :
-			self._text_without_comments = RemoveComments(self.text_brut)
-		return self._text_without_comments
-	def remove_comments(self):
-		return CodeLaTeX(self.text_without_comments())
-
 	def remove_macro_content(self,macro_name,number_of_arguments):
 		r"""
 		Remove the presence of a macro (not its definition). 
@@ -611,7 +609,7 @@ class CodeLaTeX(object):
 		A = self.copy()
 		liste_occurrences = A.search_use_of_macro(macro_name,number_of_arguments)
 		for occurrence in liste_occurrences :
-			A=A.replace_full(occurrence.as_written,"")
+			A=A.replace(occurrence.as_written,"")
 		return A
 	def remove_macro_name(self,macro_name,number_of_arguments):
 		r"""
@@ -628,41 +626,14 @@ class CodeLaTeX(object):
 		A = self.copy()
 		liste_occurrences = A.search_use_of_macro(macro_name,number_of_arguments)
 		for occurrence in liste_occurrences :
-			A=A.replace_full(occurrence.as_written,occurrence.arguments[0])
+			A=A.replace(occurrence.as_written,occurrence.arguments[0])
 		return A
 	def find(self,arg):
 		return self.text.find(arg)
 	def replace(self,textA,textB):
-		"""
-		Replaces textA by textB in self.text_brut, but without performing the replacement in the comments.
-		This is not able to replace multiline texts. For that, see self.replace_full()
-		"""
-		if "\n" in textA :
-			print r"""Warning : the method CodeLaTeX.replace() is not intended to perform multiline replacements.
-				Consider using CodeLaTeX.replace_full() instead"""
-		lines = self.text_brut.split("\n")
-		new_lines = []
-		for line in lines :
-			print "645 Commence à convertir"
-			textA=ConvertToUTF8(textA)
-			textB=ConvertToUTF8(textB)
-			print "648 fini de convertir"
-			placePC = line.find("%")
-			if placePC == -1:
-				new_line = line.replace(textA,textB)
-			else:
-				line_effective = line[:placePC+1]
-				line_after = line[placePC+1:]
-				new_line = line_effective.replace(textA,textB)
-				new_line = ConvertToUTF8(new_line)
-				line_after = ConvertToUTF8(line_after)
-				new_line = new_line+line_after
-			new_lines.append(new_line)
-			new_text = "\n".join(new_lines)
-		print "661"
-		return CodeLaTeX(new_text)
-	def replace_full(self,textA,textB):
 		""" Replace textA by textB including in the comments """
+		textA=ConvertToUTF8(textA)
+		textB=ConvertToUTF8(textB)
 		new_text = self.text_brut.replace(textA,textB)
 		return CodeLaTeX(new_text)
 	def rough_source(self,filename,bibliography_bbl_filename=None,index_ind_filename=None):

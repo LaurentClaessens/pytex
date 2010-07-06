@@ -98,7 +98,7 @@ def getText(nodelist):
 	for node in nodelist:
 		if node.nodeType == node.TEXT_NODE:
 			rc = rc + node.data
-	return unicode(rc)
+	return rc
 
 class CodeBox(dict):
 	"""
@@ -122,11 +122,7 @@ class CodeBox(dict):
 			will add the code «This is my \LaTeX\ code» in the dictionary with the key «an example box»
 		"""
 		xmlCode_corrected=xmlCode.replace("&","[PytexSpecial amp]")
-		try :
-			dom = minidom.parseString(xmlCode_corrected)
-		except UnicodeEncodeError:
-			print xmlCode_corrected[2620:2630]
-			raise
+		dom = minidom.parseString(xmlCode_corrected)
 		for box in dom.getElementsByTagName("CodeBox"):
 			dict_name = box.getAttribute("dictName")
 			if dict_name == self.name :
@@ -145,24 +141,16 @@ class CodeBox(dict):
 
 		return a new object LaTeXparser.CodeLaTeX
 		"""
-		print "----"
-		print "148 je copie"
 		A=codeLaTeX.copy()
-		print "150 fini de copier"
-		print "149 cherche"
 		liste_occurrences = A.search_use_of_macro(self.put_macro,2)
-		print "151 fini de chercher"
 		for occurrence in liste_occurrences :
 			tags=occurrence.arguments[0].split(",")
 			if tags == [""] or self.tag in tags :	# If we don't mention a tag, they are all good
 				try :
 					label=occurrence.arguments[1]
 					B=self[label]
-					print "162 je put dans",label
 					B=self.put(B)			# This function is recursive !
-					print "163 fini de",label
 					A=A.replace(occurrence.as_written,B.text_brut)
-					print "166 Fini le replace"
 				except IndexError :
 					print "PytexTools error : \Put... needs two arguments. Don't forget the tag"
 					print occurrence.as_written
