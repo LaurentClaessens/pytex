@@ -101,13 +101,15 @@ class Occurrence(object):
 		if len(arguments) != len(configuration):
 			print "Error : length of the configuration list has to be the same as the number of arguments"
 			raise ValueError
-		for i in range
+		for i in range(len(arguments)):
+			text=text+configuration[i]+"{"+arguments[i]+"}"
+		return Occurrence(self.name,arguments,text,self.position)
 	def analyse(self):
 		return globals()["Occurrence_"+self.name[1:]](self)		# We have to remove the initial "\" in the name of the macro.
 	def __getitem__(self,a):
 		return self.arguments[a]
 	def __str__(self):
-		return str(self.arguments)
+		return self.as_written
 
 def SearchFitBrace(text,position,opening):
 	"""
