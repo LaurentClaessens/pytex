@@ -44,7 +44,6 @@ class Compilation(object):
 	def __init__(self,filename):
 		self.filename=filename
 		self.generic_filename = self.filename[:self.filename.rindex(".")]
-		print "47 Fini le __init de Compilation"
 	def bibtex(self):
 		commande_e="bibtex "+self.generic_filename
 		os.system(commande_e)
@@ -88,10 +87,17 @@ class Compilation(object):
 		commande_e="ps2pdf "+self.generic_filename+".ps" 
 		os.system(commande_e)
 	def latex_more(self):
-		print "90 latex_more"
 		self.special_stuffs()
 		self.latex()
 		self.special_stuffs()
+
+def ChangeLabelsAndRef(codeLaTeX,func):
+	r"""
+	Apply the function func to each argument of \label, \ref, \eqref in codeLaTeX.
+
+	return a new object LaTeXparser.CodeLaTeX
+	"""
+	list_occurrences = codeLaTeX.search_use_of_macro("\label",1)
 
 def getText(nodelist):
 	rc = ""
@@ -214,7 +220,6 @@ class Request(object):
 		return followed_files_xml.toprettyxml()
 	def run_prerequistes(self,arg):
 		for plug in self.prerequiste_list:
-			print "217",plug
 			plug(arg)
 		open(self.xml_filename,"w").write(self.xml())
 

@@ -51,17 +51,57 @@ def FileToCodeLog(name):
 	list_content = list(open(name,"r"))
 	return CodeLog("".join(list_content),filename=name)
 
-
 class Occurrence(object):
 	"""
 	self.as_written : the code as it appears in the file, including \MyMacro, including the backslash.
+	self.position : the position at which this occurrence appears. 
+		Example, if we look at the CodeLaTeX
+
+		Hello word, \MyMacro{first} 
+		and then \MyMacro{second}
+
+		the first occurrence of \MyMacro has position=12
 	"""
-	def __init__(self,name,arguments,as_written=""):
+	def __init__(self,name,arguments,as_written="",position=0):
 		self.arguments = arguments
 		self.number_of_arguments = len(arguments)
 		self.name = name
 		self.as_written = as_written
-		self.arguments_list = [ a[0] for a in self.arguments ]
+		#self.arguments_list = [ a[0] for a in self.arguments ]
+		self.arguments_list = arguments
+		self.position = position
+	def configuration(self):
+		r"""
+		Return the way the arguments are separated in as_written.
+ 
+		Example, if we have
+		\MyMacro<space>{A}<tab>{B}
+		{C},
+		we return the list
+		["<space>","tab","\n"]
+
+		The following has to be true:
+		self.as_written == self.name+self.configuration()[0]+self.arguments_list[0]+etc.
+		"""
+		l=[]
+		a = self.as_written.split(self.name)[1]
+		for arg in self.arguments_list:
+			split = a.split("{"+arg+"}")
+			separator=split[0]
+			a=split[1]
+			l.append(separator)
+		return l
+	def change_argument(self,n,func):
+		r"""
+		Apply the function <func> to the <n>th argument of self. Then return a new object.
+		"""
+		arguments=self.arguments_list
+		arguments[n]=func(arguments[n])
+		new_text=self.name
+		if len(arguments) != len(configuration):
+			print "Error : length of the configuration list has to be the same as the number of arguments"
+			raise ValueError
+		for i in range
 	def analyse(self):
 		return globals()["Occurrence_"+self.name[1:]](self)		# We have to remove the initial "\" in the name of the macro.
 	def __getitem__(self,a):
@@ -209,14 +249,14 @@ def SearchUseOfMacro(code,macro_name,number_of_arguments=None):
 	while macro_name in remaining :
 		remaining=s[turtle:]
 		boo,offset = NextMacroCandidate(remaining,macro_name)
-		if boo==False:
-			return use
 		if boo :
 			turtle = turtle+offset+len(macro_name)
 			remaining=s[turtle:]
 			arguments,as_written=SearchArguments(remaining,number_of_arguments)
-			occurrence=Occurrence(macro_name,arguments,macro_name+as_written)
+			occurrence=Occurrence(macro_name,arguments,macro_name+as_written,position=turtle-len(macro_name))
 			use.append(occurrence)
+		else :
+			return use
 	return use
 
 def MacroDefinition(code,name):
@@ -595,6 +635,19 @@ class CodeLaTeX(object):
 				A = A.substitute_input(x.filename)
 			list_input = A.search_use_of_macro("\input",1)
 		return A
+	def change_macro_argument(macro_name,n,func,n_args=1):
+		r"""
+		Apply the function <func> to the <n>th argument of each use of <macro_name>.
+
+		return a new_object CodeLaTeX
+		"""
+		list_occurrences=self.search_use_of_macro(macro_name,n_args)
+		for occurrence in list_occurrences:
+			textA=self.text_brut[:position]
+			textB=occurrence.as_written
+			textC=self.text_brut[position+len(as_written):]
+			raise 	
+
 	def remove_macro_content(self,macro_name,number_of_arguments):
 		r"""
 		Remove the presence of a macro (not its definition). 
