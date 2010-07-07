@@ -131,9 +131,10 @@ class CodeBox(dict):
 				code = "\n".join(pre_code.split("\n")[1:-1])	# Because minidom adds an empty line at first and last position.
 				self[label]=LaTeXparser.CodeLaTeX(code.replace("[PytexSpecial amp]","&"))
 	def put(self,codeLaTeX):
+		# This function is added to the plugin list of Request when using the method Request.create_magic_box
 		r"""
 		Substitute the dictionary inside codeLaTeX. 
-			If we continue the example of the method self.feed, the line
+			If we continue the example of the method CodeBox.feed, the line
 			\put_mydict{mylabel}
 			will be changed to
 			This is my \LaTeX\ code.
@@ -213,6 +214,7 @@ class Request(object):
 		return followed_files_xml.toprettyxml()
 	def run_prerequistes(self,arg):
 		for plug in self.prerequiste_list:
+			print "217",plug
 			plug(arg)
 		open(self.xml_filename,"w").write(self.xml())
 

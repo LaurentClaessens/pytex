@@ -462,6 +462,7 @@ class CodeLaTeX(object):
 		"""
 		self.text_brut			contains the tex code as given, without the comments
 		"""
+		# If you change something here, it has to be changed in append_file.
 		self.given_text = given_text
 		self.text_brut = ConvertToUTF8(RemoveComments(self.given_text))
 		self._dict_of_definition_macros = {}
@@ -570,7 +571,7 @@ class CodeLaTeX(object):
 			try:
 				text = "".join( open(strict_filename,"r") )[:-1]	# Without [:-1] I got an artificial empty line at the end.
 			except IOError :
-				print "Warning : file «%s» not found."%strict_filename
+				print "Warning : file %s not found."%strict_filename
 				raise
 		list_input = self.search_use_of_macro("\input",1)
 		for occurrence in list_input:
@@ -636,9 +637,34 @@ class CodeLaTeX(object):
 		textB=ConvertToUTF8(textB)
 		new_text = self.text_brut.replace(textA,textB)
 		return CodeLaTeX(new_text)
+	def append_file(self,filename=None,filenames=None):
+		"""
+		Append the content of a file to the current LaTeX code. Return a new object.
+
+		If filename is given, add only this file
+		If filenames is given, add all the files.
+
+		See the method __add__
+		"""
+		if filename :
+			if ".tex" not in filename :
+				filename = filename+".tex"
+			return self+FileToCodeLaTeX(filename)
+		if filenames :
+			for i in range(len(filenames)):
+				if ".tex" not in filenames[i] :
+					filenames[i] = filenames[i]+".tex"
+			a = ""
+			for f in filenames :
+				a=a+FileToText(f)
+			add_given_text=a
+			return CodeLaTeX(self.given_text+add_given_text)
 	def rough_source(self,filename,bibliography_bbl_filename=None,index_ind_filename=None):
 		"""
 		Return the name of a file where there is a rough latex code ready to be published to Arxiv
 		See the docstring of LaTeXparser.CodeLaTeXToRoughSource
 		"""
 		return CodeLaTeXToRoughSource(self,filename,bibliography_bbl_filename,index_ind_filename)
+	def __add__(self,other):
+		new_given_text=self.given_text+other.given_text
+		return CodeLaTeX(new_text_brut)
