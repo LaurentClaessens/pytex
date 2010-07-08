@@ -222,7 +222,7 @@ def NextMacroCandidate(s,macro_name):
 		turtle=turtle+1
 	return False,-1
 
-def SearchUseOfMacro(code,macro_name,number_of_arguments=None):
+def SearchUseOfMacro(code,macro_name,number_of_arguments=None,give_configuration=False):
 	r"""
 	number_of_arguments is the number of arguments expected. 
 				Giving a too large number produces wrong results in the following example case where \MyMacro
@@ -236,6 +236,8 @@ def SearchUseOfMacro(code,macro_name,number_of_arguments=None):
 			within [] in the number.
 	We do not fit the macros that are used in the comments.
 
+	The use of give_configuration is explained in the documentation of CodeLaTeX.search_use_of_macro
+
 	macro_name is the name of the macro to be fitted like \MyMacro (including the backslash).
 
 	/!\	We do not manage the case where the first argument is not immediately after the macro name, i.e.
@@ -245,9 +247,11 @@ def SearchUseOfMacro(code,macro_name,number_of_arguments=None):
 	if not macro_name in code.text_brut :
 		return []
 	turtle = 0
+	config_turtle=0
 	s = code.text_brut
 	remaining = s
 	use = []
+	configuration=[]
 	while macro_name in remaining :
 		remaining=s[turtle:]
 		boo,offset = NextMacroCandidate(remaining,macro_name)
@@ -255,11 +259,22 @@ def SearchUseOfMacro(code,macro_name,number_of_arguments=None):
 			turtle = turtle+offset+len(macro_name)
 			remaining=s[turtle:]
 			arguments,as_written=SearchArguments(remaining,number_of_arguments)
+			position=turtle-len(macro_name)
 			occurrence=Occurrence(macro_name,arguments,macro_name+as_written,position=turtle-len(macro_name))
+			configuration.append(code.text_brut[config_turtle:occurrence.position])
+			config_turtle=position+len(occurrence.as_written)
 			use.append(occurrence)
 		else :
-			return use
-	return use
+			if give_configuration:
+				configuration.append(code.text_brut[config_turtle:])
+				return use,configuration
+			else :
+				return use
+	if give_configuration:
+		configuration.append(code.text_brut[config_turtle:])
+		return use,configuration
+	else :
+		return use
 
 def MacroDefinition(code,name):
 	r"""
@@ -541,14 +556,20 @@ class CodeLaTeX(object):
 		if len(list_interseting) > 1 :
 			print "Warning : label %s has %s different values"%(label_name,str(len(list_interesting)))
 		return list_interesting[-1].value
-	def search_use_of_macro(self,name,number_of_arguments=None):
+	def search_use_of_macro(self,name,number_of_arguments=None,give_configuration=False):
 		"""
 		Return a list of Occurrence of a given macro
 
 		Optional argument: number_of_arguments=None
 		If no occurrence are found, return an empty list.
+
+		If give_configuration is True, return a tuple of two lists. The first list is the same as with give_configuration=False, and the second gives the 
+		text between the occurrences. The ith element of the configuration list is what precedes the ith element of the occurrence list.
+		The configuration list has one more element.
+		The following has to be true
+		self.text_brut==configuration[0]+occurrence[0]+...+configuration[n]+occurrence[n]+configuration[n+1]
 		"""
-		A = SearchUseOfMacro(self,name,number_of_arguments)
+		A = SearchUseOfMacro(self,name,give_configuration,number_of_arguments)
 		return A
 	def analyse_use_of_macro(self,name,number_of_arguments=None):
 		"""
