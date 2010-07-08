@@ -268,9 +268,11 @@ def SearchUseOfMacro(code,macro_name,number_of_arguments=None,give_configuration
 				raise
 			position=turtle-len(macro_name)
 			occurrence=Occurrence(macro_name,arguments,macro_name+as_written,position=turtle-len(macro_name))
+	# Voir si cette occurence n'est pas seulement la définition de la macro.
 			configuration.append(code.text_brut[config_turtle:occurrence.position])
-			config_turtle=position+len(occurrence.as_written)
 			use.append(occurrence)
+
+			config_turtle=position+len(occurrence.as_written)
 		else :
 			if give_configuration:
 				configuration.append(code.text_brut[config_turtle:])
