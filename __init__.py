@@ -91,19 +91,21 @@ class Occurrence(object):
 			a=split[1]
 			l.append(separator)
 		return l
-	def change_argument(self,n,func):
+	def change_argument(self,num,func):
 		r"""
 		Apply the function <func> to the <n>th argument of self. Then return a new object.
 		"""
+		n=num-1		# Internally, the arguments are numbered from 0.
 		arguments=self.arguments_list
+		configuration=self.configuration()
 		arguments[n]=func(arguments[n])
 		new_text=self.name
 		if len(arguments) != len(configuration):
 			print "Error : length of the configuration list has to be the same as the number of arguments"
 			raise ValueError
 		for i in range(len(arguments)):
-			text=text+configuration[i]+"{"+arguments[i]+"}"
-		return Occurrence(self.name,arguments,text,self.position)
+			new_text=new_text+configuration[i]+"{"+arguments[i]+"}"
+		return Occurrence(self.name,arguments,new_text,self.position)
 	def analyse(self):
 		return globals()["Occurrence_"+self.name[1:]](self)		# We have to remove the initial "\" in the name of the macro.
 	def __getitem__(self,a):
@@ -143,7 +145,7 @@ def ContinueSearch(s,opening):
 
 	Example
 	s=" \n % blahblah \n { other  "
-	CntinueSearch(s,"{")
+	ContinueSearch(s,"{")
 	return True and the offset of the last opening bracket
 	"""
 	close = paires[opening]
@@ -258,7 +260,12 @@ def SearchUseOfMacro(code,macro_name,number_of_arguments=None,give_configuration
 		if boo :
 			turtle = turtle+offset+len(macro_name)
 			remaining=s[turtle:]
-			arguments,as_written=SearchArguments(remaining,number_of_arguments)
+			try :
+				arguments,as_written=SearchArguments(remaining,number_of_arguments)
+			except TypeError:
+				print number_of_arguments
+				print remaining[0:30]
+				raise
 			position=turtle-len(macro_name)
 			occurrence=Occurrence(macro_name,arguments,macro_name+as_written,position=turtle-len(macro_name))
 			configuration.append(code.text_brut[config_turtle:occurrence.position])
@@ -569,7 +576,7 @@ class CodeLaTeX(object):
 		The following has to be true
 		self.text_brut==configuration[0]+occurrence[0]+...+configuration[n]+occurrence[n]+configuration[n+1]
 		"""
-		A = SearchUseOfMacro(self,name,give_configuration,number_of_arguments)
+		A = SearchUseOfMacro(self,name,number_of_arguments,give_configuration)
 		return A
 	def analyse_use_of_macro(self,name,number_of_arguments=None):
 		"""
@@ -658,19 +665,18 @@ class CodeLaTeX(object):
 				A = A.substitute_input(x.filename)
 			list_input = A.search_use_of_macro("\input",1)
 		return A
-	def change_macro_argument(macro_name,n,func,n_args=1):
+	def change_macro_argument(self,macro_name,n,func,n_args):
 		r"""
 		Apply the function <func> to the <n>th argument of each use of <macro_name>.
 
 		return a new_object CodeLaTeX
 		"""
-		list_occurrences=self.search_use_of_macro(macro_name,n_args)
-		for occurrence in list_occurrences:
-			textA=self.text_brut[:position]
-			textB=occurrence.as_written
-			textC=self.text_brut[position+len(as_written):]
-			raise 	
-
+		list_occurrences,configuration=self.search_use_of_macro(macro_name,n_args,give_configuration=True)
+		a=""
+		for i in range(len(list_occurrences)):
+			a=a+configuration[i]+list_occurrences[i].change_argument(n,func).as_written
+		a=a+configuration[-1]
+		return CodeLaTeX(a)
 	def remove_macro_content(self,macro_name,number_of_arguments):
 		r"""
 		Remove the presence of a macro (not its definition). 

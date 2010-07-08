@@ -80,6 +80,13 @@ def test_all():
 	# Return the file as string with the content of fichier.tex instead of \input{fichier}
 	substitute_input("ess","fichier")				
 
+def change_macro_argument():
+	x=LaTeXparser.FileToCodeLaTeX("ess.tex")
+	for occurrence in x.search_use_of_macro("\MyMacro",2):
+		print occurrence
+	y=x.change_macro_argument("\MyMacro",2,lambda x:"XXX"+x,n_args=2)
+	z=x.change_macro_argument("\usepackage",1,lambda x:x,n_args=1)
+	print x.text_brut==z.text_brut	# Has to be True
 
 #test_all()		# Uncomment if you want to test everything.
-use_of_macros("ess")
+change_macro_argument()
