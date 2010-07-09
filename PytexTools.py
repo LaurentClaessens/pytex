@@ -198,7 +198,8 @@ class Request(object):
 					return fich.getAttribute("sha1sum")
 	def is_file_changed(self,f):
 		sha_now = FileToSha1sum(f)
-		if f not in self.followed_files_list :
+		self.follow_file(f)
+		if self.old_sha(f) == None :
 			return True
 		return not sha_now == self.old_sha(f)
 	def follow_file(self,f):

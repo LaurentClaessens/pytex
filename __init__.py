@@ -268,10 +268,12 @@ def SearchUseOfMacro(code,macro_name,number_of_arguments=None,give_configuration
 				raise
 			position=turtle-len(macro_name)
 			occurrence=Occurrence(macro_name,arguments,macro_name+as_written,position=turtle-len(macro_name))
-	# Voir si cette occurence n'est pas seulement la définition de la macro.
-			configuration.append(code.text_brut[config_turtle:occurrence.position])
-			use.append(occurrence)
 
+			# The following test excludes the cases when we fit the \newcommand{\MyMacro}
+			test=compactization(occurrence.as_written,accepted_between_arguments)
+			if test[len(macro_name)] != "}":
+				configuration.append(code.text_brut[config_turtle:occurrence.position])
+				use.append(occurrence)
 			config_turtle=position+len(occurrence.as_written)
 		else :
 			if give_configuration:
@@ -654,7 +656,7 @@ class CodeLaTeX(object):
 		for as_written in list :
 			A = A.replace(as_written,text)
 		return A
-	def substitute_all_input(self):
+	def substitute_all_inputs(self):
 		r"""
 		Recursively change all the \input{...} by the content of the corresponding file. 
 		Return a new object LaTeXparser.CodeLaTeX
@@ -679,6 +681,14 @@ class CodeLaTeX(object):
 			a=a+configuration[i]+list_occurrences[i].change_argument(n,func).as_written
 		a=a+configuration[-1]
 		return CodeLaTeX(a)
+	def change_labels_refs(self,func):
+		r"""
+		Change \ref{MyLabel}, \eqref{MyLabel} and \label{MyLabel} applying func to the argument.
+		"""
+		x=self.change_macro_argument(r"\ref",1,func,1)
+		y=x.change_macro_argument(r"\eqref",1,func,1)
+		z=y.change_macro_argument(r"\label",1,func,1)
+		return z
 	def remove_macro_content(self,macro_name,number_of_arguments):
 		r"""
 		Remove the presence of a macro (not its definition). 
