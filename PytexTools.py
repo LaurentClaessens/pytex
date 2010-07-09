@@ -157,14 +157,34 @@ class CodeBox(dict):
 					label=occurrence.arguments[1]
 					B=self[label]
 					B=self.put(B)			# This function is recursive !
-					A=A.replace(occurrence.as_written,B.text_brut)
+					A.replace(occurrence.as_written,B.text_brut)
 				except IndexError :
 					print "PytexTools error : \Put... needs two arguments. Don't forget the tag"
 					print occurrence.as_written
 					raise
 			else :
-				A=A.replace(occurrence.as_written,"")
+				A.replace(occurrence.as_written,"")
 		return A
+
+def PytexNotIn(name,codeLaTeX):
+	r"""
+	Return a LaTeXparser.CodeLaTeX object build from codeLaTeX and changing the occurrences of
+	\PytexOnlyIn{name1,name2,...}{code}
+	by <code> if name is not in the liste name1, name2, ... Else, remove it completely.
+
+	This acts like some inline CodeBox. This is the symmetric of PytexOnlyIf
+	"""
+	A = codeLaTeX.copy()
+	occurrences = A.search_use_of_macro("\PytexOnlyIn",2)
+	for occurrence in occurrences :
+		tags=occurrence.arguments[0].split(",")
+		if name not in tags :
+			try :
+				code=occurrence.arguments[1]
+				A.replace(occurrence.as_written,code)
+		else :
+			A.replace(occurrence.as_written,"")
+	return A
 
 def PytexOnlyIn(name,codeLaTeX):
 	r"""
@@ -174,8 +194,17 @@ def PytexOnlyIn(name,codeLaTeX):
 
 	This acts like some inline CodeBox
 	"""
-	occurrences = codeLaTeX.search_use_of_macro("\PytexOnlyIn",2)<++>
-	
+	A = codeLaTeX.copy()
+	occurrences = A.search_use_of_macro("\PytexOnlyIn",2)
+	for occurrence in occurrences :
+		tags=occurrence.arguments[0].split(",")
+		if name in tags :
+			try :
+				code=occurrence.arguments[1]
+				A=A.replace(occurrence.as_written,code)
+		else :
+			A=A.replace(occurrence.as_written,"")
+	return A
 
 def FileToSha1sum(f):
 	text = str(open(f).read())
