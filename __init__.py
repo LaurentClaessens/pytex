@@ -411,7 +411,7 @@ def CodeLaTeXToRoughSource(codeLaTeX,filename,bibliography_bbl_filename=None,ind
 	code_index = FileToCodeLaTeX(index_ind_filename)
 
 	new_code = CodeLaTeX(codeLaTeX.text_without_comments())
-	new_code = new_code.substitute_all_inputs()
+	new_code.substitute_all_inputs()
 	resultBib = re.search("\\\\bibliography\{.*\}",new_code.text_brut)
 	if resultBib != None :
 		ligne_biblio = resultBib.group()
@@ -654,7 +654,7 @@ class CodeLaTeX(object):
 				list.append(x.occurrence.as_written)
 		A = CodeLaTeX(self.text_brut)
 		for as_written in list :
-			A = A.replace(as_written,text)
+			A=A.replace(as_written,text)
 		return A
 	def substitute_all_inputs(self):
 		r"""
@@ -730,7 +730,7 @@ class CodeLaTeX(object):
 		textA=ConvertToUTF8(textA)
 		textB=ConvertToUTF8(textB)
 		new_text = self.text_brut.replace(textA,textB)
-		self = CodeLaTeX(new_text)
+		return CodeLaTeX(new_text)
 	def append_file(self,filename=None,filenames=None):
 		"""
 		Append the content of a file to the current LaTeX code. Return a new object.
@@ -743,7 +743,8 @@ class CodeLaTeX(object):
 		if filename :
 			if ".tex" not in filename :
 				filename = filename+".tex"
-			return self+FileToCodeLaTeX(filename)
+			new = self+FileToCodeLaTeX(filename)
+			self.__init__(new.text_brut)
 		if filenames :
 			for i in range(len(filenames)):
 				if ".tex" not in filenames[i] :
@@ -752,7 +753,7 @@ class CodeLaTeX(object):
 			for f in filenames :
 				a=a+FileToText(f)
 			add_given_text=a
-			self = CodeLaTeX(self.given_text+add_given_text)
+			self.__init__(self.given_text+add_given_text)
 	def rough_source(self,filename,bibliography_bbl_filename=None,index_ind_filename=None):
 		"""
 		Return the name of a file where there is a rough latex code ready to be published to Arxiv

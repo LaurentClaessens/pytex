@@ -169,19 +169,18 @@ class CodeBox(dict):
 def PytexNotIn(name,codeLaTeX):
 	r"""
 	Return a LaTeXparser.CodeLaTeX object build from codeLaTeX and changing the occurrences of
-	\PytexOnlyIn{name1,name2,...}{code}
+	\PytexNotIn{name1,name2,...}{code}
 	by <code> if name is not in the liste name1, name2, ... Else, remove it completely.
 
 	This acts like some inline CodeBox. This is the symmetric of PytexOnlyIf
 	"""
 	A = codeLaTeX.copy()
-	occurrences = A.search_use_of_macro("\PytexOnlyIn",2)
+	occurrences = A.search_use_of_macro("\PytexNotIn",2)
 	for occurrence in occurrences :
 		tags=occurrence.arguments[0].split(",")
 		if name not in tags :
-			try :
-				code=occurrence.arguments[1]
-				A.replace(occurrence.as_written,code)
+			code=occurrence.arguments[1]
+			A.replace(occurrence.as_written,code)
 		else :
 			A.replace(occurrence.as_written,"")
 	return A
@@ -194,14 +193,16 @@ def PytexOnlyIn(name,codeLaTeX):
 
 	This acts like some inline CodeBox
 	"""
+	print "196 Je passe ici"
 	A = codeLaTeX.copy()
 	occurrences = A.search_use_of_macro("\PytexOnlyIn",2)
+	print "199",len(occurrences),len(codeLaTeX.text_brut)
 	for occurrence in occurrences :
+		print "199",occurrence
 		tags=occurrence.arguments[0].split(",")
 		if name in tags :
-			try :
-				code=occurrence.arguments[1]
-				A=A.replace(occurrence.as_written,code)
+			code=occurrence.arguments[1]
+			A=A.replace(occurrence.as_written,code)
 		else :
 			A=A.replace(occurrence.as_written,"")
 	return A
@@ -222,9 +223,11 @@ class Request(object):
 		self.followed_files_list = []
 		self.prerequiste_list = []
 		self.xml_filename = "pytextools.xml"
-	def create_magic_box(self,filename,boxname,name=self.name):
+	def create_magic_box(self,filename,boxname,name=None):
+		if name==None :
+			name=self.name
 		magic_box_code = LaTeXparser.FileToText(filename)
-		self.magic_box = CodeBox(boxname,tag)
+		self.magic_box = CodeBox(boxname,name)
 		self.magic_box.feed(magic_box_code)
 		self.plugin_list.append(self.magic_box.put)
 	def xml_record(self):
