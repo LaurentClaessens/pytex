@@ -166,6 +166,17 @@ class CodeBox(dict):
 				A=A.replace(occurrence.as_written,"")
 		return A
 
+def PytexOnlyIn(name,codeLaTeX):
+	r"""
+	Return a LaTeXparser.CodeLaTeX object build from codeLaTeX and changing the occurrences of
+	\PytexOnlyIn{name1,name2,...}{code}
+	by <code> if name is in the liste name1, name2, ... Else, remove it completely.
+
+	This acts like some inline CodeBox
+	"""
+	occurrences = codeLaTeX.search_use_of_macro("\PytexOnlyIn",2)<++>
+	
+
 def FileToSha1sum(f):
 	text = str(open(f).read())
 	return hashlib.sha1(text).hexdigest()
@@ -174,14 +185,15 @@ ELEMENT_FOLLOWED_FILES = "Followed_files"
 TAG_FICHIER="fichier"
 class Request(object):
 	""" Contains what a lst-foo.py file has to contain """
-	def __init__(self):
+	def __init__(self,name):
+		self.name = name
 		self.plugin_list = []
 		self.original_filename = ""
 		self.ok_filenames_list = []
 		self.followed_files_list = []
 		self.prerequiste_list = []
 		self.xml_filename = "pytextools.xml"
-	def create_magic_box(self,filename,boxname,tag):
+	def create_magic_box(self,filename,boxname,name=self.name):
 		magic_box_code = LaTeXparser.FileToText(filename)
 		self.magic_box = CodeBox(boxname,tag)
 		self.magic_box.feed(magic_box_code)
