@@ -762,4 +762,4 @@ class CodeLaTeX(object):
 		return CodeLaTeXToRoughSource(self,filename,bibliography_bbl_filename,index_ind_filename)
 	def __add__(self,other):
 		new_given_text=self.given_text+other.given_text
-		return CodeLaTeX(new_text_brut)
+		return CodeLaTeX(new_given_text)

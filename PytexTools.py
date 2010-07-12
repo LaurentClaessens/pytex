@@ -169,7 +169,7 @@ class CodeBox(dict):
 				try :
 					label=occurrence.arguments[1]
 					B=self[label]
-					B=self.put(B)			# This function is recursive !
+					B=self.put(B,tag)			# This function is recursive !
 					A.replace(occurrence.as_written,B.text_brut)
 				except IndexError :
 					print "PytexTools error : \Put... needs two arguments. Don't forget the tag"
@@ -194,7 +194,7 @@ def PytexNotIn(name,codeLaTeX):
 	\PytexNotIn{name1,name2,...}{code}
 	by <code> if name is not in the liste name1, name2, ... Else, remove it completely.
 
-	This acts like some inline CodeBox. This is the symmetric of PytexOnlyIf
+	This acts like some inline CodeBox. This is the symmetric of PytexOnlyIn
 	"""
 	A = codeLaTeX.copy()
 	occurrences = A.search_use_of_macro("\PytexNotIn",2)
@@ -249,8 +249,11 @@ class CodeFactory(object):
 			A=box.put(self.codeLaTeX,tag)
 		self.codeLaTeX=A
 	def apply_all(self,tag):
+		# TODO : this function should be recursive and apply plugin/code_box as long as necessary, so that one can nest them.
 		self.apply_all_plugins()
 		self.apply_all_code_box(tag)
+		self.codeLaTeX = PytexNotIn(tag,self.codeLaTeX)
+		self.codeLaTeX = PytexOnlyIn(tag,self.codeLaTeX)
 	def save(self,filename):
 		self.codeLaTeX.save(filename)
 
