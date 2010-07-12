@@ -460,6 +460,7 @@ class CodeLog(object):
 		self.filename = filename
 		self.undefined_references=[]
 		self.undefined_citations=[]
+		self.undefined_labels=[]
 		self.multiply_labels=[]
 		print "Analysing log file",self.filename
 		Warns = self.text_brut.split("Warning: ")
