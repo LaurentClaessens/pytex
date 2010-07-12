@@ -271,21 +271,19 @@ def FileToSha1sum(f):
 
 ELEMENT_FOLLOWED_FILES = "Followed_files"
 TAG_FICHIER="fichier"
-class Request(object):
-	""" Contains what a lst-foo.py file has to contain """
-	def __init__(self,name):
-		self.name = name
-		self.plugin_list = []
-		self.original_filename = ""
-		self.ok_filenames_list = []
+
+class FileTracking(object):
+	def __init__(self):
 		self.followed_files_list = []
-		self.prerequiste_list = []
 		self.xml_filename = "pytextools.xml"
-	def create_magic_box(self,filename,boxname,name=None):
-		if name==None :
-			name=self.name
-		self.magic_box=FileToCodeBox(filename,boxname)
-		self.plugin_list.append(self.magic_box.put)
+		self.sha={}
+		root = self.xml_record()
+		fileNodes = root.getElementsByTagName(ELEMENT_FOLLOWED_FILES)
+		for fileNode in fileNodes: 
+			for fich in fileNode.getElementsByTagName(TAG_FICHIER):
+				self.sha[fich.getAttribute("name")]=fich.getAttribute("sha1sum")
+	def followed_files_list(self):
+		self.sha.keys()
 	def xml_record(self):
 		return minidom.parse(self.xml_filename)
 	def old_sha(self,f):
@@ -311,7 +309,7 @@ class Request(object):
 		"""Return the xml code to be written in pytextools.xml"""
 		followed_files_xml = minidom.Document()
 		the_sha = followed_files_xml.createElement(ELEMENT_FOLLOWED_FILES)
-		for f in self.followed_files_list :
+		for f in self.followed_files_list() :
 			sha=FileToSha1sum(f)
 			xml = followed_files_xml.createElement(TAG_FICHIER)
 			xml.setAttribute('name',f)
@@ -319,8 +317,25 @@ class Request(object):
 			the_sha.appendChild(xml)
 		followed_files_xml.appendChild(the_sha)
 		return followed_files_xml.toprettyxml()
+
+class Request(object):
+	""" Contains what a lst-foo.py file has to contain """
+	def __init__(self,name):
+		self.name = name
+		self.plugin_list = []
+		self.original_filename = ""
+		self.ok_filenames_list = []
+		self.prerequiste_list = []
+		self.fileTracking=FileTracking()
+	def is_file_changed(self,f):
+		return self.fileTracking.is_file_changed(f)
+	def create_magic_box(self,filename,boxname,name=None):
+		if name==None :
+			name=self.name
+		self.magic_box=FileToCodeBox(filename,boxname)
+		self.plugin_list.append(self.magic_box.put)
 	def run_prerequistes(self,arg):
 		for plug in self.prerequiste_list:
 			plug(arg)
-		open(self.xml_filename,"w").write(self.xml())
+		open(self.xml_filename,"w").write(self.fileTracking.xml())
 
