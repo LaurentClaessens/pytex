@@ -117,14 +117,12 @@ class CodeBox(dict):
 		self.put_macro="\Put"+self.name
 	def feed(self,xmlCode):
 		r"""
-		Read the code and fill the dictionary.
-			Example
-			xmlCode is parsed. Let consider the following lines :
+		Parse xmlCode and fill the dictionary.
 
-				<CodeBox label="an example box">
-				This is my \LaTeX\ code.
-				</CodeBox>
-
+			Example. Let consider the following lines :
+			<CodeBox label="an example box">
+			This is my \LaTeX\ code.
+			</CodeBox>
 			will add the code «This is my \LaTeX\ code» in the dictionary with the key «an example box»
 		"""
 		xmlCode_corrected=xmlCode.replace("&","[PytexSpecial amp]")
@@ -178,11 +176,15 @@ def PytexNotIn(name,codeLaTeX):
 	occurrences = A.search_use_of_macro("\PytexNotIn",2)
 	for occurrence in occurrences :
 		tags=occurrence.arguments[0].split(",")
+		print "199",occurrence
+		print "203 tag ici : ",tags," tag demandé ",name
 		if name not in tags :
+			print "184 Remplace"
 			code=occurrence.arguments[1]
-			A.replace(occurrence.as_written,code)
+			A=A.replace(occurrence.as_written,code)
 		else :
-			A.replace(occurrence.as_written,"")
+			print "188 vire"
+			A=A.replace(occurrence.as_written,"")
 	return A
 
 def PytexOnlyIn(name,codeLaTeX):
@@ -196,9 +198,7 @@ def PytexOnlyIn(name,codeLaTeX):
 	print "196 Je passe ici"
 	A = codeLaTeX.copy()
 	occurrences = A.search_use_of_macro("\PytexOnlyIn",2)
-	print "199",len(occurrences),len(codeLaTeX.text_brut)
 	for occurrence in occurrences :
-		print "199",occurrence
 		tags=occurrence.arguments[0].split(",")
 		if name in tags :
 			code=occurrence.arguments[1]
