@@ -185,7 +185,7 @@ def FileToCodeBox(filename,boxname):
 	"""
 	magic_box_code = LaTeXparser.FileToText(filename)
 	magic_box = CodeBox(boxname)
-	magic_box.feed(magic_box_codea)
+	magic_box.feed(magic_box_code)
 	return magic_box
 
 def PytexNotIn(name,codeLaTeX):
@@ -225,6 +225,35 @@ def PytexOnlyIn(name,codeLaTeX):
 		else :
 			A=A.replace(occurrence.as_written,"")
 	return A
+
+class CodeFactory(object):
+	"""
+	Contain what one need to build LaTeX code from files, plugin, magical boxes, ...
+
+	For most of methods, see the docstring of the corresponding method in LaTeXparser.CodeLaTeX
+	"""
+	def __init__(self):
+		self.codeLaTeX=LaTeXparser.CodeLaTeX("")
+		self.plugin_list = []
+		self.code_box_list = []
+	def append_file(self,filename=None,filenames=None):
+		self.codeLaTeX.append_file(filename,filenames)
+	def apply_all_plugins(self):
+		text=self.codeLaTeX.text_brut
+		for plugin in self.plugin_list :
+			text = plugin(text)
+		self.codeLaTeX = LaTeXparser.CodeLaTeX(text)
+	def apply_all_code_box(self,tag):
+		A=self.codeLaTeX.copy()
+		for box in self.code_box_list:
+			A=box.put(self.codeLaTeX,tag)
+		self.codeLaTeX=A
+	def apply_all(self,tag):
+		self.apply_all_plugins()
+		self.apply_all_code_box(tag)
+	def save(self,filename):
+		self.codeLaTeX.save(filename)
+
 
 def FileToSha1sum(f):
 	text = str(open(f).read())
