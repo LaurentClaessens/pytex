@@ -689,7 +689,7 @@ class CodeLaTeX(object):
 		x=self.change_macro_argument(r"\ref",1,func,1)
 		y=x.change_macro_argument(r"\eqref",1,func,1)
 		z=y.change_macro_argument(r"\label",1,func,1)
-		return z
+		self.__init__(z.text_brut)
 	def remove_macro_content(self,macro_name,number_of_arguments):
 		r"""
 		Remove the presence of a macro (not its definition). 
