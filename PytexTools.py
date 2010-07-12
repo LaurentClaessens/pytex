@@ -162,21 +162,26 @@ class CodeBox(dict):
 		return a new object LaTeXparser.CodeLaTeX
 		"""
 		A=codeLaTeX.copy()
+		print "165 je passe par put"
 		liste_occurrences = A.search_use_of_macro(self.put_macro,2)
 		for occurrence in liste_occurrences :
 			tags=occurrence.arguments[0].split(",")
+			print "169"
+			print occurrence
+			print "170", tag,tags
 			if tags == [""] or tag in tags :	# If we don't mention a tag, they are all good
 				try :
+					print "174 Je remplace"
 					label=occurrence.arguments[1]
 					B=self[label]
 					B=self.put(B,tag)			# This function is recursive !
-					A.replace(occurrence.as_written,B.text_brut)
+					A=A.replace(occurrence.as_written,B.text_brut)
 				except IndexError :
 					print "PytexTools error : \Put... needs two arguments. Don't forget the tag"
 					print occurrence.as_written
 					raise
 			else :
-				A.replace(occurrence.as_written,"")
+				A=A.replace(occurrence.as_written,"")
 		return A
 
 def FileToCodeBox(filename,boxname):
