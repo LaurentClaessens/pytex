@@ -250,6 +250,13 @@ class CodeFactory(object):
 		self.codeLaTeX=A
 	def apply_all(self,tag):
 		# TODO : this function should be recursive and apply plugin/code_box as long as necessary, so that one can nest them.
+		r"""
+		1. Substitute all the \input
+		2. Apply the plugins
+		3. Apply the code_box
+		4. Adapt PytexNotIn and PytexOnlyIn
+		"""
+		self.codeLaTeX = self.codeLaTeX.substitute_all_inputs()
 		self.apply_all_plugins()
 		self.apply_all_code_box(tag)
 		self.codeLaTeX = PytexNotIn(tag,self.codeLaTeX)
