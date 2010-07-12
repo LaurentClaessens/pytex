@@ -109,21 +109,36 @@ def getText(nodelist):
 class CodeBox(dict):
 	"""
 	This class is intended to keep some portions of LaTeX code in a fresh box, allowing to retrieve them later.
+
+	You create your box with
+	box = CodeBox("MyDict")
+	the name of the box is "MyDict". 
+
+	The line to be put in your LaTeX file is like
+	\PutMyDict{foo}{an example box}
+	\PutMyDict{bar}{another example box}
+	If these lines are contained in codeLaTeX, you do
+	box.put(codeLaTeX,"foo")
+	and the first line will be replaced by the content of box["an example box"] while the second will be replaced by "" (empty string).
+	If you do
+	box.put(codeLaTeX,"bar")
+	the first line will be replaced by "" (empty string) while the second will be replaced by the content of box["another example box"].
 	"""
-	def __init__(self,name,tag):
+	def __init__(self,name):
 		dict.__init__({})
-		self.tag=tag
 		self.name=name
 		self.put_macro="\Put"+self.name
 	def feed(self,xmlCode):
 		r"""
 		Parse xmlCode and fill the dictionary.
 
-			Example. Let consider the following lines :
-			<CodeBox label="an example box">
-			This is my \LaTeX\ code.
-			</CodeBox>
-			will add the code «This is my \LaTeX\ code» in the dictionary with the key «an example box»
+		Example. You feed your box with a XML file containing
+		<CodeBox label="an example box">
+		This is my \LaTeX\ code.
+		</CodeBox>
+		Then the command
+		box.feed(filename)
+		adds the text «This is my \LaTeX\ code» in the dictionary with the key «an example box»
 		"""
 		xmlCode_corrected=xmlCode.replace("&","[PytexSpecial amp]")
 		dom = minidom.parseString(xmlCode_corrected)
@@ -134,12 +149,12 @@ class CodeBox(dict):
 				pre_code = getText(box.childNodes)
 				code = "\n".join(pre_code.split("\n")[1:-1])	# Because minidom adds an empty line at first and last position.
 				self[label]=LaTeXparser.CodeLaTeX(code.replace("[PytexSpecial amp]","&"))
-	def put(self,codeLaTeX):
+	def put(self,codeLaTeX,tag):
 		# This function is added to the plugin list of Request when using the method Request.create_magic_box
 		r"""
 		Substitute the dictionary inside codeLaTeX. 
 			If we continue the example of the method CodeBox.feed, the line
-			\put_mydict{mylabel}
+			\PutMyDict{mylabel}	
 			will be changed to
 			This is my \LaTeX\ code.
 		You can (this is the aim!) substitute the code at several places.
@@ -150,7 +165,7 @@ class CodeBox(dict):
 		liste_occurrences = A.search_use_of_macro(self.put_macro,2)
 		for occurrence in liste_occurrences :
 			tags=occurrence.arguments[0].split(",")
-			if tags == [""] or self.tag in tags :	# If we don't mention a tag, they are all good
+			if tags == [""] or tag in tags :	# If we don't mention a tag, they are all good
 				try :
 					label=occurrence.arguments[1]
 					B=self[label]
@@ -164,6 +179,15 @@ class CodeBox(dict):
 				A.replace(occurrence.as_written,"")
 		return A
 
+def FileToCodeBox(filename,boxname):
+	"""
+	Return a CodeBox object fed by the content of the given file.
+	"""
+	magic_box_code = LaTeXparser.FileToText(filename)
+	magic_box = CodeBox(boxname)
+	magic_box.feed(magic_box_codea)
+	return magic_box
+
 def PytexNotIn(name,codeLaTeX):
 	r"""
 	Return a LaTeXparser.CodeLaTeX object build from codeLaTeX and changing the occurrences of
@@ -176,14 +200,10 @@ def PytexNotIn(name,codeLaTeX):
 	occurrences = A.search_use_of_macro("\PytexNotIn",2)
 	for occurrence in occurrences :
 		tags=occurrence.arguments[0].split(",")
-		print "199",occurrence
-		print "203 tag ici : ",tags," tag demandé ",name
 		if name not in tags :
-			print "184 Remplace"
 			code=occurrence.arguments[1]
 			A=A.replace(occurrence.as_written,code)
 		else :
-			print "188 vire"
 			A=A.replace(occurrence.as_written,"")
 	return A
 
@@ -195,7 +215,6 @@ def PytexOnlyIn(name,codeLaTeX):
 
 	This acts like some inline CodeBox
 	"""
-	print "196 Je passe ici"
 	A = codeLaTeX.copy()
 	occurrences = A.search_use_of_macro("\PytexOnlyIn",2)
 	for occurrence in occurrences :
@@ -226,9 +245,7 @@ class Request(object):
 	def create_magic_box(self,filename,boxname,name=None):
 		if name==None :
 			name=self.name
-		magic_box_code = LaTeXparser.FileToText(filename)
-		self.magic_box = CodeBox(boxname,name)
-		self.magic_box.feed(magic_box_code)
+		self.magic_box=FileToCodeBox(filename,boxname)
 		self.plugin_list.append(self.magic_box.put)
 	def xml_record(self):
 		return minidom.parse(self.xml_filename)
