@@ -274,9 +274,9 @@ def FileToSha1sum(f):
 	text = str(open(f).read())
 	return hashlib.sha1(text).hexdigest()
 
-ELEMENT_FOLLOWED_FILES = "Followed_files"
-TAG_FICHIER="fichier"
 class FileTracking(object):
+	ELEMENT_FOLLOWED_FILES = "Followed_files"
+	TAG_FICHIER="fichier"
 	def __init__(self):
 		self.followed_files_list = []
 		self.xml_filename = "pytextools.xml"
