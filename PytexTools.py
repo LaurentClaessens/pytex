@@ -236,6 +236,9 @@ class CodeFactory(object):
 		self.codeLaTeX=LaTeXparser.CodeLaTeX("")
 		self.plugin_list = []
 		self.code_box_list = []
+		self.fileTracking = FileTracking()
+	def is_file_changed(self,filename=None,filenames=None):
+		return self.fileTracking.is_file_changed(filename,filenames)
 	def append_file(self,filename=None,filenames=None):
 		self.codeLaTeX.append_file(filename,filenames)
 	def apply_all_plugins(self):
@@ -255,12 +258,14 @@ class CodeFactory(object):
 		2. Apply the plugins
 		3. Apply the code_box
 		4. Adapt PytexNotIn and PytexOnlyIn
+		5. Write the FileTracking xml file
 		"""
 		self.codeLaTeX = self.codeLaTeX.substitute_all_inputs()
 		self.apply_all_plugins()
 		self.apply_all_code_box(tag)
 		self.codeLaTeX = PytexNotIn(tag,self.codeLaTeX)
 		self.codeLaTeX = PytexOnlyIn(tag,self.codeLaTeX)
+		self.fileTracking.save()
 	def save(self,filename):
 		self.codeLaTeX.save(filename)
 
@@ -271,7 +276,6 @@ def FileToSha1sum(f):
 
 ELEMENT_FOLLOWED_FILES = "Followed_files"
 TAG_FICHIER="fichier"
-
 class FileTracking(object):
 	def __init__(self):
 		self.followed_files_list = []
@@ -294,17 +298,19 @@ class FileTracking(object):
 			for fich in fileNode.getElementsByTagName(TAG_FICHIER):
 				if fich.getAttribute("name")==f:
 					return fich.getAttribute("sha1sum")
-	def is_file_changed(self,f):
-		sha_now = FileToSha1sum(f)
-		self.follow_file(f)
-		if self.old_sha(f) == None :
+	def _is_file_changed(self,filename):
+		sha_now = FileToSha1sum(filename)
+		if filename not in self.sha.keys() :
 			return True
-		return not sha_now == self.old_sha(f)
-	def follow_file(self,f):
-		"""
-		At the end of run_prerequistes, write the sha1 sum of the files in pytextools.xml
-		"""
-		self.followed_files_list.append(f)
+		old_sha = self.sha[f]
+		self.sha[filename]=sha_now
+		return not sha_now == self.old_sha
+	def is_file_changed(self,filename,filenames):
+		if filename :
+			return self._is_file_changed(filename)
+		if filenames :
+			boos = [self._is_file_changed(f) for f in filenames]
+			return True in boos
 	def xml(self):
 		"""Return the xml code to be written in pytextools.xml"""
 		followed_files_xml = minidom.Document()
@@ -317,6 +323,8 @@ class FileTracking(object):
 			the_sha.appendChild(xml)
 		followed_files_xml.appendChild(the_sha)
 		return followed_files_xml.toprettyxml()
+	def save(self):
+		open(self.xml_filename,"w").write(self.xml())
 
 class Request(object):
 	""" Contains what a lst-foo.py file has to contain """
@@ -337,5 +345,5 @@ class Request(object):
 	def run_prerequistes(self,arg):
 		for plug in self.prerequiste_list:
 			plug(arg)
-		open(self.xml_filename,"w").write(self.fileTracking.xml())
+		self.fileTracking.save()
 
