@@ -278,22 +278,15 @@ class FileTracking(object):
 	ELEMENT_FOLLOWED_FILES = "Followed_files"
 	TAG_FICHIER="fichier"
 	xml_filename = "pytextools.xml"
-	sha={}
-	root = self.xml_record()
-	fileNodes = root.getElementsByTagName(ELEMENT_FOLLOWED_FILES)
-	for fileNode in fileNodes: 
-		for fich in fileNode.getElementsByTagName(TAG_FICHIER):
-			sha[fich.getAttribute("name")]=fich.getAttribute("sha1sum")
-	def xml_record(self):
-		return minidom.parse(self.xml_filename)
-	def old_sha(self,f):
-		""" Return the sha1 of f recorded in pytextools.xml """
-		root = self.xml_record()
+	old_sha={}
+	try :
+		root = minidom.parse(self.xml_filename)
 		fileNodes = root.getElementsByTagName(ELEMENT_FOLLOWED_FILES)
 		for fileNode in fileNodes: 
 			for fich in fileNode.getElementsByTagName(TAG_FICHIER):
-				if fich.getAttribute("name")==f:
-					return fich.getAttribute("sha1sum")
+				old_sha[fich.getAttribute("name")]=fich.getAttribute("sha1sum")
+	except :
+		raise
 	def _is_file_changed(self,filename):
 		sha_now = FileToSha1sum(filename)
 		if filename not in self.sha.keys() :
