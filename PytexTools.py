@@ -265,7 +265,7 @@ class CodeFactory(object):
 		self.apply_all_code_box(tag)
 		self.codeLaTeX = PytexNotIn(tag,self.codeLaTeX)
 		self.codeLaTeX = PytexOnlyIn(tag,self.codeLaTeX)
-		self.fileTracking.save()
+		FileTracking().save()
 	def save(self,filename):
 		self.codeLaTeX.save(filename)
 
@@ -280,21 +280,23 @@ class FileTracking(object):
 	xml_filename = "pytextools.xml"
 	old_sha={}
 	try :
-		root = minidom.parse(self.xml_filename)
+		root = minidom.parse(xml_filename)
 		fileNodes = root.getElementsByTagName(ELEMENT_FOLLOWED_FILES)
 		for fileNode in fileNodes: 
 			for fich in fileNode.getElementsByTagName(TAG_FICHIER):
 				old_sha[fich.getAttribute("name")]=fich.getAttribute("sha1sum")
 	except :
-		raise
+		print "XML file is probably empty."
+	sha={}
+	for k in old_sha.keys():
+		sha[k]=old_sha[k]
 	def _is_file_changed(self,filename):
 		sha_now = FileToSha1sum(filename)
-		if filename not in self.sha.keys() :
+		FileTracking.sha[filename]=sha_now
+		if filename not in FileTracking.old_sha.keys() :
 			return True
-		old_sha = self.sha[f]
-		self.sha[filename]=sha_now
-		return not sha_now == self.old_sha
-	def is_file_changed(self,filename,filenames):
+		return not sha_now == FileTracking.old_sha[filename]
+	def is_file_changed(self,filename=None,filenames=None):
 		if filename :
 			return self._is_file_changed(filename)
 		if filenames :
@@ -303,17 +305,16 @@ class FileTracking(object):
 	def xml(self):
 		"""Return the xml code to be written in pytextools.xml"""
 		followed_files_xml = minidom.Document()
-		the_sha = followed_files_xml.createElement(ELEMENT_FOLLOWED_FILES)
-		for f in self.followed_files_list() :
-			sha=FileToSha1sum(f)
-			xml = followed_files_xml.createElement(TAG_FICHIER)
+		the_sha = followed_files_xml.createElement(FileTracking.ELEMENT_FOLLOWED_FILES)
+		for f in FileTracking.sha.keys():
+			xml = followed_files_xml.createElement(FileTracking.TAG_FICHIER)
 			xml.setAttribute('name',f)
-			xml.setAttribute('sha1sum',sha)
+			xml.setAttribute('sha1sum',FileTracking.sha[f])
 			the_sha.appendChild(xml)
 		followed_files_xml.appendChild(the_sha)
 		return followed_files_xml.toprettyxml()
 	def save(self):
-		open(self.xml_filename,"w").write(self.xml())
+		open(FileTracking.xml_filename,"w").write(self.xml())
 
 class Request(object):
 	""" Contains what a lst-foo.py file has to contain """
