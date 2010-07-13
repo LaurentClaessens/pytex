@@ -277,17 +277,13 @@ def FileToSha1sum(f):
 class FileTracking(object):
 	ELEMENT_FOLLOWED_FILES = "Followed_files"
 	TAG_FICHIER="fichier"
-	def __init__(self):
-		self.followed_files_list = []
-		self.xml_filename = "pytextools.xml"
-		self.sha={}
-		root = self.xml_record()
-		fileNodes = root.getElementsByTagName(ELEMENT_FOLLOWED_FILES)
-		for fileNode in fileNodes: 
-			for fich in fileNode.getElementsByTagName(TAG_FICHIER):
-				self.sha[fich.getAttribute("name")]=fich.getAttribute("sha1sum")
-	def followed_files_list(self):
-		self.sha.keys()
+	xml_filename = "pytextools.xml"
+	sha={}
+	root = self.xml_record()
+	fileNodes = root.getElementsByTagName(ELEMENT_FOLLOWED_FILES)
+	for fileNode in fileNodes: 
+		for fich in fileNode.getElementsByTagName(TAG_FICHIER):
+			sha[fich.getAttribute("name")]=fich.getAttribute("sha1sum")
 	def xml_record(self):
 		return minidom.parse(self.xml_filename)
 	def old_sha(self,f):
