@@ -291,7 +291,11 @@ class FileTracking(object):
 	for k in old_sha.keys():
 		sha[k]=old_sha[k]
 	def _is_file_changed(self,filename):
-		sha_now = FileToSha1sum(filename)
+		sha_now="XXX"
+		try :
+			sha_now = FileToSha1sum(filename)
+		except IOError :
+			pass
 		FileTracking.sha[filename]=sha_now
 		if filename not in FileTracking.old_sha.keys() :
 			return True
