@@ -1,7 +1,7 @@
 # -*- coding: utf8 -*-
 
 ###########################################################################
-#	This is part of the the package LaTeXparser
+#	This is part of the package LaTeXparser
 #
 #   This program is free software: you can redistribute it and/or modify
 #   it under the terms of the GNU General Public License as published by
