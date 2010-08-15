@@ -385,7 +385,7 @@ def CodeLaTeXToRoughSource(codeLaTeX,filename,bibliography_bbl_filename=None,ind
 	Return a file containing rough self-contained sources that are ready for upload to Arxiv.
 	What it does
 		1. Perform all the \input recursively
-		2. Remove the commented lines (it leavec the % symbol itself)
+		2. Remove the commented lines (leave the % symbol itself)
 		3. Include the bibliography, include .bbl file (no bibtex needed)
 		4. Include the index, include .ind file (no makeindex needed)
 	What is does not
