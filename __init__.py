@@ -45,6 +45,10 @@ def FileToCodeLaTeX(name):
 	""" return a codeLaTeX from a file """
 	content = FileToText(name)
 	return CodeLaTeX(content,filename=name)
+def FileToCodeBibtex(name):
+	""" return a codeBibtex from a file """
+	content = FileToText(name)
+	return CodeBibtex(content,filename=name)
 
 def FileToCodeLog(name):
 	""" return a codeLog from a file """
@@ -512,6 +516,78 @@ def ConvertToUTF8(text):
 		return unicode(text,"utf_8")
 	except TypeError :
 		return text
+
+def EntryListToCodeBibtex(l):
+	"""From a list of object of type BibtexEntrym create the corresponding CodeBibtex"""
+	text = "\n".join( [a.given_text for a in l] )
+	return CodeBibtex(text)
+
+class BibtexEntry(object):
+	"""
+	Contain the informations about a bibtex entry.
+
+	self.type is the type of document (book,article,...). It is returned in lowercase.
+	self.labe is the label.
+	"""
+	def __init__(self,given_text):
+		self.given_text=given_text
+		at_position=self.given_text.find("@")
+		open_bracket_position=self.given_text.find("{")
+		comma_position=self.given_text.find(",")
+		self.type = self.given_text[at_position+1:open_bracket_position].lower()
+		self.label = self.given_text[open_bracket_position+1:comma_position].replace(" ","")
+
+class CodeBibtex(object):
+	"""
+	Contain informations about a bibtex file
+
+	Many assumptions are made on the code.
+	1. The character @ appearing at the beginning of a line is always the beginning of an entry
+	2. The lines are beginning by
+	@TYPE{LABEL
+	with no space between @ and TYPE neither between { and the label.
+	"""
+	def __init__(self,given_text,filename=None):
+		self.filename=filename
+		self.given_text="\n"+given_text			# Border effect because I search for entries by matching the string "\n@"
+		self.text_brut = ConvertToUTF8(RemoveComments(self.given_text))
+		split_entry_list=self.text_brut.split("\n@")
+		self.entry_list=[ BibtexEntry("@"+text) for text in split_entry_list[1:] ]
+		dico={}
+		for entry in self.entry_list :
+			dico[entry.label]=entry
+		self.entry_dict=dico
+	def extract_list(self,label_list):
+		"""
+		From a list of labels, return the code of a bibtex file containing only these
+
+		The exit value is a new object of type CodeBibtex.
+		"""
+		a=[]
+		for label in label_list:
+			try :
+				a.append(self.entry_dict[label].given_text)
+			except KeyError:
+				print "I have no entry labelled %s"%label
+		return CodeBibtex("\n".join(a))
+	def save(self,filename=None):
+		"""Save the code in a file"""
+		f = codecs.open(filename,"w","utf_8")
+		f.write(self.given_text)
+		f.close()
+	def __getitem__(self,key):
+		return self.entry_dict[key]
+	def __add__(self,other):
+		dico=self.entry_dict
+		for entry in other.entry_dict.values():
+			if entry.label in dico :
+				if other[entry.label].given_text != self[entry.label].given_text:
+					print "Override %s"%entry.label
+			else : 
+				print "New entry %s"%entry.label
+			dico[entry.label]=entry
+		return EntryListToCodeBibtex(dico.values())
+
 
 class CodeLaTeX(object):
 	"""
