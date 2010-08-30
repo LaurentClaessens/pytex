@@ -36,23 +36,31 @@ class Compilation(object):
 	Launch the compilation of a document in various ways.
 	Takes a filename as argument
 
+	Optional boolena argument <nocompilation>. If set to True, the compilations are not actually done, but the command line is printed.
+
 	Usage examples
 	X=LaTeXparser.Compilation("MyLaTeXFile.tex")	# Creates the Compilation object
 	X.bibtex()					# Apply bibtex
 	X.chain_dvi_ps_pdf()				# Produce the pdf file
 	"""
-	def __init__(self,filename):
+	def __init__(self,filename,nocompilation=False):
 		self.filename=filename
+		self.nocompilation=nocompilation
 		self.generic_filename = self.filename[:self.filename.rindex(".")]
+	def do_it(self,commande_e):
+		if self.nocompilation :
+			print commande_e
+		else :
+			os.system(commande_e)
 	def bibtex(self):
 		commande_e="bibtex "+self.generic_filename
-		os.system(commande_e)
+		self.do_it(commande_e)
 	def makeindex(self):
 		commande_e="makeindex "+self.generic_filename
-		os.system(commande_e)
+		self.do_it(commande_e)
 	def nomenclature(self):
 		commande_e="makeindex -s nomencl.ist -o "+self.generic_filename+".nls "+self.generic_filename+".nlo"		
-		os.system(commande_e)
+		self.do_it(commande_e)
 	def special_stuffs(self):
 		self.bibtex()
 		self.makeindex()
@@ -60,7 +68,7 @@ class Compilation(object):
 	def latex(self):
 		"""Produce a dvi file"""
 		commande_e="/usr/bin/latex --src-specials "+self.filename
-		os.system(commande_e)
+		self.do_it(commande_e)
 	def chain_dvi_ps(self,papertype="a4"):
 		"""
 		The chain tex->div->ps
@@ -72,7 +80,7 @@ class Compilation(object):
 		"""
 		self.latex()
 		commande_e="dvips -t %s %s.dvi"%(papertype,self.generic_filename)
-		os.system(commande_e)
+		self.do_it(commande_e)
 	def chain_dvi_ps_pdf(self,papertype="a4"):
 		"""
 		The chain tex->dvi-ps->pdf 
@@ -85,7 +93,7 @@ class Compilation(object):
 		"""
 		self.chain_dvi_ps(papertype)
 		commande_e="ps2pdf "+self.generic_filename+".ps" 
-		os.system(commande_e)
+		self.do_it(commande_e)
 	def latex_more(self):
 		self.special_stuffs()
 		self.latex()
