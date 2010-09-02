@@ -325,8 +325,15 @@ class FileTracking(object):
 			the_sha.appendChild(xml)
 		followed_files_xml.appendChild(the_sha)
 		return followed_files_xml.toprettyxml()
-	def save(self):
-		open(FileTracking.xml_filename,"w").write(self.xml())
+	def save(self,medicament=None):
+		# The medicament optional argument is in order to avoid to save if --no-compilation if passed to pytex. In that case, the changes are not taken into account,
+		# and thus the last "used" sha1sum is the one which is still in the file.
+		faire = True
+		if medicament:
+			if medicament.Sortie.nocompilation :
+				faire = False
+		if faire :
+			open(FileTracking.xml_filename,"w").write(self.xml())
 
 class Request(object):
 	""" Contains what a lst-foo.py file has to contain """
