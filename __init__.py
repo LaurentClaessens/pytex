@@ -230,6 +230,8 @@ def NextMacroCandidate(s,macro_name):
 
 def SearchUseOfMacro(code,macro_name,number_of_arguments=None,give_configuration=False):
 	r"""
+	<macro_name> has to contain the initial \ of the macro. I you want to search for \MyMacro, ask for "\MyMacro"; not only "MyMacro"
+
 	number_of_arguments is the number of arguments expected. 
 				Giving a too large number produces wrong results in the following example case where \MyMacro
 				is supposed to have 3 arguments :
@@ -330,8 +332,14 @@ class Occurrence_newlabel(object):
 			self.value = self.listoche[0]
 			self.page = self.listoche[1]
 			self.section_name = self.listoche[2].replace(r"\relax","")
-			self.fourth = self.listoche[3]		# I don't know the role of the fourth argument
-			self.fifth = self.listoche[4]		# I don't know the role of the fifth argument
+			self.fourth = self.listoche[3]		# I don't know the role of the fourth argument of \newlabel
+			self.fifth = self.listoche[4]		# I don't know the role of the fifth argument of \newlabel
+
+class Occurrence_cite(object):
+	def __init__(self,occurrence):
+		self.label = occurrence[0]
+	def entry(self,codeBibtex):
+		return codeBibtex[self.label]
 
 class Occurrence_newcommand(object):
 	def __init__(self,occurrence):
@@ -517,6 +525,10 @@ def ConvertToUTF8(text):
 	except TypeError :
 		return text
 
+class AddBibtexError(Exception):
+	def __init__(self,text):
+		self.text=text
+
 def EntryListToCodeBibtex(l):
 	"""From a list of object of type BibtexEntrym create the corresponding CodeBibtex"""
 	text = "\n".join( [a.given_text for a in l] )
@@ -536,6 +548,7 @@ class BibtexEntry(object):
 		comma_position=self.given_text.find(",")
 		self.type = self.given_text[at_position+1:open_bracket_position].lower()
 		self.label = self.given_text[open_bracket_position+1:comma_position].replace(" ","")
+
 
 class CodeBibtex(object):
 	"""
@@ -578,13 +591,17 @@ class CodeBibtex(object):
 	def __getitem__(self,key):
 		return self.entry_dict[key]
 	def __add__(self,other):
+		"""
+		Add two CodeBibtex in the following way.
+
+		If A and B are two object of type CodeBibtex, return a new object whose entry_list is the union of the two. 
+		If there are intersections, analyse the content of the entry (given_text) and if the contents are not equal, raise an exception.
+		"""
 		dico=self.entry_dict
 		for entry in other.entry_dict.values():
 			if entry.label in dico :
 				if other[entry.label].given_text != self[entry.label].given_text:
-					print "Override %s"%entry.label
-			else : 
-				print "New entry %s"%entry.label
+					raise AddBibtexError("Different texts for the label %s"%entry.label)
 			dico[entry.label]=entry
 		return EntryListToCodeBibtex(dico.values())
 
@@ -601,7 +618,7 @@ class CodeLaTeX(object):
 	returns a CodeLaTeX instance.
 	"""
 	# In a previous version, we were keeping the comments, but it caused some difficulties because, for example, we had to only perform the
-	# replacements outside the comments, so that we had always to replace line by line. It was painfully slow. 
+	# replacements outside the comments, so that we had to perform replacements line by line. It was painfully slow. 
 	# If you have any idea how to keep track of the comments without slow down the process, please send a patch :)
 	def __init__(self,given_text,filename=None):
 		"""
