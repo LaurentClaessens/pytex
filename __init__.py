@@ -678,8 +678,10 @@ class CodeLaTeX(object):
 			print "Warning : label %s has %s different values"%(label_name,str(len(list_interesting)))
 		return list_interesting[-1].value
 	def search_use_of_macro(self,name,number_of_arguments=None,give_configuration=False):
-		"""
-		Return a list of Occurrence of a given macro
+		r"""
+		Return a list of Occurrence of a given macro. You have to include the "\" in the name, for example
+		codeLaTeX.search_use_of_macro("\MyMacro",2)
+		is the good way to study the use of macro \MyMacro, provided that it has exactly 2 arguments.
 
 		Optional argument: number_of_arguments=None
 		If no occurrence are found, return an empty list.
