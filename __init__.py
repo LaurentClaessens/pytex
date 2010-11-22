@@ -525,6 +525,44 @@ def ConvertToUTF8(text):
 	except TypeError :
 		return text
 
+def ListOfCitation(filelist):
+	r"""
+	From a list of files, return the list of arguments in \cite{...}.
+	"""
+	l=[]
+	new_filelist=[a+".tex" for a in filelist]
+	for f in new_filelist :
+		codeLaTeX =FileToCodeLaTeX(f)
+		occurences = codeLaTeX.analyse_use_of_macro("\cite",1)
+		print "537",f
+		print "536",occurences
+		for occ in occurences :
+			l.append(occ.label)
+	return l
+
+def CreateBibtexFile(big_bibtex_file,small_bibtex_file,list_of_files):
+	r"""
+	Put in small_bibtex_file the bibex code needed for all the citations in list_of_files. Take the bibtex code from big_bibtex_file
+
+	An error is raised if
+	- a citation has no code in big_bibtex_file 		(it is raised in CodeBibtex.extract_list)
+	- the code is already in small_bibtex_file, but is different to the one in big_bibtex_file
+
+	A warning is written if 
+	- an entry in small_bibtex_file is not used in the list_of_files.
+	"""
+	list_of_citations=ListOfCitation(list_of_files)
+	print "554",list_of_files
+	print "554",list_of_citations
+	big_bibtex=FileToCodeBibtex(big_bibtex_file)
+	extracted_big=big_bibtex.extract_list(list_of_citations)
+	small_bibtex=FileToCodeBibtex(small_bibtex_file)
+	for label in small_bibtex.entry_dict.keys() :
+		if label not in list_of_citations:
+			print "Useless entry : %s"%label
+	new_bibtex=extracted_big+small_bibtex
+	new_bibtex.save(small_bibtex_file)
+
 class AddBibtexError(Exception):
 	def __init__(self,text):
 		self.text=text
@@ -548,7 +586,6 @@ class BibtexEntry(object):
 		comma_position=self.given_text.find(",")
 		self.type = self.given_text[at_position+1:open_bracket_position].lower()
 		self.label = self.given_text[open_bracket_position+1:comma_position].replace(" ","")
-
 
 class CodeBibtex(object):
 	"""
@@ -582,6 +619,7 @@ class CodeBibtex(object):
 				a.append(self.entry_dict[label].given_text)
 			except KeyError:
 				print "I have no entry labelled %s"%label
+				raise
 		return CodeBibtex("\n".join(a))
 	def save(self,filename=None):
 		"""Save the code in a file"""
@@ -604,7 +642,6 @@ class CodeBibtex(object):
 					raise AddBibtexError("Different texts for the label %s"%entry.label)
 			dico[entry.label]=entry
 		return EntryListToCodeBibtex(dico.values())
-
 
 class CodeLaTeX(object):
 	"""
