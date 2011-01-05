@@ -48,6 +48,7 @@ class Compilation(object):
 		self.nocompilation=nocompilation
 		self.generic_filename = self.filename[:self.filename.rindex(".")]
 	def do_it(self,commande_e):
+		commande_e=commande_e.encode("utf8")
 		if self.nocompilation :
 			print commande_e
 		else :
