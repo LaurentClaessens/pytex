@@ -337,9 +337,9 @@ class FileTracking(object):
 			open(FileTracking.xml_filename,"w").write(self.xml())
 
 class Request(object):
-	""" Contains what a lst-foo.py file has to contain """
-	def __init__(self,name):
-		self.name = name
+	""" Contains what a lst_foo.py file has to contain """
+	def __init__(self,name=None):
+		#self.name = name           # I believe that does not serve anymore (May 12 2011)
 		self.plugin_list = []
 		self.original_filename = ""
 		self.ok_filenames_list = []
