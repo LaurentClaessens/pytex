@@ -459,7 +459,7 @@ class LabelWarning(LaTeXWarning):
     def __init__(self,label,page):
         LaTeXWarning.__init__(self,label,page)
     def __str__(self):
-        return "\033[35;33m------ \033[35;40m Multiply defined label \033[35;33m %s --------- "%self.label+"\n"+self.grep_result#+"\n"
+        return "\033[35;33m------ \033[35;33m Multiply defined label \033[35;33m %s --------- "%self.label+"\n"+self.grep_result#+"\n"
 
 class CodeLog(object):
     """
