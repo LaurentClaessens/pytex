@@ -504,9 +504,7 @@ class CodeLog(object):
         self.probs_number=len(self.undefined_references)+len(self.undefined_citations)+len(self.multiply_labels)
         self.maybeMore ="LaTeX Warning: Label(s) may have changed. Rerun to get cross-references right."
     def rerun_to_get_cross_references(self):
-        if self.maybeMore in self.text_brut :
-            return True
-        return False
+        return self.maybeMore in self.text_brut
     def __str__(self):
         a=[]
         for warn in self.undefined_references :
@@ -643,7 +641,8 @@ class CodeBibtex(object):
         for entry in other.entry_dict.values():
             if entry.label in dico :
                 if other[entry.label].given_text != self[entry.label].given_text:
-                    raise AddBibtexError("Different texts for the label %s"%entry.label)
+                    print 
+                    raise NameError,"Different texts for the label %s"%entry.label
             dico[entry.label]=entry
         return EntryListToCodeBibtex(dico.values())
 
