@@ -455,11 +455,22 @@ class CitationWarning(LaTeXWarning):
         LaTeXWarning.__init__(self,label,page)
     def __str__(self):
         return "\033[35;33m------ Undefined citation \033[35;37m %s \033[35;33m à la page\033[35;40m %s \033[35;33m------"%(self.label,str(self.page))+"\n"+self.grep_result#+"\n"
-class LabelWarning(LaTeXWarning):
+class MultiplyLabelWarning(LaTeXWarning):
     def __init__(self,label,page):
         LaTeXWarning.__init__(self,label,page)
     def __str__(self):
         return "\033[35;33m------ \033[35;33m Multiply defined label \033[35;33m %s --------- "%self.label+"\n"+self.grep_result#+"\n"
+class TeXCapacityExceededWarning(object):
+    def __init__(self,text):
+        self.text=text
+    def __str__(self):
+        return "\033[35;34m This is a serious problem : {0} ".format(self.text)
+class LabelWarning(object):
+    def __init__(self,text):
+        self.text=text
+    def __str__(self):
+        return "\033[35;32m {0} ".format(self.text)
+
 
 class CodeLog(object):
     """
@@ -478,6 +489,8 @@ class CodeLog(object):
         self.undefined_citations=[]
         self.undefined_labels=[]
         self.multiply_labels=[]
+        self.search_for_errors()
+    def search_for_errors(self):
         print "Analysing log file",self.filename
         Warns = self.text_brut.split("Warning: ")
         for warn in Warns[1:]:
@@ -495,30 +508,37 @@ class CodeLog(object):
                         self.undefined_references.append(ReferenceWarning(label,page))
                 if genre == "Label" :
                     if label not in [w.label for w in self.undefined_labels]:
-                        self.multiply_labels.append(LabelWarning(label,page))
+                        self.multiply_labels.append(MultiplyLabelWarning(label,page))
                 if genre == "Citation" :
                     if label not in [w.label for w in self.undefined_citations]:
                         self.undefined_citations.append(CitationWarning(label,page))
             except ValueError :
                 pass
-        self.probs_number=len(self.undefined_references)+len(self.undefined_citations)+len(self.multiply_labels)
+        self.warnings = []
+        self.warnings.extend(self.undefined_references)
+        self.warnings.extend(self.undefined_citations)
+        self.warnings.extend(self.multiply_labels)
+
         self.maybeMore ="LaTeX Warning: Label(s) may have changed. Rerun to get cross-references right."
-    def rerun_to_get_cross_references(self):
-        return self.maybeMore in self.text_brut
+        if self.maybeMore in self.text_brut:
+            self.warnings.append(LabelWarning(self.maybeMore))
+
+        self.TeXcapacityexeeded="TeX capacity exceeded"
+        if self.TeXcapacityexeeded in self.text_brut:
+            self.warnings.append(TeXCapacityExceededWarning(self.TeXcapacityexeeded))
+
+
+        self.probs_number=len(self.warnings)
+    def tex_capacity_exeeded(self):
+        return self.TeXcapacityexeeded in self.text_brut
     def __str__(self):
         a=[]
-        for warn in self.undefined_references :
-            a.append(warn.__str__())
-        for warn in self.multiply_labels :
-            a.append(warn.__str__())
-        for warn in self.undefined_citations :
+        for warn in self.warnings :
             a.append(warn.__str__())
         if self.probs_number > 1:
             a.append("Il reste encore %s problèmes à régler. Bon travail."%str(self.probs_number))
         if self.probs_number == 1:
             a.append("C'est ton dernier problème à régler. Encore un peu de courage !")
-        if self.rerun_to_get_cross_references():
-            a.append(self.maybeMore)
         return "\n".join(a)
 
 def ConvertToUTF8(text):
