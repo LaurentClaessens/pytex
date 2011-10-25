@@ -490,6 +490,11 @@ class CodeLog(object):
         self.undefined_labels=[]
         self.multiply_labels=[]
         self.search_for_errors()
+        self._rerun_to_get_cross_references=None
+    def rerun_to_get_cross_references(self):
+        if self._rerun_to_get_cross_references:
+            return self._rerun_to_get_cross_references
+        self.search_for_errors()
     def search_for_errors(self):
         print "Analysing log file",self.filename
         Warns = self.text_brut.split("Warning: ")
@@ -522,11 +527,13 @@ class CodeLog(object):
         self.maybeMore ="LaTeX Warning: Label(s) may have changed. Rerun to get cross-references right."
         if self.maybeMore in self.text_brut:
             self.warnings.append(LabelWarning(self.maybeMore))
+            self._rerun_to_get_cross_references=True
+        else :
+            self._rerun_to_get_cross_references=False
 
         self.TeXcapacityexeeded="TeX capacity exceeded"
         if self.TeXcapacityexeeded in self.text_brut:
             self.warnings.append(TeXCapacityExceededWarning(self.TeXcapacityexeeded))
-
 
         self.probs_number=len(self.warnings)
     def tex_capacity_exeeded(self):
