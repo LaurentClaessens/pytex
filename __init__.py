@@ -492,9 +492,9 @@ class CodeLog(object):
         self.search_for_errors()
         self._rerun_to_get_cross_references=None
     def rerun_to_get_cross_references(self):
-        if self._rerun_to_get_cross_references:
-            return self._rerun_to_get_cross_references
-        self.search_for_errors()
+        if self._rerun_to_get_cross_references == None:
+            self.search_for_errors()
+        return self._rerun_to_get_cross_references
     def search_for_errors(self):
         print "Analysing log file",self.filename
         Warns = self.text_brut.split("Warning: ")
