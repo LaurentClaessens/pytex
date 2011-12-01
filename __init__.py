@@ -329,7 +329,6 @@ class Occurrence_newlabel(object):
             self.name = "Non interesting; probably the definition"
             self.listoche = [None,None,None,None,None]
             self.value,self.page,self.section_name,self.fourth,self.fifth=(None,None,None,None,None)
-
         else :
             self.name = self.arguments[0][0]
             self.listoche = [a[0] for a in SearchArguments(self.arguments[1][0],5)[0]]
@@ -353,6 +352,19 @@ class Occurrence_newcommand(object):
             self.number_of_arguments = self.occurrence[1][0]
         self.name = self.occurrence[0][0]#[0]
         self.definition = self.occurrence[-1][0]
+
+class Occurrence_label(object):
+    def __init__(self,occurence):
+        self.occurence=occurence
+        self.label=self.occurence.arguments[0]
+class Occurrence_ref(object):
+    def __init__(self,occurence):
+        self.occurence=occurence
+        self.label=self.occurence.arguments[0]
+class Occurrence_eqref(object):
+    def __init__(self,occurence):
+        self.occurence=occurence
+        self.label=self.occurence.arguments[0]
 
 class Occurrence_input(object):
     def __init__(self,occurrence):
@@ -759,6 +771,8 @@ class CodeLaTeX(object):
         The following has to be true
         self.text_brut==configuration[0]+occurrence[0]+...+configuration[n]+occurrence[n]+configuration[n+1]
         """
+        # Why should I explicitellt write the "\" in the macro name ?
+        # I don't remembre, but it was an issue.
         A = SearchUseOfMacro(self,name,number_of_arguments,give_configuration)
         return A
     def analyse_use_of_macro(self,name,number_of_arguments=None):
