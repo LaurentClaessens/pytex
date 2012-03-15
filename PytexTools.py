@@ -17,7 +17,7 @@
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
 
-# copyright (c) Laurent Claessens, 2010
+# copyright (c) Laurent Claessens, 2010, 2012
 # email: moky.math@gmail.com
 
 """
@@ -43,7 +43,8 @@ class Compilation(object):
     X.bibtex()                  # Apply bibtex
     X.chain_dvi_ps_pdf()                # Produce the pdf file
     """
-    def __init__(self,filename,nocompilation=False):
+    def __init__(self,filename,nocompilation=False,pdflatex=False):
+        self.pdflatex=pdflatex
         self.filename=filename
         self.nocompilation=nocompilation
         self.generic_filename = self.filename[:self.filename.rindex(".")]
@@ -67,8 +68,11 @@ class Compilation(object):
         self.makeindex()
         self.nomenclature()
     def latex(self):
-        """Produce a dvi file"""
-        commande_e="/usr/bin/latex --src-specials "+self.filename
+        """Produce a dvi file using latex or pdflatex"""
+        if self.pdflatex :
+            commande_e="/usr/bin/pdflatex "+self.filename
+        else :
+            commande_e="/usr/bin/latex --src-specials "+self.filename
         self.do_it(commande_e)
     def chain_dvi_ps(self,papertype="a4"):
         """
