@@ -44,10 +44,14 @@ class Compilation(object):
     X.chain_dvi_ps_pdf()                # Produce the pdf file
     """
     def __init__(self,filename,nocompilation=False,pdflatex=False):
+        import os
         self.pdflatex=pdflatex
         self.filename=filename
         self.nocompilation=nocompilation
+        self.directory=os.path.split(self.filename)[0]
         self.generic_filename = self.filename[:self.filename.rindex(".")]
+        self.directory=os.path.split(self.filename)[0]
+        self.generic_basename=os.path.split(self.generic_filename)[1]
     def do_it(self,commande_e):
         commande_e=commande_e.encode("utf8")
         if self.nocompilation :
@@ -68,12 +72,26 @@ class Compilation(object):
         self.makeindex()
         self.nomenclature()
     def latex(self):
-        """Produce a dvi file using latex or pdflatex"""
+        """Produce a dvi or pdf file using latex or pdflatex"""
         if self.pdflatex :
-            commande_e="/usr/bin/pdflatex "+self.filename
+            program="/usr/bin/pdflatex"
         else :
-            commande_e="/usr/bin/latex --src-specials "+self.filename
+            program="/usr/bin/latex --src-specials"
+        commande_e="""{0} {1} """.format(program,self.filename)
         self.do_it(commande_e)
+        import shutil
+        output_file=self.directory+"/"+self.generic_basename+".@pyXXX"
+        new_output_file=self.directory+"/0-"+self.generic_basename+".@pyXXX"
+        if self.pdflatex:
+            extension=".pdf"
+        else :
+            extension=".dvi"
+        output_file=output_file.replace(".@pyXXX",extension)
+        new_output_file=new_output_file.replace(".@pyXXX",extension)
+        print self.filename
+        print output_file
+        print new_output_file
+        shutil.copy2(output_file,new_output_file)
     def chain_dvi_ps(self,papertype="a4"):
         """
         The chain tex->div->ps
@@ -243,7 +261,7 @@ def PytexOnlyIn(name,codeLaTeX):
 
 class CodeFactory(object):
     """
-    Contain what one need to build LaTeX code from files, plugin, magical boxes, ...
+    Contain what one needs to build LaTeX code from files, plugin, magical boxes, ...
 
     For most of methods, see the docstring of the corresponding method in LaTeXparser.CodeLaTeX
     """
