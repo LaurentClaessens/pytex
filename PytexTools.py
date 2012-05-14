@@ -31,12 +31,14 @@ import hashlib
 from xml.dom import minidom
 import LaTeXparser
 
+# TODO : there should be a possibility to compile "up to all references are correct" from here. 
+#       I mean : the algorithm of checking should be here.
 class Compilation(object):
     """
     Launch the compilation of a document in various ways.
     Takes a filename as argument
 
-    Optional boolena argument <nocompilation>. If set to True, the compilations are not actually done, but the command line is printed.
+    Optional boolean argument <nocompilation>. If set to True, the compilations are not actually done, but the command line is printed.
 
     Usage examples
     X=LaTeXparser.Compilation("MyLaTeXFile.tex")    # Creates the Compilation object
@@ -48,10 +50,12 @@ class Compilation(object):
         self.pdflatex=pdflatex
         self.filename=filename
         self.nocompilation=nocompilation
-        self.directory=os.path.split(self.filename)[0]
-        self.generic_filename = self.filename[:self.filename.rindex(".")]
-        self.directory=os.path.split(self.filename)[0]
-        self.generic_basename=os.path.split(self.generic_filename)[1]
+        self.dirname=os.path.dirname(self.filename)
+        self.basename=os.path.basename(self.filename)
+        self.generic_basename = self.basename[:self.basename.rindex(".")]
+        self.generic_filename = os.path.join(self.dirname,self.generic_basename)
+        #self.generic_filename = self.filename[:self.filename.rindex(".")]
+        #self.generic_basename=os.path.split(self.generic_filename)[1]
     def do_it(self,commande_e):
         commande_e=commande_e.encode("utf8")
         if self.nocompilation :
@@ -80,8 +84,10 @@ class Compilation(object):
         commande_e="""{0} {1} """.format(program,self.filename)
         self.do_it(commande_e)
         import shutil
-        output_file=self.directory+"/"+self.generic_basename+".@pyXXX"
-        new_output_file=self.directory+"/0-"+self.generic_basename+".@pyXXX"
+        output_file=os.path.join(self.dirname,self.generic_basename+".@pyXXX")
+        new_output_file=os.path.join(self.dirname,"0-"+self.generic_basename+".@pyXXX")
+        #output_file=self.directory+"/"+self.generic_basename+".@pyXXX"
+        #new_output_file=self.directory+"/0-"+self.generic_basename+".@pyXXX"
         if self.pdflatex:
             extension=".pdf"
         else :
