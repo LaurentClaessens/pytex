@@ -83,7 +83,6 @@ class Compilation(object):
             program="/usr/bin/latex --src-specials"
         commande_e="""{0} {1} """.format(program,self.filename)
         self.do_it(commande_e)
-        import shutil
         output_file=os.path.join(self.dirname,self.generic_basename+".@pyXXX")
         new_output_file=os.path.join(self.dirname,"0-"+self.generic_basename+".@pyXXX")
         #output_file=self.directory+"/"+self.generic_basename+".@pyXXX"
@@ -94,10 +93,14 @@ class Compilation(object):
             extension=".dvi"
         output_file=output_file.replace(".@pyXXX",extension)
         new_output_file=new_output_file.replace(".@pyXXX",extension)
-        print self.filename
-        print output_file
-        print new_output_file
+        import shutil
         shutil.copy2(output_file,new_output_file)
+        if self.pdflatex:
+            output_pdfsync=output_file+"sync"
+            new_output_pdfsync=new_output_file+"sync"
+            if not os.path.exists(output_pdfsync):
+                raise NameError,"Are you using pdflatex without \usepackage{pdfsync} ?? I don't believe it !"
+            shutil.copy2(output_pdfsync,new_output_pdfsync)
     def chain_dvi_ps(self,papertype="a4"):
         """
         The chain tex->div->ps
