@@ -45,9 +45,10 @@ class Compilation(object):
     X.bibtex()                  # Apply bibtex
     X.chain_dvi_ps_pdf()                # Produce the pdf file
     """
-    def __init__(self,filename,nocompilation=False,pdflatex=False):
+    def __init__(self,filename,nocompilation=False,pdflatex=True,dvi=False):
         import os
         self.pdflatex=pdflatex
+        self.dvi=dvi
         self.filename=filename
         self.nocompilation=nocompilation
         self.dirname=os.path.dirname(self.filename)
