@@ -21,7 +21,7 @@
 # email: moky.math@gmail.com
 
 """
-This is a very basic LaTeX parser and manipulation intended to be used within phystricks and other of my scripts.
+This module furnishes some functionalities to manipulate LaTeX code.
 """
 
 import os
@@ -35,8 +35,13 @@ accepted_between_arguments = ["%","\n"," ","    "] # the last one is a TAB
 definition_commands = [ "\\newcommand","\\renewcommand" ]   # In the method dict_of_definition_macros, I hard-code the fact that 
                                 # these definition commands have 3 arguments.
 def FileToText(name):
-    """ return the content of a file """
+    """ return the content of a file as string
+    
+    If the file do not exist, return empty string.
+    """
     l=[]
+    if not os.path.isfile(name):
+        return ""
     for line in open(name,"r"):
         l.append(line)
     return "".join(l)
@@ -706,6 +711,7 @@ class CodeLaTeX(object):
         # If you change something here, it has to be changed in append_file.
         self.given_text = given_text
         self.text_brut = ConvertToUTF8(RemoveComments(self.given_text))
+
         self._dict_of_definition_macros = {}
         self._list_of_input_files = []
         self.filename = filename
@@ -773,8 +779,7 @@ class CodeLaTeX(object):
         """
         # Why should I explicitellt write the "\" in the macro name ?
         # I don't remembre, but it was an issue.
-        A = SearchUseOfMacro(self,name,number_of_arguments,give_configuration)
-        return A
+        return SearchUseOfMacro(self,name,number_of_arguments,give_configuration)
     def analyse_use_of_macro(self,name,number_of_arguments=None):
         """
         Provide a list of analyse of the occurrences of a macro.
@@ -916,6 +921,13 @@ class CodeLaTeX(object):
         for occurrence in liste_occurrences :
             A=A.replace(occurrence.as_written,occurrence.arguments[0])
         return A
+    def position_to_line(self,position):
+        """
+        return the line (as string) which contains the given position.
+        """
+        a=self.text_brut[0:position].rindex("\n")
+        b=self.text_brut.index("\n",position)
+        return self.text_brut[a+1:b]
     def find(self,arg):
         return self.text.find(arg)
     def replace(self,textA,textB):
