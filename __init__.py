@@ -20,6 +20,8 @@
 # copyright (c) Laurent Claessens, 2010,2012
 # email: moky.math@gmail.com
 
+from __future__ import unicode_literals
+
 """
 This module furnishes some functionalities to manipulate LaTeX code.
 """
@@ -42,7 +44,8 @@ def FileToText(name):
     l=[]
     if not os.path.isfile(name):
         return ""
-    for line in open(name,"r"):
+    import codecs
+    for line in codecs.open(name,"r",encoding="utf8"):
         l.append(line)
     return "".join(l)
 
@@ -57,7 +60,13 @@ def FileToCodeBibtex(name):
 
 def FileToCodeLog(name):
     """ return a codeLog from a file """
-    list_content = list(open(name,"r"))
+    try:
+        list_content = list(codecs.open(name,"r",encoding="utf8"))
+    # I've noticed that the log file was ISO-8859 English text
+    except UnicodeDecodeError : 
+        print "Problem with",name
+        list_content = list(codecs.open(name,"r",encoding="iso8859-1"))
+    a="".join(list_content)
     return CodeLog("".join(list_content),filename=name)
 
 class Occurrence(object):
@@ -461,12 +470,12 @@ class LaTeXWarning(object):
         self.label = label
         self.page = page
         command_e="grep --color=always -n {"+self.label+"} *.tex"
-        self.grep_result=commands.getoutput(command_e)
+        self.grep_result=commands.getoutput(command_e).decode("utf8")
 class ReferenceWarning(LaTeXWarning):
     def __init__(self,label,page):
         LaTeXWarning.__init__(self,label,page)
     def __str__(self):
-        return "\033[35;33m------ Undefined reference \033[35;37m %s \033[35;33m à la page\033[35;40m %s \033[35;33m------"%(self.label,str(self.page))+"\n"+self.grep_result#+"\n"
+        return "\033[35;33m------ Undefined reference \033[35;37m %s \033[35;33m à la page\033[35;40m %s \033[35;33m------".format(self.label,self.page)+"\n"+self.grep_result#+"\n"
 class CitationWarning(LaTeXWarning):
     def __init__(self,label,page):
         LaTeXWarning.__init__(self,label,page)
@@ -555,7 +564,7 @@ class CodeLog(object):
         self.probs_number=len(self.warnings)
     def tex_capacity_exeeded(self):
         return self.TeXcapacityexeeded in self.text_brut
-    def __str__(self):
+    def __unicode__(self):
         a=[]
         for warn in self.warnings :
             a.append(warn.__str__())
@@ -564,6 +573,8 @@ class CodeLog(object):
         if self.probs_number == 1:
             a.append("C'est ton dernier problème à régler. Encore un peu de courage !")
         return "\n".join(a)
+    def __str__(self):
+        return self.__unicode__().encode("utf8")
 
 def ConvertToUTF8(text):
     try :
@@ -841,7 +852,7 @@ class CodeLaTeX(object):
             if "." not in filename:
                 strict_filename=filename+".tex"
             try:
-                text = "".join( open(strict_filename,"r") )[:-1]    # Without [:-1] I got an artificial empty line at the end.
+                text = "".join( codecs.open(strict_filename,"r",encoding="utf8") )[:-1]    # Without [:-1] I got an artificial empty line at the end.
             except IOError :
                 print "Warning : file %s not found."%strict_filename
                 raise
