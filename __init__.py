@@ -449,7 +449,9 @@ def CodeLaTeXToRoughSource(codeLaTeX,filename,bibliography_bbl_filename=None,ind
         bibliography_bbl_filename = codeLaTeX.filename.replace(".tex",".bbl")
     if not index_ind_filename :
         index_ind_filename = codeLaTeX.filename.replace(".tex",".ind")
+    print "Creating bibliography"
     code_biblio = FileToCodeLaTeX(bibliography_bbl_filename)
+    print "Creating index"
     code_index = FileToCodeLaTeX(index_ind_filename)
 
     new_code = codeLaTeX.copy()
@@ -835,7 +837,11 @@ class CodeLaTeX(object):
                 list.append(occurrence.analyse().filename)
             self._list_of_input_files = list
         return self._list_of_input_files
+
+    # The function `substitute_input` is no more used; and even if you want to use it again, you should think
+    # about using `substitute_occurence_input` somewhere inside.
     def substitute_input(self,filename,text=None):
+        raise DeprecationWarning
         r""" 
         replace \input{<filename>} by <text>.
 
@@ -846,7 +852,7 @@ class CodeLaTeX(object):
         2. It does not really check the context. A \input in a verbatim environment will be replaced !
         3. If a file is not found, a IOError exception is raised
         """
-        list = []
+        occurences_list = []
         if text==None:
             strict_filename = filename
             if "." not in filename:
@@ -857,13 +863,35 @@ class CodeLaTeX(object):
                 print "Warning : file %s not found."%strict_filename
                 raise
         list_input = self.search_use_of_macro("\input",1)
+
         for occurrence in list_input:
             x = occurrence.analyse()
             if x.filename == filename :         # Create the list of all the texts of the form \input{<filename>}
-                list.append(x.occurrence.as_written)
+                occurences_list.append(x.occurrence.as_written)
         A = CodeLaTeX(self.text_brut)
-        for as_written in list :
+        for as_written in occurences_list :
             A=A.replace(as_written,text)
+        return A
+
+    def substitute_occurence_input(self,occurence):
+        """
+        `occurence` is the occurence of an \input{<filename>}. 
+
+        Replace the occurence by the content of filename.
+        """
+        x = occurrence.analyse()
+        filename=x.filename
+
+        strict_filename = filename
+        if "." not in filename:
+            strict_filename=filename+".tex"
+        try:
+            text = "".join( codecs.open(strict_filename,"r",encoding="utf8") )[:-1]    # Without [:-1] I got an artificial empty line at the end.
+        except IOError :
+            print "Warning : file %s not found."%strict_filename
+            raise
+        A = CodeLaTeX(self.text_brut)
+        A=A.replace(occurence.as_written,text)
         return A
     def substitute_all_inputs(self):
         r"""
@@ -871,12 +899,10 @@ class CodeLaTeX(object):
         Return a new object LaTeXparser.CodeLaTeX
         """
         A = CodeLaTeX(self.text_brut)
+        print "Getting input list"
         list_input = A.search_use_of_macro("\input",1)
-        while list_input :
-            for occurrence in list_input :
-                x = occurrence.analyse()
-                A = A.substitute_input(x.filename)
-            list_input = A.search_use_of_macro("\input",1)
+        for occurence in list_input:
+            A=A.substitute_occurence_input(occ)
         return A
     def change_macro_argument(self,macro_name,n,func,n_args):
         r"""
