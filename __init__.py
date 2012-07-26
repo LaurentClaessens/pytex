@@ -85,7 +85,6 @@ class Occurrence(object):
         self.number_of_arguments = len(arguments)
         self.name = name
         self.as_written = as_written
-        #self.arguments_list = [ a[0] for a in self.arguments ]
         self.arguments_list = arguments
         self.position = position
     def configuration(self):
@@ -380,10 +379,25 @@ class Occurrence_eqref(object):
         self.occurence=occurence
         self.label=self.occurence.arguments[0]
 
-class Occurrence_input(object):
+class Occurrence_input(Occurrence):
     def __init__(self,occurrence):
+        Occurrence.__init__(self,occurrence.name,occurrence.arguments,as_written=occurrence.as_written,position=occurrence.position)
         self.occurrence = occurrence
         self.filename = self.occurrence[0]
+        self._substitution_text=None        # Make substitution_text "lazy"
+    def substitution_text(self):
+        if self._substitution_text == None:
+            filename=self.filename
+            strict_filename = filename
+            if "." not in filename:
+                strict_filename=filename+".tex"
+            try:
+                text = "".join( codecs.open(strict_filename,"r",encoding="utf8") )[:-1]    # Without [:-1] I got an artificial empty line at the end.
+            except IOError :
+                print "Warning : file %s not found."%strict_filename
+                raise
+            self._substitution_text=text
+        return self._substitution_text
 
 class StatisticsOfTheMacro(object):
     def __init__(self,code,name):
@@ -879,17 +893,7 @@ class CodeLaTeX(object):
 
         Replace the occurence by the content of filename.
         """
-        x = occurrence.analyse()
-        filename=x.filename
-
-        strict_filename = filename
-        if "." not in filename:
-            strict_filename=filename+".tex"
-        try:
-            text = "".join( codecs.open(strict_filename,"r",encoding="utf8") )[:-1]    # Without [:-1] I got an artificial empty line at the end.
-        except IOError :
-            print "Warning : file %s not found."%strict_filename
-            raise
+        text=occurence.substitution_text()
         A = CodeLaTeX(self.text_brut)
         A=A.replace(occurence.as_written,text)
         return A
@@ -900,8 +904,14 @@ class CodeLaTeX(object):
         """
         A = CodeLaTeX(self.text_brut)
         print "Getting input list"
-        list_input = A.search_use_of_macro("\input",1)
+        list_input = [x.analyse() for x in A.search_use_of_macro("\input",1)]
+        if list_input==[]:
+            return self
+        substitution_code={}
         for occurence in list_input:
+            B=CodeLaTeX(occurence.substitution_text())
+            substitution_code[occurence]=B.substitute_all_inputs()
+        for occ in list_input:
             A=A.substitute_occurence_input(occ)
         return A
     def change_macro_argument(self,macro_name,n,func,n_args):
