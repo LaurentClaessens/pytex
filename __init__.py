@@ -415,13 +415,22 @@ def RemoveComments(text):
     Output : string
     """
     line_withoutPC = []
-    # we remove the end of lines with %
+    # we remove the end of lines with % if not preceded by \
     for lineC in text.split("\n"):
-        ligne = lineC
-        placePC = lineC.find("%")
-        to_be_removed = lineC[placePC:]
-        if placePC != -1:
-            ligne = ligne.replace(to_be_removed,"%")
+        pattern = "[^\\\]%"
+        search=re.compile(pattern).search
+        s=search(lineC)
+
+        if s :
+            ligne=s.string[:s.start()+2]    # We keep the "%" itself.
+        else :             
+            ligne=lineC
+
+        #placePC = lineC.find("%")
+        #to_be_removed = lineC[placePC:]
+        #if placePC != -1:
+        #    ligne = ligne.replace(to_be_removed,"%")
+
         line_withoutPC.append(ligne)
     code_withoutPC = "\n".join(line_withoutPC)
 
@@ -894,6 +903,7 @@ class CodeLaTeX(object):
         Replace the occurence by the content of filename.
         """
         text=occurence.substitution_text()
+        print "Adding file",occurence.filename
         A = CodeLaTeX(self.text_brut)
         A=A.replace(occurence.as_written,text)
         return A
@@ -903,7 +913,6 @@ class CodeLaTeX(object):
         Return a new object LaTeXparser.CodeLaTeX
         """
         A = CodeLaTeX(self.text_brut)
-        print "Getting input list"
         list_input = [x.analyse() for x in A.search_use_of_macro("\input",1)]
         if list_input==[]:
             return self
