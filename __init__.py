@@ -31,6 +31,7 @@ import commands
 import re
 import codecs
 
+search_comment_pc=re.compile("[^\\\]%").search
 paires = { "{":"}","[":"]","`":"'"}
 
 accepted_between_arguments = ["%","\n"," ","    "] # the last one is a TAB
@@ -231,7 +232,16 @@ def compactization(text,accepted_between_arguments):
         text=text.replace(acc,"")
     return text
 
-def NextMacroCandidate(s,macro_name):
+def NextMacroCandidate_old(s,macro_name):
+    """
+    return the a tuple (boolean,integer) saying if macro_name is present in string s
+    and where.
+
+    This function is supposed to be only used on string representing LaTeX code with removed comments, that 
+    is where % is immediately followed by \n (or preceded by \).
+
+    This is the old version.
+    """
     turtle = 0
     while turtle < len(s):
         if s[turtle:turtle+len(macro_name)] == macro_name :
@@ -244,6 +254,37 @@ def NextMacroCandidate(s,macro_name):
             turtle = turtle+pos
         turtle=turtle+1
     return False,-1
+
+
+def NextMacroCandidate(s,macro_name,search_macro_name=None):
+    """
+    return the a tuple (boolean,integer) saying if macro_name is present in string s
+    and where.
+
+    This macro does not return results that are inside comments.
+    """
+    if search_macro_name==None:
+        search_macro_name=re.compile(re.escape(macro_name)+"[^A-Za-z]").search
+    result=search_macro_name(s)
+    print "PSyzrP",result
+    if not result :
+        return False,-1
+    k=result.start()
+    print "gywDxH",k
+
+    # init_line is the position at which the line begins;
+    # we are going to check if there is "[^\]%" between the begining
+    # of the line and my macro.
+    init_line=s[0:k].rfind("\n")
+    if init_line==-1:
+        init_line=0
+    candidate=s[init_line:k]
+    result=search_comment_pc(candidate)
+    print "IZlsjS",result
+    if result :
+        return False,-1
+    return True,k
+
 
 def SearchUseOfMacro(code,macro_name,number_of_arguments=None,give_configuration=False):
     r"""
@@ -269,17 +310,18 @@ def SearchUseOfMacro(code,macro_name,number_of_arguments=None,give_configuration
             \MyMacro {argument} (with a space between \MyMacro and the first opening bracket)
         will be buggy.
     """
-    if not macro_name in code.text_brut :
+    search_macro_name=re.compile(re.escape(macro_name)+"[^A-Za-z]").search
+    s = code.text_brut
+    if not macro_name in s :
         return []
     turtle = 0
     config_turtle=0
-    s = code.text_brut
     remaining = s
     use = []
     configuration=[]
     while macro_name in remaining :
         remaining=s[turtle:]
-        boo,offset = NextMacroCandidate(remaining,macro_name)
+        boo,offset = NextMacroCandidate(remaining,macro_name,search_macro_name=search_macro_name)
         if boo :
             turtle = turtle+offset+len(macro_name)
             remaining=s[turtle:]
@@ -392,6 +434,7 @@ class Occurrence_input(Occurrence):
             if "." not in filename:
                 strict_filename=filename+".tex"
             try:
+                print "DvMNyr",strict_filename
                 text = "".join( codecs.open(strict_filename,"r",encoding="utf8") )[:-1]    # Without [:-1] I got an artificial empty line at the end.
             except IOError :
                 print "Warning : file %s not found."%strict_filename
@@ -815,7 +858,10 @@ class CodeLaTeX(object):
         """
         # Why should I explicitellt write the "\" in the macro name ?
         # I don't remembre, but it was an issue.
+
         return SearchUseOfMacro(self,name,number_of_arguments,give_configuration)
+
+
     def analyse_use_of_macro(self,name,number_of_arguments=None):
         """
         Provide a list of analyse of the occurrences of a macro.
