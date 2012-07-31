@@ -258,19 +258,19 @@ def NextMacroCandidate_old(s,macro_name):
 
 def NextMacroCandidate(s,macro_name,search_macro_name=None):
     """
-    return the a tuple (boolean,integer) saying if macro_name is present in string s
-    and where.
+    return the a tuple (boolean,integer,boolena) saying 
+    1. if macro_name is present in string s
+    2. where is it
+    3. if this is in a comment  (False if there are no matching macro)
 
     This macro does not return results that are inside comments.
     """
     if search_macro_name==None:
         search_macro_name=re.compile(re.escape(macro_name)+"[^A-Za-z]").search
     result=search_macro_name(s)
-    print "PSyzrP",result
     if not result :
-        return False,-1
+        return False,-1,False
     k=result.start()
-    print "gywDxH",k
 
     # init_line is the position at which the line begins;
     # we are going to check if there is "[^\]%" between the begining
@@ -280,10 +280,9 @@ def NextMacroCandidate(s,macro_name,search_macro_name=None):
         init_line=0
     candidate=s[init_line:k]
     result=search_comment_pc(candidate)
-    print "IZlsjS",result
     if result :
-        return False,-1
-    return True,k
+        return True,k,True
+    return True,k,False
 
 
 def SearchUseOfMacro(code,macro_name,number_of_arguments=None,give_configuration=False):
@@ -319,28 +318,30 @@ def SearchUseOfMacro(code,macro_name,number_of_arguments=None,give_configuration
     remaining = s
     use = []
     configuration=[]
-    while macro_name in remaining :
+    boo=True
+    while boo:
         remaining=s[turtle:]
-        boo,offset = NextMacroCandidate(remaining,macro_name,search_macro_name=search_macro_name)
+        boo,offset,in_comment = NextMacroCandidate(remaining,macro_name,search_macro_name=search_macro_name)
         if boo :
             turtle = turtle+offset+len(macro_name)
             remaining=s[turtle:]
-            try :
-                arguments,as_written=SearchArguments(remaining,number_of_arguments)
-            except TypeError:
-                print number_of_arguments
-                print remaining[0:30]
-                raise
-            position=turtle-len(macro_name)
-            occurrence=Occurrence(macro_name,arguments,macro_name+as_written,position=turtle-len(macro_name))
+            if not in_comment :
+                try :
+                    arguments,as_written=SearchArguments(remaining,number_of_arguments)
+                except TypeError:
+                    print number_of_arguments
+                    print remaining[0:30]
+                    raise
+                position=turtle-len(macro_name)
+                occurrence=Occurrence(macro_name,arguments,macro_name+as_written,position=turtle-len(macro_name))
 
-            # The following test excludes the cases when we fit the \newcommand{\MyMacro}
-            test=compactization(occurrence.as_written,accepted_between_arguments)
-            if test[len(macro_name)] != "}":
-                configuration.append(code.text_brut[config_turtle:occurrence.position])
-                use.append(occurrence)
-            config_turtle=position+len(occurrence.as_written)
-        else :
+                # The following test excludes the cases when we fit the \newcommand{\MyMacro}
+                test=compactization(occurrence.as_written,accepted_between_arguments)
+                if test[len(macro_name)] != "}":
+                    configuration.append(code.text_brut[config_turtle:occurrence.position])
+                    use.append(occurrence)
+                config_turtle=position+len(occurrence.as_written)
+        else :      # if not boo
             if give_configuration:
                 configuration.append(code.text_brut[config_turtle:])
                 return use,configuration
@@ -434,7 +435,6 @@ class Occurrence_input(Occurrence):
             if "." not in filename:
                 strict_filename=filename+".tex"
             try:
-                print "DvMNyr",strict_filename
                 text = "".join( codecs.open(strict_filename,"r",encoding="utf8") )[:-1]    # Without [:-1] I got an artificial empty line at the end.
             except IOError :
                 print "Warning : file %s not found."%strict_filename
