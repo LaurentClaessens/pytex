@@ -64,13 +64,15 @@ class Compilation(object):
         else :
             os.system(commande_e)
     def bibtex(self):
-        commande_e="bibtex "+self.generic_filename
+        # Note August, 2, 2012. In the new texlive, bibtex (and makeindex and nomenclature) do no more accept
+        # absolute pathname.
+        commande_e="bibtex "+self.generic_basename
         self.do_it(commande_e)
     def makeindex(self):
-        commande_e="makeindex "+self.generic_filename
+        commande_e="makeindex "+self.generic_basename
         self.do_it(commande_e)
     def nomenclature(self):
-        commande_e="makeindex -s nomencl.ist -o "+self.generic_filename+".nls "+self.generic_filename+".nlo"        
+        commande_e="makeindex -s nomencl.ist -o "+self.generic_basename+".nls "+self.generic_basename+".nlo"        
         self.do_it(commande_e)
     def special_stuffs(self):
         self.bibtex()
