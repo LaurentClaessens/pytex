@@ -53,7 +53,9 @@ def FileToText(name):
 def FileToCodeLaTeX(name):
     """ return a codeLaTeX from a file """
     content = FileToText(name)
-    return CodeLaTeX(content,filename=name)
+    A = CodeLaTeX(content,filename=name)
+    A.included_file_list=[name]
+    return A
 def FileToCodeBibtex(name):
     """ return a codeBibtex from a file """
     content = FileToText(name)
@@ -794,6 +796,7 @@ class CodeLaTeX(object):
         self._dict_of_definition_macros = {}
         self._list_of_input_files = []
         self.filename = filename
+        self.included_file_list=[]  # When the code is created from files, the filename is recorded here.
     def copy(self):
         """
         Return a copy of self in a new object
@@ -951,6 +954,8 @@ class CodeLaTeX(object):
         text=occurence.substitution_text()
         print "Adding file",occurence.filename
         A = CodeLaTeX(self.text_brut)
+        A.included_file_list=self.included_file_list
+        A.included_file_list.append(occurence.filename)
         A=A.replace(occurence.as_written,text)
         return A
     def substitute_all_inputs(self):
@@ -1037,7 +1042,9 @@ class CodeLaTeX(object):
         textA=ConvertToUTF8(textA)
         textB=ConvertToUTF8(textB)
         new_text = self.text_brut.replace(textA,textB)
-        return CodeLaTeX(new_text)
+        A = CodeLaTeX(new_text)
+        A.included_file_list=self.included_file_list
+        return A
     def append_file(self,filename=None,filenames=None):
         """
         Append the content of a file to the current LaTeX code. Return a new object.
