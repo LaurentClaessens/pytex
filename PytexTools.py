@@ -81,10 +81,11 @@ class Compilation(object):
     def latex(self):
         """Produce a dvi or pdf file using latex or pdflatex"""
         if self.pdflatex :
-            program="/usr/bin/pdflatex"
+            program=u"/usr/bin/pdflatex"
         else :
-            program="/usr/bin/latex --src-specials"
-        commande_e="""{0} {1} """.format(program,self.filename)
+            program=u"/usr/bin/latex --src-specials"
+        # The following line does not work without the u"...". Even if {0} and {1} are type unicode
+        commande_e=u"""{0} {1} """.format(program,self.filename)
         self.do_it(commande_e)
         output_file=os.path.join(self.dirname,self.generic_basename+".@pyXXX")
         new_output_file=os.path.join(self.dirname,"0-"+self.generic_basename+".@pyXXX")
