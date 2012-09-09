@@ -545,7 +545,7 @@ class ReferenceWarning(LaTeXWarning):
     def __init__(self,label,page):
         LaTeXWarning.__init__(self,label,page)
     def __str__(self):
-        return "\033[35;33m------ Undefined reference \033[35;37m %s \033[35;33m à la page\033[35;40m %s \033[35;33m------".format(self.label,self.page)+"\n"+self.grep_result#+"\n"
+        return "\033[35;33m------ Undefined reference \033[35;37m {0} \033[35;33m à la page\033[35;40m {1} \033[35;33m------".format(self.label,self.page)+"\n"+self.grep_result#+"\n"
 class CitationWarning(LaTeXWarning):
     def __init__(self,label,page):
         LaTeXWarning.__init__(self,label,page)
