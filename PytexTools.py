@@ -81,7 +81,7 @@ class Compilation(object):
     def latex(self):
         """Produce a dvi or pdf file using latex or pdflatex"""
         if self.pdflatex :
-            program=u"/usr/bin/pdflatex"
+            program=u"/usr/bin/pdflatex -synctex=1"
         else :
             program=u"/usr/bin/latex --src-specials"
         # The following line does not work without the u"...". Even if {0} and {1} are type unicode
