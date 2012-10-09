@@ -99,12 +99,14 @@ class Compilation(object):
         new_output_file=new_output_file.replace(".@pyXXX",extension)
         import shutil
         shutil.copy2(output_file,new_output_file)
-        if self.pdflatex:
-            output_pdfsync=output_file+"sync"
-            new_output_pdfsync=new_output_file+"sync"
-            if not os.path.exists(output_pdfsync):
-                raise NameError,"Are you using pdflatex without \usepackage{pdfsync} ?? I don't believe it !"
-            shutil.copy2(output_pdfsync,new_output_pdfsync)
+
+        # This part is no more required since we use pdflatex -synctex=1 (October, 8, 2012)
+        #if self.pdflatex:
+        #    output_pdfsync=output_file+"sync"
+        #    new_output_pdfsync=new_output_file+"sync"
+        #    if not os.path.exists(output_pdfsync):
+        #        raise NameError,"Are you using pdflatex without \usepackage{pdfsync} ?? I don't believe it !"
+        #    shutil.copy2(output_pdfsync,new_output_pdfsync)
     def chain_dvi_ps(self,papertype="a4"):
         """
         The chain tex->div->ps
