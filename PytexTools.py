@@ -17,7 +17,7 @@
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
 
-# copyright (c) Laurent Claessens, 2010, 2012
+# copyright (c) Laurent Claessens, 2010, 2012-2015
 # email: moky.math@gmail.com
 
 """
@@ -32,7 +32,7 @@ from xml.dom import minidom
 import LaTeXparser
 
 # TODO : there should be a possibility to compile "up to all references are correct" from here. 
-#       I mean : the algorithm of checking should be here.
+#       I mean : the checking algorithm should be here.
 class Compilation(object):
     """
     Launch the compilation of a document in various ways.
@@ -59,8 +59,9 @@ class Compilation(object):
         #self.generic_basename=os.path.split(self.generic_filename)[1]
     def do_it(self,commande_e):
         commande_e=commande_e.encode("utf8")
+        print("*** external :",commande_e)
         if self.nocompilation :
-            print commande_e
+            print("not executed")
         else :
             os.system(commande_e)
     def bibtex(self):
@@ -81,32 +82,13 @@ class Compilation(object):
     def latex(self):
         """Produce a dvi or pdf file using latex or pdflatex"""
         if self.pdflatex :
-            program=u"/usr/bin/pdflatex -synctex=1"
+            program=u"/usr/bin/pdflatex -synctex=1   -shell-escape"
         else :
             program=u"/usr/bin/latex --src-specials"
         # The following line does not work without the u"...". Even if {0} and {1} are type unicode
         commande_e=u"""{0} {1} """.format(program,self.filename)
         self.do_it(commande_e)
-        output_file=os.path.join(self.dirname,self.generic_basename+".@pyXXX")
-        new_output_file=os.path.join(self.dirname,"0-"+self.generic_basename+".@pyXXX")
-        #output_file=self.directory+"/"+self.generic_basename+".@pyXXX"
-        #new_output_file=self.directory+"/0-"+self.generic_basename+".@pyXXX"
-        if self.pdflatex:
-            extension=".pdf"
-        else :
-            extension=".dvi"
-        output_file=output_file.replace(".@pyXXX",extension)
-        new_output_file=new_output_file.replace(".@pyXXX",extension)
-        import shutil
-        shutil.copy2(output_file,new_output_file)
 
-        # This part is no more required since we use pdflatex -synctex=1 (October, 8, 2012)
-        #if self.pdflatex:
-        #    output_pdfsync=output_file+"sync"
-        #    new_output_pdfsync=new_output_file+"sync"
-        #    if not os.path.exists(output_pdfsync):
-        #        raise NameError,"Are you using pdflatex without \usepackage{pdfsync} ?? I don't believe it !"
-        #    shutil.copy2(output_pdfsync,new_output_pdfsync)
     def chain_dvi_ps(self,papertype="a4"):
         """
         The chain tex->div->ps
@@ -118,6 +100,7 @@ class Compilation(object):
         """
         self.latex()
         commande_e="dvips -t %s %s.dvi"%(papertype,self.generic_filename)
+        print(commande_e)
         self.do_it(commande_e)
     def chain_dvi_ps_pdf(self,papertype="a4",quiet=True):
         """
@@ -132,7 +115,7 @@ class Compilation(object):
         self.chain_dvi_ps(papertype)
         commande_e="ps2pdf "+self.generic_filename+".ps" 
         if not quiet:
-            print commande_e,"..."
+            print(commande_e,"...")
         self.do_it(commande_e)
     def latex_more(self):
         self.special_stuffs()
@@ -189,7 +172,8 @@ class CodeBox(dict):
         adds the text «This is my \LaTeX\ code» in the dictionary with the key «an example box»
         """
         xmlCode_corrected=xmlCode.replace("&","[PytexSpecial amp]")
-        dom = minidom.parseString(xmlCode_corrected)
+        c=xmlCode_corrected.encode("utf-8")
+        dom = minidom.parseString(c)
         for box in dom.getElementsByTagName("CodeBox"):
             dict_name = box.getAttribute("dictName")
             if dict_name == self.name :
@@ -220,8 +204,8 @@ class CodeBox(dict):
                     B=self.put(B,tag)           # This function is recursive !
                     A=A.replace(occurrence.as_written,B.text_brut)
                 except IndexError :
-                    print "PytexTools error : \Put... needs two arguments. Don't forget the tag"
-                    print occurrence.as_written
+                    print("PytexTools error : \Put... needs two arguments. Don't forget the tag")
+                    print(occurrence.as_written)
                     raise
             else :
                 A=A.replace(occurrence.as_written,"")
@@ -317,7 +301,6 @@ class CodeFactory(object):
     def save(self,filename):
         self.codeLaTeX.save(filename)
 
-
 def FileToSha1sum(f):
     text = str(open(f).read())
     return hashlib.sha1(text).hexdigest()
@@ -334,7 +317,7 @@ class FileTracking(object):
             for fich in fileNode.getElementsByTagName(TAG_FICHIER):
                 old_sha[fich.getAttribute("name")]=fich.getAttribute("sha1sum")
     except :
-        print "XML file is probably empty."
+        print("XML file is probably empty.")
     sha={}
     for k in old_sha.keys():
         sha[k]=old_sha[k]
@@ -375,11 +358,19 @@ class FileTracking(object):
         if faire :
             open(FileTracking.xml_filename,"w").write(self.xml())
 
+class Plugin(object):
+    def __init__(self,fun,hook_name):
+        self.fun=fun
+        self.hook_name=hook_name
+    def __call__(self,A):
+        return self.fun(A)
+
 class Request(object):
     """ Contains what a lst_foo.py file has to contain """
     def __init__(self,name=None):
-        #self.name = name           # I believe that does not serve anymore (May 12 2011)
         self.plugin_list = []
+        self.medicament=None
+        self.medicament_plugin=None
         self.original_filename = ""
         self.ok_filenames_list = []
         self.prerequiste_list = []
@@ -395,4 +386,87 @@ class Request(object):
         for plug in self.prerequiste_list:
             plug(arg)
         self.fileTracking.save()
+    def add_plugin(self,fun,hook_name):
+        self.plugin_list.append(Plugin(fun,hook_name))
+
+class Array(object):
+    def __init__(self,dic):
+        """
+        'dic' is the dictionary that gives the texts to be put in the array.
+
+        (0,0) (1,0) (2,0) (3,0) etc
+        (0,1) (1,1) (2,1) (3,1) etc 
+        etc
+        """
+        self.dic=dic
+        self.nlines=max(  [x[1] for x in self.dic.keys()] )+1
+        self.ncols=max(  [x[0] for x in self.dic.keys()] )+1
+    def latex(self):
+        a=[]
+        a.append("\\begin{array}[]")
+        a.append("{|c|")
+        for i in range(0,self.ncols-1):
+            a.append("c|")
+        a.append("}\n\hline\n""")
+
+        for i in range(0,self.nlines):
+            for j in range(0,self.ncols):
+                a.append(self.dic[j,i])
+                a.append("&")
+            a=a[:-1]   # The last '&' has to be removed. Border effect.
+            a.append("\\\\"+"\n"+"\hline"+"\n")
+
+
+        a.append("\end{array}")
+        return "".join(a)
+
+def script_mark_dict(C):
+    """
+    A dictionary of tuple ('text','position') where
+    'text' is the content between two "% SCRIPT MARK" and 'position' is the position of the beginning.
+    """
+    dic={}
+    dic["init"]=0
+    lp="init"
+    lignes=C.splitlines()
+    for i,l in enumerate(lignes) :
+        if l.startswith("% SCRIPT MARK"):
+            dic[l]=i+1
+            dic[lp]=(dic[lp],i+1)
+            lp=l
+    dic[lp]=(dic[lp],len(lignes))
+    return dic
+
+class keep_script_marks(object):
+    """
+    The file "mazhe.tex" has some "SCRIPT MARK" lines that give the structure of the document.
+
+    Notice that whatever the order of the marks is in the given list, it will respect the order of requested file.
+
+    As plugin, this is supposed to be used before pytex.
+    (from January, 12, 2015)
+    """
+    def __init__(self,keep_mark_list):
+        self.keep_mark_list=keep_mark_list
+    def __call__(self,text):
+        #C=LaTeXparser.CodeLaTeX(A.given_text,keep_comments=True)   # I need the comments in order to see "SCRIPT MARK"
+        smd=script_mark_dict(text)
+        B=[]
+        lignes=text.splitlines()
+        # Select the usefull marks and sort them.
+        marks=[  x for x in smd.keys() if x in self.keep_mark_list ]
+        marks.sort(key=lambda a:smd[a][0])
+        for mark in marks :
+            a=smd[mark][0]
+            b=smd[mark][1]
+            B.extend(  lignes[a:b] )
+
+            addtext=lignes[a:b]
+
+        new_text= "\n".join(B)
+        #return LaTeXparser.CodeLaTeX(new_text,oldLaTeX=A)
+        return new_text
+
+def accept_all_input(medicament):
+    medicament.accept_input=lambda x: True
 

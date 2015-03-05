@@ -17,17 +17,18 @@
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
 
-# copyright (c) Laurent Claessens, 2010,2012
+# copyright (c) Laurent Claessens, 2010,2012-2014
 # email: moky.math@gmail.com
 
-from __future__ import unicode_literals
+#from __future__ import unicode_literals
 
 """
 This module furnishes some functionalities to manipulate LaTeX code.
 """
 
 import os
-import commands
+#import commands
+import subprocess
 import re
 import codecs
 
@@ -50,10 +51,10 @@ def FileToText(name):
         l.append(line)
     return "".join(l)
 
-def FileToCodeLaTeX(name):
+def FileToCodeLaTeX(name,fast=False,keep_comments=False):
     """ return a codeLaTeX from a file """
     content = FileToText(name)
-    A = CodeLaTeX(content,filename=name)
+    A = CodeLaTeX(content,filename=name,keep_comments=keep_comments)
     A.included_file_list=[name]
     return A
 def FileToCodeBibtex(name):
@@ -61,16 +62,16 @@ def FileToCodeBibtex(name):
     content = FileToText(name)
     return CodeBibtex(content,filename=name)
 
-def FileToCodeLog(name):
+def FileToCodeLog(name,stop_on_first=False):
     """ return a codeLog from a file """
     try:
         list_content = list(codecs.open(name,"r",encoding="utf8"))
     # I've noticed that the log file was ISO-8859 English text
     except UnicodeDecodeError : 
-        print "Problem with",name
+        print("Problem with",name)
         list_content = list(codecs.open(name,"r",encoding="iso8859-1"))
     a="".join(list_content)
-    return CodeLog("".join(list_content),filename=name)
+    return CodeLog("".join(list_content),filename=name,stop_on_first=stop_on_first)
 
 class Occurrence(object):
     """
@@ -111,7 +112,7 @@ class Occurrence(object):
             try:
                 a=split[1]
             except IndexError:
-                print self.as_written
+                print(self.as_written)
                 raise
             l.append(separator)
         return l
@@ -125,7 +126,7 @@ class Occurrence(object):
         arguments[n]=func(arguments[n])
         new_text=self.name
         if len(arguments) != len(configuration):
-            print "Error : length of the configuration list has to be the same as the number of arguments"
+            print("Error : length of the configuration list has to be the same as the number of arguments")
             raise ValueError
         for i in range(len(arguments)):
             new_text=new_text+configuration[i]+"{"+arguments[i]+"}"
@@ -211,17 +212,17 @@ def SearchArguments(s,number_of_arguments):
         try :
             arg,start,end=SearchFitBrace(s,turtle,"{")
         except :
-            print "LaTeXparser Error : fitting brace not found"
-            print "We were at position %s in the string"%str(turtle)
-            print s
-            print "------------------------------"
+            print("LaTeXparser Error : fitting brace not found")
+            print("We were at position %s in the string"%str(turtle))
+            print(s)
+            print("------------------------------")
             raise
         arguments.append(arg)
         turtle=end+1
         if turtle >= len(s):
             as_written = s
             return arguments,as_written
-        if s[turtle] <> "{":
+        if s[turtle] != "{":
             boo,offset = ContinueSearch(s[turtle:],"{")
             if boo:
                 turtle=turtle+offset-1
@@ -287,7 +288,7 @@ def NextMacroCandidate(s,macro_name,search_macro_name=None):
     return True,k,False
 
 
-def SearchUseOfMacro(code,macro_name,number_of_arguments=None,give_configuration=False):
+def SearchUseOfMacro(code,macro_name,number_of_arguments=None,give_configuration=False,fast=False):
     r"""
     <macro_name> has to contain the initial \ of the macro. I you want to search for \MyMacro, ask for "\MyMacro"; not only "MyMacro"
 
@@ -310,9 +311,26 @@ def SearchUseOfMacro(code,macro_name,number_of_arguments=None,give_configuration
     /!\ We do not manage the case where the first argument is not immediately after the macro name, i.e.
             \MyMacro {argument} (with a space between \MyMacro and the first opening bracket)
         will be buggy.
+
+    If fast is true, make more assumptions on the LaTeX code. Like no space, no \ and no {} inside or between the arguments.
+             Only works with exactly one argument up to now :
     """
-    search_macro_name=re.compile(re.escape(macro_name)+"[^A-Za-z]").search
+    use=[]
     s = code.text_brut
+    if fast :       
+        #search_macro_name=re.compile(re.escape(macro_name)+"{").search
+        results=re.finditer(macro_name+"{",s)
+        for res in results :
+            start = res.start()
+            # Only works with exactly one argument up to now :
+            end=s.find("}",start)
+            as_written = s[start:end]           # This as_written contains the macro name; in the non-fast version, it does not contain.
+            arguments=[s[start+len(macro_name):end]]
+            occurrence=Occurrence(macro_name,arguments,as_written,position=start)
+            use.append(occurrence)
+        return use
+
+    search_macro_name=re.compile(re.escape(macro_name)+"[^A-Za-z]").search
     if not macro_name in s :
         return []
     turtle = 0
@@ -331,8 +349,8 @@ def SearchUseOfMacro(code,macro_name,number_of_arguments=None,give_configuration
                 try :
                     arguments,as_written=SearchArguments(remaining,number_of_arguments)
                 except TypeError:
-                    print number_of_arguments
-                    print remaining[0:30]
+                    print(number_of_arguments)
+                    print(remaining[0:30])
                     raise
                 position=turtle-len(macro_name)
                 occurrence=Occurrence(macro_name,arguments,macro_name+as_written,position=turtle-len(macro_name))
@@ -371,7 +389,7 @@ def MacroDefinition(code,name):
     if type(code) == CodeLaTeX :
         return code.dict_of_definition_macros()[name]
     else :
-        print "Warning: something is wrong. I'm not supposed to be here. Please contact the developer"
+        print("Warning: something is wrong. I'm not supposed to be here. Please contact the developer")
         return CodeLaTeX(code).dict_of_definition_macros()[name]
 
 class Occurrence_newlabel(object):
@@ -439,7 +457,7 @@ class Occurrence_input(Occurrence):
             try:
                 text = "".join( codecs.open(strict_filename,"r",encoding="utf8") )[:-1]    # Without [:-1] I got an artificial empty line at the end.
             except IOError :
-                print "Warning : file %s not found."%strict_filename
+                print("Warning : file %s not found."%strict_filename)
                 raise
             self._substitution_text=text
         return self._substitution_text
@@ -461,15 +479,21 @@ def RemoveComments(text):
     """
     line_withoutPC = []
     # we remove the end of lines with % if not preceded by \
+    pattern = "[^\\\]%"
+    search=re.compile(pattern).search
+    # This search only matches the % that are preceded by something else than \.
+    # This does not match the % at the beginning of the line. This is why a second test is performed.
     for lineC in text.split("\n"):
-        pattern = "[^\\\]%"
-        search=re.compile(pattern).search
         s=search(lineC)
 
         if s :
             ligne=s.string[:s.start()+2]    # We keep the "%" itself.
         else :             
             ligne=lineC
+
+        # % at the beginning of a line is not matched by the regex.
+        if ligne.startswith("%"):
+            ligne="%"
 
         #placePC = lineC.find("%")
         #to_be_removed = lineC[placePC:]
@@ -479,9 +503,10 @@ def RemoveComments(text):
         line_withoutPC.append(ligne)
     code_withoutPC = "\n".join(line_withoutPC)
 
-    final_code = code_withoutPC
     # Now we remove what is after \end{document}
-    if "\end{document}" in final_code :
+
+    final_code=code_withoutPC
+    if "\end{document}" in code_withoutPC :
         final_code = code_withoutPC.split("\end{document}")[0]+"\end{document}"
     return final_code
 
@@ -490,7 +515,8 @@ class newlabelNotFound(object):
     def __init__(self,label_name):
         self.label_name = label_name
 
-def CodeLaTeXToRoughSource(codeLaTeX,filename,bibliography_bbl_filename=None,index_ind_filename=None):
+# TODO : this function is buggy when fast=True
+def CodeLaTeXToRoughSource(codeLaTeX,filename,bibliography_bbl_filename=None,index_ind_filename=None,fast=False):
     """
     Return a file containing rough self-contained sources that are ready for upload to Arxiv.
     What it does
@@ -499,7 +525,7 @@ def CodeLaTeXToRoughSource(codeLaTeX,filename,bibliography_bbl_filename=None,ind
         3. Include the bibliography, include .bbl file (no bibtex needed)
         4. Include the index, include .ind file (no makeindex needed)
     What is does not
-        1. Check for pdflatex compliance. If you are using phystricks, please refer to the documentation in order to produce a pdflatex compliant source code.
+        1. Check for pdflatex compliance. 
 
     Input 
         codeLaTeX : an object of type LaTeXparser.CodeLaTeX
@@ -517,13 +543,13 @@ def CodeLaTeXToRoughSource(codeLaTeX,filename,bibliography_bbl_filename=None,ind
         bibliography_bbl_filename = codeLaTeX.filename.replace(".tex",".bbl")
     if not index_ind_filename :
         index_ind_filename = codeLaTeX.filename.replace(".tex",".ind")
-    print "Creating bibliography"
+    print("Creaeting bibliography")
     code_biblio = FileToCodeLaTeX(bibliography_bbl_filename)
-    print "Creating index"
+    print("Creating index")
     code_index = FileToCodeLaTeX(index_ind_filename)
 
     new_code = codeLaTeX.copy()
-    new_code=new_code.substitute_all_inputs()
+    new_code=new_code.substitute_all_inputs(fast=fast)
     resultBib = re.search("\\\\bibliography\{.*\}",new_code.text_brut)
     if resultBib != None :
         ligne_biblio = resultBib.group()
@@ -540,7 +566,7 @@ class LaTeXWarning(object):
         self.label = label
         self.page = page
         command_e="grep --color=always -n {"+self.label+"} *.tex"
-        self.grep_result=commands.getoutput(command_e).decode("utf8")
+        self.grep_result=subprocess.getoutput(command_e)#.decode("utf8")
 class ReferenceWarning(LaTeXWarning):
     def __init__(self,label,page):
         LaTeXWarning.__init__(self,label,page)
@@ -575,7 +601,7 @@ class CodeLog(object):
     If your code is in a file, please use the function FileToCodeLaTeX :
     FileToCodeLog("MyFile.log")
     """
-    def __init__(self,text_brut,filename=None):
+    def __init__(self,text_brut,filename=None,stop_on_first=False):
         """
         self.text_brut          contains the tex code as given
         """
@@ -585,56 +611,65 @@ class CodeLog(object):
         self.undefined_citations=[]
         self.undefined_labels=[]
         self.multiply_labels=[]
-        self.search_for_errors()
+        self.stop_on_first=stop_on_first
+        self.search_for_errors(stop_on_first=self.stop_on_first)
         self._rerun_to_get_cross_references=None
-    def rerun_to_get_cross_references(self):
+    def rerun_to_get_cross_references(self,stop_on_first=False):
         if self._rerun_to_get_cross_references == None:
-            self.search_for_errors()
+            self.search_for_errors(stop_on_first=stop_on_first)
         return self._rerun_to_get_cross_references
-    def search_for_errors(self):
-        print "Analysing log file",self.filename
-        Warns = self.text_brut.split("Warning: ")
-        for warn in Warns[1:]:
-            try :
-                text = warn[0:warn.find(".")]
-                mots=text.split(" ")
-                genre = mots[0]
-                label = mots[1][1:-1]
-                try :
-                    page = mots[mots.index("page")+1]
-                except ValueError :
-                    page = -1
-                if genre == "Reference" :
-                    if label not in [w.label for w in self.undefined_references]:
-                        self.undefined_references.append(ReferenceWarning(label,page))
-                if genre == "Label" :
-                    if label not in [w.label for w in self.undefined_labels]:
-                        self.multiply_labels.append(MultiplyLabelWarning(label,page))
-                if genre == "Citation" :
-                    if label not in [w.label for w in self.undefined_citations]:
-                        self.undefined_citations.append(CitationWarning(label,page))
-            except ValueError :
-                pass
-        self.warnings = []
-        self.warnings.extend(self.undefined_references)
-        self.warnings.extend(self.undefined_citations)
-        self.warnings.extend(self.multiply_labels)
-
+    def search_for_still_cross_references(self):
         self.maybeMore ="LaTeX Warning: Label(s) may have changed. Rerun to get cross-references right."
-        if self.maybeMore in self.text_brut:
-            self.warnings.append(LabelWarning(self.maybeMore))
-            self._rerun_to_get_cross_references=True
-        else :
-            self._rerun_to_get_cross_references=False
+        return self.maybeMore in self.text_brut
+    def search_for_errors(self,stop_on_first=False):
+        still_cross_references=self.search_for_still_cross_references()
+        self._rerun_to_get_cross_references = False
+        if stop_on_first :
+            if  still_cross_references :
+                self._rerun_to_get_cross_references = True
+        if not self._rerun_to_get_cross_references :
+            print("Analysing log file",self.filename)
+            Warns = self.text_brut.split("Warning: ")
+            for warn in Warns[1:]:
+                try :
+                    text = warn[0:warn.find(".")]
+                    mots=text.split(" ")
+                    genre = mots[0]
+                    label = mots[1][1:-1]
+                    try :
+                        page = mots[mots.index("page")+1]
+                    except ValueError :
+                        page = -1
+                    if genre == "Reference" :
+                        if label not in [w.label for w in self.undefined_references]:
+                            self.undefined_references.append(ReferenceWarning(label,page))
+                    if genre == "Label" :
+                        if label not in [w.label for w in self.undefined_labels]:
+                            self.multiply_labels.append(MultiplyLabelWarning(label,page))
+                    if genre == "Citation" :
+                        if label not in [w.label for w in self.undefined_citations]:
+                            self.undefined_citations.append(CitationWarning(label,page))
+                except ValueError :
+                    pass
+            self.warnings = []
+            self.warnings.extend(self.undefined_references)
+            self.warnings.extend(self.undefined_citations)
+            self.warnings.extend(self.multiply_labels)
 
-        self.TeXcapacityexeeded="TeX capacity exceeded"
-        if self.TeXcapacityexeeded in self.text_brut:
-            self.warnings.append(TeXCapacityExceededWarning(self.TeXcapacityexeeded))
+            if still_cross_references:
+                self.warnings.append(LabelWarning(self.maybeMore))
+                self._rerun_to_get_cross_references=True
+            else :
+                self._rerun_to_get_cross_references=False
 
-        self.probs_number=len(self.warnings)
+            self.TeXcapacityexeeded="TeX capacity exceeded"
+            if self.TeXcapacityexeeded in self.text_brut:
+                self.warnings.append(TeXCapacityExceededWarning(self.TeXcapacityexeeded))
+
+            self.probs_number=len(self.warnings)
     def tex_capacity_exeeded(self):
         return self.TeXcapacityexeeded in self.text_brut
-    def __unicode__(self):
+    def __str__(self):
         a=[]
         for warn in self.warnings :
             a.append(warn.__str__())
@@ -643,14 +678,17 @@ class CodeLog(object):
         if self.probs_number == 1:
             a.append("C'est ton dernier problème à régler. Encore un peu de courage !")
         return "\n".join(a)
-    def __str__(self):
+    def __unicode__(self):
+        raise DeprecationWarning
         return self.__unicode__().encode("utf8")
 
 def ConvertToUTF8(text):
-    try :
-        return unicode(text,"utf_8")
-    except TypeError :
-        return text
+    return text
+    # this is no more usefull from python3
+    #try :
+    #    return unicode(text,"utf_8")
+    #except TypeError :
+    #    return text
 
 def ListOfCitation(filelist):
     r"""
@@ -661,8 +699,6 @@ def ListOfCitation(filelist):
     for f in new_filelist :
         codeLaTeX =FileToCodeLaTeX(f)
         occurences = codeLaTeX.analyse_use_of_macro("\cite",1)
-        print "537",f
-        print "536",occurences
         for occ in occurences :
             l.append(occ.label)
     return l
@@ -679,14 +715,12 @@ def CreateBibtexFile(big_bibtex_file,small_bibtex_file,list_of_files):
     - an entry in small_bibtex_file is not used in the list_of_files.
     """
     list_of_citations=ListOfCitation(list_of_files)
-    print "554",list_of_files
-    print "554",list_of_citations
     big_bibtex=FileToCodeBibtex(big_bibtex_file)
     extracted_big=big_bibtex.extract_list(list_of_citations)
     small_bibtex=FileToCodeBibtex(small_bibtex_file)
     for label in small_bibtex.entry_dict.keys() :
         if label not in list_of_citations:
-            print "Useless entry : %s"%label
+            print("Useless entry : %s"%label)
     new_bibtex=extracted_big+small_bibtex
     new_bibtex.save(small_bibtex_file)
 
@@ -745,7 +779,7 @@ class CodeBibtex(object):
             try :
                 a.append(self.entry_dict[label].given_text)
             except KeyError:
-                print "I have no entry labelled %s"%label
+                print("I have no entry labelled %s"%label)
                 raise
         return CodeBibtex("\n".join(a))
     def save(self,filename=None):
@@ -766,8 +800,7 @@ class CodeBibtex(object):
         for entry in other.entry_dict.values():
             if entry.label in dico :
                 if other[entry.label].given_text != self[entry.label].given_text:
-                    print 
-                    raise NameError,"Different texts for the label %s"%entry.label
+                    raise NameError("Different texts for the label %s"%entry.label)
             dico[entry.label]=entry
         return EntryListToCodeBibtex(dico.values())
 
@@ -785,18 +818,28 @@ class CodeLaTeX(object):
     # In a previous version, we were keeping the comments, but it caused some difficulties because, for example, we had to only perform the
     # replacements outside the comments, so that we had to perform replacements line by line. It was painfully slow. 
     # If you have any idea how to keep track of the comments without slow down the process, please send a patch :)
-    def __init__(self,given_text,filename=None):
+
+    # However it is possible to keep the comments using 'keep_comments=True'.
+    def __init__(self,given_text,filename=None,oldLaTeX=None,keep_comments=False):
         """
-        self.text_brut          contains the tex code as given, without the comments
+        self.text_brut          contains the tex code as given, with or without the comments, depending on 'keep_comments'
+
+        If one create a codeLaTeX from an other, use derive_from by passing oldLaTeX to __init__
         """
         # If you change something here, it has to be changed in append_file.
         self.given_text = given_text
-        self.text_brut = ConvertToUTF8(RemoveComments(self.given_text))
-
+        if keep_comments :
+            self.text_brut = ConvertToUTF8(self.given_text)
+        else :
+            self.text_brut = ConvertToUTF8(RemoveComments(self.given_text))
         self._dict_of_definition_macros = {}
         self._list_of_input_files = []
         self.filename = filename
         self.included_file_list=[]  # When the code is created from files, the filename is recorded here.
+        if oldLaTeX :
+            self.derive_from(oldLaTeX)
+    def derive_from(self,oldLaTeX):
+        self.included_file_list=oldLaTeX.included_file_list
     def copy(self):
         """
         Return a copy of self in a new object
@@ -842,9 +885,9 @@ class CodeLaTeX(object):
             raise newlabelNotFound(label_name)
         list_interesting  = [x for x in list_newlabel if x.name==label_name]
         if len(list_interseting) > 1 :
-            print "Warning : label %s has %s different values"%(label_name,str(len(list_interesting)))
+            print("Warning : label %s has %s different values"%(label_name,str(len(list_interesting))))
         return list_interesting[-1].value
-    def search_use_of_macro(self,name,number_of_arguments=None,give_configuration=False):
+    def search_use_of_macro(self,name,number_of_arguments=None,give_configuration=False,fast=False):
         r"""
         Return a list of Occurrence of a given macro. You have to include the "\" in the name, for example
         codeLaTeX.search_use_of_macro("\MyMacro",2)
@@ -859,12 +902,9 @@ class CodeLaTeX(object):
         The following has to be true
         self.text_brut==configuration[0]+occurrence[0]+...+configuration[n]+occurrence[n]+configuration[n+1]
         """
-        # Why should I explicitellt write the "\" in the macro name ?
-        # I don't remembre, but it was an issue.
-
-        return SearchUseOfMacro(self,name,number_of_arguments,give_configuration)
-
-
+        # Why should I explicitly write the "\" in the macro name ?
+        # I don't remember, but it was an issue.
+        return SearchUseOfMacro(self,name,number_of_arguments,give_configuration,fast=fast)
     def analyse_use_of_macro(self,name,number_of_arguments=None):
         """
         Provide a list of analyse of the occurrences of a macro.
@@ -890,14 +930,14 @@ class CodeLaTeX(object):
         \\renewcommand{\Foo}{bar}
         """
         if self._dict_of_definition_macros == {} :
-            print "Je réinvente la roue"
+            print("Je réinvente la roue")
             dico = {}
             for definer in definition_commands :            
                 for occurrence in self.search_use_of_macro(definer,3):
                     newcommand = Occurrence_newcommand(occurrence)
                     name = newcommand.name
                     if name in dico.keys() :
-                        print "%s was already defined !!"%name
+                        print("%s was already defined !!"%name)
                     else :
                         dico[name]=newcommand
             self._dict_of_definition_macros = dico
@@ -932,7 +972,7 @@ class CodeLaTeX(object):
             try:
                 text = "".join( codecs.open(strict_filename,"r",encoding="utf8") )[:-1]    # Without [:-1] I got an artificial empty line at the end.
             except IOError :
-                print "Warning : file %s not found."%strict_filename
+                print("Warning : file %s not found."%strict_filename)
                 raise
         list_input = self.search_use_of_macro("\input",1)
 
@@ -952,25 +992,25 @@ class CodeLaTeX(object):
         Replace the occurence by the content of filename.
         """
         text=occurence.substitution_text()
-        print "Adding file",occurence.filename
+        print("Adding file",occurence.filename)
         A = CodeLaTeX(self.text_brut)
         A.included_file_list=self.included_file_list
         A.included_file_list.append(occurence.filename)
         A=A.replace(occurence.as_written,text)
         return A
-    def substitute_all_inputs(self):
+    def substitute_all_inputs(self,fast=False):
         r"""
         Recursively change all the \input{...} by the content of the corresponding file. 
         Return a new object LaTeXparser.CodeLaTeX
         """
         A = CodeLaTeX(self.text_brut)
-        list_input = [x.analyse() for x in A.search_use_of_macro("\input",1)]
+        list_input = [x.analyse() for x in A.search_use_of_macro("\input",1,fast=fast)]
         if list_input==[]:
             return self
         substitution_code={}
         for occurence in list_input:
             B=CodeLaTeX(occurence.substitution_text())
-            substitution_code[occurence]=B.substitute_all_inputs()
+            substitution_code[occurence]=B.substitute_all_inputs(fast=fast)
         for occ in list_input:
             A=A.substitute_occurence_input(occ)
         return A
@@ -1036,15 +1076,19 @@ class CodeLaTeX(object):
         b=self.text_brut.index("\n",position)
         return self.text_brut[a+1:b]
     def find(self,arg):
-        return self.text.find(arg)
+        # Up to November 25, 2014, it was 'text' instead of 'text_brut'.
+        # and it was a bug.
+        return self.text_brut.find(arg)
     def replace(self,textA,textB):
         """ Replace textA by textB including in the comments """
         textA=ConvertToUTF8(textA)
         textB=ConvertToUTF8(textB)
         new_text = self.text_brut.replace(textA,textB)
-        A = CodeLaTeX(new_text)
-        A.included_file_list=self.included_file_list
+        A = CodeLaTeX(new_text,oldLaTeX=self)
         return A
+    def splitlines(self):
+        textA=self.text_brut
+        return textA.splitlines()   
     def append_file(self,filename=None,filenames=None):
         """
         Append the content of a file to the current LaTeX code. Return a new object.
@@ -1068,12 +1112,12 @@ class CodeLaTeX(object):
                 a=a+FileToText(f)
             add_given_text=a
             self.__init__(self.given_text+add_given_text)
-    def rough_source(self,filename,bibliography_bbl_filename=None,index_ind_filename=None):
+    def rough_source(self,filename,bibliography_bbl_filename=None,index_ind_filename=None,fast=False):
         """
         Return the name of a file where there is a rough latex code ready to be published to Arxiv
         See the docstring of LaTeXparser.CodeLaTeXToRoughSource
         """
-        return CodeLaTeXToRoughSource(self,filename,bibliography_bbl_filename,index_ind_filename)
+        return CodeLaTeXToRoughSource(self,filename,bibliography_bbl_filename,index_ind_filename,fast=fast)
     def __add__(self,other):
         new_given_text=self.given_text+other.given_text
         return CodeLaTeX(new_given_text)

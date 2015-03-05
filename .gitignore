@@ -1,0 +1,5 @@
+*.swp
+.viminfo
+*.pyc
+*.py~
+__pycache__/*
