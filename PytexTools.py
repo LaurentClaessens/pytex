@@ -375,6 +375,7 @@ class Request(object):
         self.ok_filenames_list = []
         self.prerequiste_list = []
         self.fileTracking=FileTracking()
+        self.new_output_filename=None
     def is_file_changed(self,f):
         return self.fileTracking.is_file_changed(f)
     def create_magic_box(self,filename,boxname,name=None):
