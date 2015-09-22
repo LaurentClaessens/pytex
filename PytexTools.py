@@ -47,8 +47,6 @@ class Compilation(object):
     """
     def __init__(self,filename,nocompilation=False,pdflatex=True,dvi=False):
         import os
-        self.pdflatex=pdflatex
-        self.dvi=dvi
         self.filename=filename
         self.nocompilation=nocompilation
         self.dirname=os.path.dirname(self.filename)
@@ -65,7 +63,6 @@ class Compilation(object):
         else :
             os.system(commande_e)
     def bibtex(self):
-        # Note August, 2, 2012. In the new texlive, bibtex (and makeindex and nomenclature) do no more accept
         # absolute pathname.
         commande_e="bibtex "+self.generic_basename
         self.do_it(commande_e)
@@ -80,16 +77,13 @@ class Compilation(object):
         self.makeindex()
         self.nomenclature()
     def latex(self):
-        """Produce a dvi or pdf file using latex or pdflatex"""
-        if self.pdflatex :
-            program=u"/usr/bin/pdflatex -synctex=1   -shell-escape"
-        else :
-            program=u"/usr/bin/latex --src-specials"
+        program=u"/usr/bin/pdflatex -synctex=1   -shell-escape"
         # The following line does not work without the u"...". Even if {0} and {1} are type unicode
         commande_e=u"""{0} {1} """.format(program,self.filename)
         self.do_it(commande_e)
 
     def chain_dvi_ps(self,papertype="a4"):
+        raise DeprecationWarning
         """
         The chain tex->div->ps
 
@@ -103,6 +97,7 @@ class Compilation(object):
         print(commande_e)
         self.do_it(commande_e)
     def chain_dvi_ps_pdf(self,papertype="a4",quiet=True):
+        raise DeprecationWarning
         """
         The chain tex->dvi-ps->pdf 
         This is more or less the only way to produce a pdf file containing pstricsk figures and hyperref links.
