@@ -1,5 +1,9 @@
 *.swp
+.directory
+.kk.log
+tests/*
 .viminfo
 *.pyc
 *.py~
+.*~
 __pycache__/*
