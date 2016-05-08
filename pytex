@@ -185,7 +185,6 @@ class Traitement(object):
         import pygrep  # home made
         import re
 
-
         # rough_code with fast=True is buggy.
         rough_code=self.rough_code(medicament,fast=False)
 
@@ -274,7 +273,7 @@ class Traitement(object):
                             #    concerned_files.append(result.filename)
                             concerned_files.append(result.filename)
 
-                        print(hexdigest)
+                        print("hash : "+hexdigest)
 
                     else :
                         usefull_ok_hash.append(hexdigest)
