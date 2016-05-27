@@ -42,7 +42,6 @@ Note 25637 : THE PLUGIN TYPES
 
 """
 Options :
-    --lotex     compile until the cross-references are right.
     --no-compilation    Do not compile, but produce the final _pytex.tex file and print the commands that were to be launched without.
     --rough-source  Output an extremely hard-coded pytex file which is ready for ArXiv.
     - ``--pdflatex`` - Use pdflatex (default)
@@ -68,7 +67,7 @@ class Compil(object):
     def __init__(self):     
         self.simple=1
         self.tout=0
-        self.lotex=0
+        self.lotex=1
         self.pdflatex=True
         self.dvi=False
         self.verif=0
@@ -144,8 +143,8 @@ class Traitement(object):
                 self.Compil.tout = 1
             if arg == "--verif" :
                 self.Compil.verif = True
-            if arg == "--lotex" :
-                self.Compil.lotex = 1
+            if arg == "--no-lotex" :
+                self.Compil.lotex = 0
             if arg == "--no-compilation" :
                 self.Sortie.nocompilation = True
             if arg == "--rough-source" :
