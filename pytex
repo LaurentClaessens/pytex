@@ -143,6 +143,7 @@ class Traitement(object):
                 self.Compil.tout = 1
             if arg == "--verif" :
                 self.Compil.verif = True
+                self.Compil.lotex = 0
             if arg == "--no-lotex" :
                 self.Compil.lotex = 0
             if arg == "--no-compilation" :
