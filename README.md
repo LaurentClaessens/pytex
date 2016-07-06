@@ -1,153 +1,97 @@
-#  FRTEX
+#  PYTEX
+
+## Presentation
+
+A wrapper around `pdflatex` which gives some flexibility for compiling large files.
+
+### What problem do we solve ?
+
+Let say you have a (very) large LaTeX document that is divided into dozen or hundreds of `.tex` files (like [this one](http://laurent.claessens-donadello.eu/mazhe.html) for example -- 3500 pages). The usual mechanism that allows to compile only a part of the document is `\includeonly`.
+
+The problems are :
+
+* `\includeonly` implies that you input your `.tex` files with `\include`, which basically restricts you to only one file by chapter.
+* Each time you want to compile an other part of the document, you have to change the `\includeonly` line.
+ 
+### How do we solve ?
+
+`pytex` is a python script that generates on the fly an intermediate `.tex` file and which launches `pdflatex` on it.
+
+Suppose to have the LaTeX document `main.tex` as
+
+```latex
+\documentclass[a4paper,oneside,11pt]{book}
+
+\input{preamble}
+
+\chapter{First chapter}
+\input{foo1}
+\input{foo2}
+
+\chapter{Second chapter}
+\input{bar1}
+\input{bar2}
+
+\chapter{Third chapter}
+\input{foo3}
+\input{foo4}
+```
+
+If you want to compile the files `premable.tex`, `foo1` and `foo2` you creates the following file named `lst_example.py` :
+
+```python
+#! /usr/bin/python
+# -*- coding: utf8 -*-
+
+from __future__ import unicode_literals
+
+import LaTeXparser
+import LaTeXparser.PytexTools
+
+myRequest = LaTeXparser.PytexTools.Request()
+
+myRequest.original_filename="main.tex"
+
+myRequest.ok_filenames_list=["preamble"]
+myRequest.ok_filenames_list.extend(["foo1"])
+myRequest.ok_filenames_list.extend(["foo3"])
+
+myRequest.new_output_filename="MySmallPart.pdf"
+```
+
+and you compile with
+ 
+    pytex lst_example.py
+
+This will generates `MySmallPart.pdf` containing the result of the compilation with only `premable`, `foo1` and `foo2` (and also some intermediate files).
 
 ## Installation and dependencies
 
-* download the actor system from [github](https://github.com/LaurentClaessens/actors)
-* compile the actor system :
-<pre> <code> $  mvn package   </code>  </pre>
-* make it available :
-<pre><code>$ mvn  install:install-file -Dfile=path-to-actors/target/actors.jar</code></pre>
-* download `frtex` from [github](https://github.com/LaurentClaessens/frtex)
-* Use `frtex` by example performing the tests :
-<pre><code>$ mvn  test</code></pre>
+* Download [LaTeXparser](https://github.com/LaurentClaessens/LaTeXparser) and save it somewhere Python will be able to find.
+
+* Download [pytex](https://github.com/LaurentClaessens/pytex) and save it somewhere bash will be able to find.
 
 
-## The Latex actor system
+## Other functionalities
 
-The "latex actor system" is intended to take as input a LaTeX filename and produce as output the "recursive" content of that file with all the \input{file} explicitly replaced by the content of "file.tex". 
+* `pytex` generates on the fly an intermediate `.tex` file that contains the requested `\input` lines. You can perform arbitrary string manipulations in Python on that file before the compilation. Some are predefined.
 
-The use of our actor system makes the recomposition work extremely multi-thread and then(?) efficient.
+* `pytex` will compile as much times as necessary for all the cross-references to be done.
 
-This is still under development.
+* `pytex` reads the `.aux` file and presents the missing and multiple labels in a convenient way.
 
-### How it works
+* The option `--verif` checks if the document contains `\ref` or `\eqref` for which the corresponding `\lable` lies later in the document (in a text math, one should refer to theorems that will be proven later). You can define exceptions : sentences that you allow to refer to "future" label.
 
-The behaviour of an actor is :
+* `pytex` inherits from the functionalities of [LaTeXparser](https://github.com/LaurentClaessens/LaTeXparser).
 
-- read its LaTeX file
-- create a list of the inputed files.
-- for each of them, ask an other actor to make the job.
-- when all the answers are received, recompose the LaTeX file
-- send the result to the actor whose asked.
+## Examples
 
-### What you need to know
+* The documents [le frido](http://laurent.claessens-donadello.eu/pdf/lefrido.pdf) and [mazhe](http://laurent.claessens-donadello.eu/pdf/mazhe.pdf) are created from the same main [LaTeX file](https://github.com/LaurentClaessens/mazhe). `pytex` performs quite a lot of "pre-compilation" work on the fly. Notice by example the fact that the first is not divided in parts while the second is.
 
-The only class you have to work with is `LatexCode`. That class provides an abstraction that hides the actor system to the user.
+* The paper [BTZ black hole from the structure of so(2,b)](http://arxiv.org/pdf/0912.2267v3.pdf) is divided in two parts : one "short version" and one "long version" that share a lot of text. Believe it or not : there is *no code duplucation* on my computer. I wrote only once each statements and `pytex` made the work or recomposing the `tex` file. There are of course a lot of code duplication in the `tex` file I uploaded, which was automatically generated.
 
-### Working actor vs. Active actor
+## TODO
 
-A `LatexActor` can be active or not, as any actor. The `LatexActor` has an other status that is "working" or not.
 
-An actor which is requested to create the code of the file "foo.tex" reads this file and send a request message to a new actor each time that it encounters a "\input" in "foo.tex". Such an actor has to be able to read new messages since it relies on the answer messages in order to complete its work.
+## TEST
 
-So such a working actor is set "inactive" in order to unlock its mail box. But it is still working and cannot be requested to work on an other tex file until "foo.tex" is completed and sent to the calling actor.
-
-The `LatexActorSystem` has a method 
-
-```java
-public LatexActorRef getNonWorkingActor()
-```
-which return an actor reference to an actor who can be requested to deal with a new tex file. The actor is 'working' from the moment it is returned.
-
-### Latex message
-
-The latex actor system recognize two types of messages.
-
-* `LatexMessage` (abstract)
-* `LatexRequestMessage` (extends `LatexMessage`)
-* `LatexAnswerMessage` (extends `LatexMessage`)
-
-### Hypothesis on the LaTeX source code (simplification and limitations)
-
-* The filenames are more or less standard. Like only one dot, no curly braces and so on.
-
-* The percent symbol should always mean a comment, with the exception of "\%". This can be a limitation if you have URL in which you substituted special characters with their %xx representation.
-
-* If a file in inputed more than once, it will be computed at each input. Moreover, this is a static tool, so you cannot do
-```latex
-\input{foo}
-% something that modify foo.tex during the LaTeX compilation.
-\input{foo}
-```
-
-* More generally, if your LaTeX compilation itself create/modify a file that is then inputed, you cannot hope `frtex` to make its job.
-
-* The LaTeX code is supposed to be encoded in utf8
-
-* The `\input` has to be explicit. `frtex` will not make the substitution on
-```latex
-\newcommand{\myInput}[1]{\input{#1}}
-\myInput{foo}
-```
-
-* In the same spirit, `\lstinput` from package `listingutf8` will not be recognized. It is however in my plans to make it in the future (send me a patch).
-
-* When inputing a tex file, use
-```latex
-\input{foo}
-```
-and not
-```latex
-\input{foo.tex}
-```
- * Filename must contain (at most) one dot. You cannot do
-```latex
-\input{fdl-1.3}
-```
-for implying an input of `fdl-1.3.tex`. And even less
-```latex
-\input{fdl-1.3.tex}
-```
-
-### Not standalone
-
-The produced LaTeX code is in general not a standalone that can be fed to `pdflatex`. 
-
-* Commands like `\inlcudegraphic` or `\lstinputlisting` are including external files that are not processed here. 
-
-* For the bibliography, it is in project to make the replacement of `\bibliography{foo}` by the content of `foo.bbl`.
-
-* In particular for [mazhe](https://github.com/LaurentClaessens/mazhe), the exercices are included by the macro `\Exo` that makes a conditional `\input`.
-
-These points explain why the test directory `mazhe_tex_test` is so large : this is a real live test, and the real live does not fulfills the limitations of some softwares (one should fix the live).
-
-### Bugs
-
-The input mechanism in LaTeX seems complex and I didn't study it. In particular, what makes the space after an input ? [This question](http://tex.stackexchange.com/questions/317361/how-does-input-adds-a-space) has an answer that is too complicated for me.
-
-If someone can explain me that clearly, I'd appreciate.
-
-```latex
-\documentclass{minimal}     
-\begin{document}            
-                            
-AB                          
-                            
-\input{1_file}\input{2_file}
-                            
-\input{1_file}              
-\input{2_file}              
-                            
-\end{document}              
-```
-
-with `1_file.tex` containing only "A" and `2_file.tex` containing "B" (no 'new line' or something). `frtex` will add a `\n` after the input *if* it is not followed by an other `\n`. So it will translate the second and third examples in the same way. LaTeX makes a difference that I do not understand.
-
-```latex
-\begin{equation}
-\input{foo}
-\end{equation}
-```
-with `foo.tex` containing "a=b" does not provoke error. This is why `frtex` does not add a "\n" if the input statement is already followed by a newline.
-
-Fixing this bug would require pure LaTeX (not Java) knowledge that I don't have. In particular, clearly understand the answer [here](http://tex.stackexchange.com/questions/317361/how-does-input-adds-a-space).
-
-### TODO
-
-I sometimes have a `NullPointerException` in `MultiFIFOMap.poll`. Not always. Search in progress ...
-
-### TEST
-
-use `mvn test` to see the result.
-
-Notice that this software is still under development. I try to not commit (and even less push) versions that do nothing else than a crash...
