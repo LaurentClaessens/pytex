@@ -15,7 +15,7 @@ The problems are :
  
 ### How do we solve ?
 
-`pytex` is a python script that generates on the fly an intermediate `.tex` file and which launches `pdflatex` on it.
+`pytex` is a python script that generates on the fly an intermediate `.tex` file and then launches `pdflatex` on it.
 
 Suppose to have the LaTeX document `main.tex` as
 
@@ -88,7 +88,7 @@ This will generates `MySmallPart.pdf` containing the result of the compilation w
 
 * The documents [le frido](http://laurent.claessens-donadello.eu/pdf/lefrido.pdf) and [mazhe](http://laurent.claessens-donadello.eu/pdf/mazhe.pdf) are created from the same main [LaTeX file](https://github.com/LaurentClaessens/mazhe). `pytex` performs quite a lot of "pre-compilation" work on the fly. Notice by example the fact that the first is not divided in parts while the second is.
 
-* The paper [BTZ black hole from the structure of so(2,b)](http://arxiv.org/pdf/0912.2267v3.pdf) is divided in two parts : one "short version" and one "long version" that share a lot of text. Believe it or not : there is *no code duplucation* on my computer. I wrote only once each statements and `pytex` made the work or recomposing the `tex` file. There are of course a lot of code duplication in the `tex` file I uploaded, which was automatically generated.
+* The paper [BTZ black hole from the structure of so(2,n)](http://arxiv.org/pdf/0912.2267v3.pdf) is divided in two parts : one "short version" and one "long version" that share a lot of text. Believe it or not : there is *no code duplucation* on my computer. I wrote only once each statements and `pytex` made the work or recomposing the `tex` file. There are of course a lot of code duplication in the `tex` file I uploaded, which was automatically generated.
 
 ## TODO
 
