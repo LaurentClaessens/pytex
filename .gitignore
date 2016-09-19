@@ -6,4 +6,5 @@ tests/*
 *.pyc
 *.py~
 .*~
+*~
 __pycache__/*
