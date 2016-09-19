@@ -1,18 +1,26 @@
---------------------------------------------
-HOW DOES THE SHA1SUM RECORD WORKS
---------------------------------------------
+# Presentation
 
+`LaTeXParser` is a small parser of LaTeX written in Python. It allows to know, in Python, where such and such macro is used and replace the occurrence of a macro by an user-defined string. 
+
+The aim is to help writing pre-(LaTeX)compilation scripts in Python for complex documents. Examples are :
+
+* There is in fact no code duplication in the sources of the preprint [BTZ black hole from the structure of the algebra so(2,n)](http://arxiv.org/abs/0912.2267)
+* Extracting a managing the source code of [Le Frido](http://laurent.claessens-donadello.eu/pdf/lefrido.pdf) from the ones of [mazhe](http://laurent.claessens-donadello.eu/pdf/mazhe.pdf)
+
+
+
+# HOW DOES THE SHA1SUM RECORD WORKS
 
 
 The XML file in which are recorded the sha1sum of the followed files is of the form 
 
-+++++++++++++++++++++++++++++++++++++++++
+```html
 <?xml version="1.0" ?>
 <Followed_files>
 	<fichier name="ess.py" sha1sum="a329313819092a183ca8b08bb7c178807a1a68b7"/>
 	<fichier name="ess.aux" sha1sum="be730c54ff1d1a75398a496283efe45c675dc54f"/>
 </Followed_files>
-+++++++++++++++++++++++++++++++++++++++++++
+```
 
 
 The principal XML object is got by
