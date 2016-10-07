@@ -23,6 +23,7 @@
 import re
 from latexparser.Occurrence import Occurrence
 
+
 paires = { "{":"}","[":"]","`":"'"}
 accepted_between_arguments = ["%","\n"," ","    "] # the last one is a TAB
 
@@ -183,7 +184,6 @@ def SearchUseOfMacro(code,macro_name,number_of_arguments=None,give_configuration
     use=[]
     s = code.text_brut
     if fast :       
-        #search_macro_name=re.compile(re.escape(macro_name)+"{").search
         results=re.finditer(macro_name+"{",s)
         for res in results :
             start = res.start()
@@ -195,7 +195,7 @@ def SearchUseOfMacro(code,macro_name,number_of_arguments=None,give_configuration
             use.append(occurrence)
         return use
 
-    search_macro_name=re.compile(re.escape(macro_name)+"[^A-Za-z]").search
+    search_macro_name=re.compile(re.escape(macro_name)+"[^A-Za-z@]").search
     if not macro_name in s :
         return []
     turtle = 0
