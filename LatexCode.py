@@ -25,6 +25,8 @@ import codecs
 from latexparser.Utilities import ensure_unicode
 from latexparser.Utilities import RemoveComments
 
+from latexparser.Utilities import dprint
+
 class LatexCode(object):
     """
     Contains the informations about a LaTeX code.
@@ -189,13 +191,30 @@ class LatexCode(object):
         Recursively change all the \input{...} by the content of the corresponding file. 
         Return a new object latexparser.LatexCode
         """
+        from latexparser.InputPaths import InputPaths
+
         A = LatexCode(self.text_brut)
-        list_input = [x.analyse() for x in A.search_use_of_macro("\input",1,fast=fast)]
+
+        # The \input macro search for the files in the directories
+        # listed in \input@path. In mazhe I define the macro
+        # \addInputPath in order to add a path in that list. We are here 
+        # searching for the occurrence of \addInputPath in the file to be
+        # expanded, so that we know in which directory we have to search for
+        # the files that are inputed.
+        list_addInputPath =\
+                [x.analyse() for x in \
+                A.search_use_of_macro(r"\addInputPath",1,fast=fast)]
+        input_paths=InputPaths()
+        for occ in list_addInputPath :
+            input_paths.append(occ.directory)
+        list_input =\
+                [x.analyse() for x in \
+                A.search_use_of_macro("\input",1,fast=fast)]
         if list_input==[]:
             return self
         substitution_code={}
         for occurence in list_input:
-            B=LatexCode(occurence.substitution_text())
+            B=LatexCode(occurence.substitution_text(input_paths=input_paths))
             substitution_code[occurence]=B.substitute_all_inputs(fast=fast)
         for occ in list_input:
             A=A.substitute_occurence_input(occ)
@@ -301,8 +320,8 @@ class LatexCode(object):
     def rough_source(self,filename,bibliography_bbl_filename=None,index_ind_filename=None,fast=False):
         """
         Return the name of a file where there is a rough latex code ready to be published to Arxiv
-        See the docstring of latexparser.LatexCodeToRoughSource
         """
+        from latexparser.RoughSources import LatexCodeToRoughSource
         return LatexCodeToRoughSource(self,filename,bibliography_bbl_filename,index_ind_filename,fast=fast)
     def __add__(self,other):
         new_given_text=self.given_text+other.given_text

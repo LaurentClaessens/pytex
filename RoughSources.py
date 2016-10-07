@@ -20,6 +20,9 @@
 # copyright (c) Laurent Claessens, 2010,2012-2016
 # email: laurent@claessens-donadello.eu
 
+import re
+from latexparser.all import FileToLatexCode
+
 # TODO : this function is buggy when fast=True
 def LatexCodeToRoughSource(codeLaTeX,filename,bibliography_bbl_filename=None,index_ind_filename=None,fast=False):
     """

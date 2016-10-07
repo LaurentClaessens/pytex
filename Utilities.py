@@ -31,6 +31,9 @@ def ensure_unicode(text):
 def testtype(s):
     print(s,type(s))
 
+def dprint(*s):
+    print(s)
+
 def RemoveComments(text):
     """
     Takes text as a tex source file and remove the comments including what stands after \end{document}

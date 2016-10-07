@@ -20,6 +20,8 @@
 # copyright (c) Laurent Claessens, 2010,2012-2016
 # email: laurent@claessens-donadello.eu
 
+import codecs
+
 class Occurrence(object):
     """
     self.as_written : the code as it appears in the file, including \MyMacro, including the backslash.
@@ -107,6 +109,10 @@ class Occurrence_newlabel(object):
             self.fourth = self.listoche[3]      # I don't know the role of the fourth argument of \newlabel
             self.fifth = self.listoche[4]       # I don't know the role of the fifth argument of \newlabel
 
+class Occurrence_addInputPath(object):
+    def __init__(self,Occurrence):
+        self.directory=Occurrence[0]
+
 class Occurrence_cite(object):
     def __init__(self,occurrence):
         self.label = occurrence[0]
@@ -141,17 +147,37 @@ class Occurrence_input(Occurrence):
         self.occurrence = occurrence
         self.filename = self.occurrence[0]
         self._substitution_text=None        # Make substitution_text "lazy"
-    def substitution_text(self):
-        if self._substitution_text == None:
-            filename=self.filename
-            strict_filename = filename
-            if "." not in filename:
-                strict_filename=filename+".tex"
-            try:
-                text = "".join( codecs.open(strict_filename,"r",encoding="utf8") )[:-1]    # Without [:-1] I got an artificial empty line at the end.
-            except IOError :
-                print("Warning : file %s not found."%strict_filename)
-                raise
-            self._substitution_text=text
+    def substitution_text(self,input_paths=None):
+        r"""
+        - 'input_path' is the list of paths in which we can search for files.
+
+        See the macro `\addInputPath` in the file
+        https://github.com/LaurentClaessens/mazhe/blob/master/configuration.tex
+        """
+        import os.path
+        from latexparser.InputPaths import InputPaths
+
+        # Memoize
+        if self._substitution_text is not None :
+            return self._substitution_text
+
+        # At least, we are searching in the current directory :
+        if input_paths is None :
+            input_paths=InputPaths()
+
+        # Creating the filename
+        filename=self.filename
+        strict_filename = filename
+        if "." not in filename:
+            strict_filename=filename+".tex"
+    
+        # Searching for the correct file in the subdirectories
+        fn=input_paths.get_file(strict_filename)
+        try:
+            text = "".join( codecs.open(fn,"r",encoding="utf8") )[:-1]    # Without [:-1] I got an artificial empty line at the end.
+        except IOError :
+            print("Warning : file %s not found."%strict_filename)
+            raise
+        self._substitution_text=text
         return self._substitution_text
 

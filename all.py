@@ -23,6 +23,8 @@
 import os.path
 import codecs
 
+from latexparser.LatexCode import LatexCode
+
 def FileToLatexCode(name,fast=False,keep_comments=False):
     """ return a codeLaTeX from a file """
     content = FileToText(name)
