@@ -1,13 +1,13 @@
 #! /usr/bin/python
 # -*- coding: utf8 -*-
 
-import LaTeXparser
+import latexparser
 
 def use_of_newlabel(filename):
 	"""
 	For each label, gives some details : name, value, page, section name
 	"""
-	codeLaTeX =  LaTeXparser.FileToCodeLaTeX(filename+".aux")
+	codeLaTeX =  latexparser.FileToLatexCode(filename+".aux")
 	for newlabel in codeLaTeX.analyse_use_of_macro("\\newlabel",2) :
 		print "+++"
 		print "name :",newlabel.name
@@ -19,7 +19,7 @@ def use_of_macros(filename):
 	"""
 	For each defined macro, says how many times it was used.
 	"""
-	codeLaTeX =  LaTeXparser.FileToCodeLaTeX(filename+".tex")
+	codeLaTeX =  latexparser.FileToLatexCode(filename+".tex")
 	list_of_names = codeLaTeX.dict_of_definition_macros().keys()
 	print "The following macros are defined :",list_of_names
 	print "The statistics are :"
@@ -31,7 +31,7 @@ def text_of_macro(filename, macro):
 	"""
 	Gives the text as appears when the given macro is used.
 	"""
-	codeLaTeX =  LaTeXparser.FileToCodeLaTeX(filename+".tex")
+	codeLaTeX =  latexparser.FileToLatexCode(filename+".tex")
 	for occurrence in codeLaTeX.search_use_of_macro("\MyMacro",2):
 		print occurrence.as_written
 
@@ -43,7 +43,7 @@ def use_of_input(filename):
 	codeLaTeX.list_of_input_files()
 	"""
 	f = manip.Fichier(filename+".tex")
-	codeLaTeX =  LaTeXparser.CodeLaTeX(f.texte())
+	codeLaTeX =  latexparser.LatexCode(f.texte())
 	x = codeLaTeX.search_use_of_macro("\\input",1)
 	for occurrence in x :
 		input = occurrence.analyse()
@@ -54,7 +54,7 @@ def remove_comments(filename):
 	print the given file with no comments.
 	It does not remove the % symbol itself, since it is often written by purpose.
 	"""
-	codeLaTeX =  LaTeXparser.FileToCodeLaTeX(filename+".tex")
+	codeLaTeX =  latexparser.FileToLatexCode(filename+".tex")
 	x = codeLaTeX.remove_comments()
 	print x.text_brut
 	print x.text_brut == x.remove_comments().text_brut		# should print "True"
@@ -63,7 +63,7 @@ def substitute_input(filename,inputname,text=None):
 	"""
 	substitute the \input{inputname} by the given text.
 	"""
-	codeLaTeX =  LaTeXparser.FileToCodeLaTeX(filename+".tex")
+	codeLaTeX =  latexparser.FileToLatexCode(filename+".tex")
 	print codeLaTeX.list_of_input_files()
 	recode = codeLaTeX.substitute_input(inputname,text)
 	print recode.text_brut
@@ -81,7 +81,7 @@ def test_all():
 	substitute_input("ess","fichier")				
 
 def change_macro_argument():
-	x=LaTeXparser.FileToCodeLaTeX("ess.tex")
+	x=latexparser.FileToLatexCode("ess.tex")
 	for occurrence in x.search_use_of_macro("\MyMacro",2):
 		print occurrence
 	y=x.change_macro_argument("\MyMacro",2,lambda x:"XXX"+x,n_args=2)
