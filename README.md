@@ -80,7 +80,7 @@ This will generates `MySmallPart.pdf` containing the result of the compilation w
 
 * `pytex` reads the `.aux` file and presents the missing and multiple labels in a convenient way.
 
-* The option `--verif` checks if the document contains `\ref` or `\eqref` for which the corresponding `\lable` lies later in the document (in a text math, one should refer to theorems that will be proven later). You can define exceptions : sentences that you allow to refer to "future" label.
+* The option `--verif` checks if the document contains `\ref` or `\eqref` for which the corresponding `\label` lies later in the document (in a text math, one should refer to theorems that will be proven later). You can define exceptions : sentences that you allow to refer to "future" label.
 
 * `pytex` inherits from the functionalities of [LaTeXparser](https://github.com/LaurentClaessens/LaTeXparser).
 
