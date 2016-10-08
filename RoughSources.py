@@ -67,4 +67,5 @@ def LatexCodeToRoughSource(codeLaTeX,filename,bibliography_bbl_filename=None,ind
         new_code = new_code.replace("\printindex",code_index.text_brut)
     new_code.filename = filename
     new_code.save()
+    new_code.input_paths=codeLaTeX.input_paths
     return new_code

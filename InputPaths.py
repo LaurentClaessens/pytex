@@ -41,4 +41,7 @@ class InputPaths(object):
             if os.path.exists(fn):
                 return fn
         raise NameError("No file found with name ",filename)
-
+    def __str__(self):
+        return str(self.directory_list)
+    def __iter__(self):
+        return iter(self.directory_list)

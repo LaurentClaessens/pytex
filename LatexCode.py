@@ -24,8 +24,8 @@ import codecs
 
 from latexparser.Utilities import ensure_unicode
 from latexparser.Utilities import RemoveComments
+from latexparser.InputPaths import InputPaths
 
-from latexparser.Utilities import dprint
 
 class LatexCode(object):
     """
@@ -61,13 +61,24 @@ class LatexCode(object):
         self.included_file_list=[]  # When the code is created from files, the filename is recorded here.
         if oldLaTeX :
             self.derive_from(oldLaTeX)
+        self.input_paths=InputPaths()
     def derive_from(self,oldLaTeX):
         self.included_file_list=oldLaTeX.included_file_list
     def copy(self):
         """
         Return a copy of self in a new object
+
+        The fact to copy properties here (like 'input_paths') is not really
+        efficient because the majority of operations are replacements and
+        are returning new objects.
+        See for example 
+        RoughSources.LatexCodeToRoughSource
+        Although 'new_code' is at the beggining a 'copy', we still have to update
+        by hand the input_list.
         """
-        return LatexCode(self.text_brut)
+        A = LatexCode(self.text_brut)
+        A.input_paths=self.input_paths
+        return A
     def save(self,filename=None,preamble=True):
         """
         Save the code in a file.
@@ -191,7 +202,6 @@ class LatexCode(object):
         Recursively change all the \input{...} by the content of the corresponding file. 
         Return a new object latexparser.LatexCode
         """
-        from latexparser.InputPaths import InputPaths
 
         A = LatexCode(self.text_brut)
 
@@ -204,9 +214,8 @@ class LatexCode(object):
         list_addInputPath =\
                 [x.analyse() for x in \
                 A.search_use_of_macro(r"\addInputPath",1,fast=fast)]
-        input_paths=InputPaths()
         for occ in list_addInputPath :
-            input_paths.append(occ.directory)
+            self.input_paths.append(occ.directory)
         list_input =\
                 [x.analyse() for x in \
                 A.search_use_of_macro("\input",1,fast=fast)]
@@ -214,10 +223,11 @@ class LatexCode(object):
             return self
         substitution_code={}
         for occurence in list_input:
-            B=LatexCode(occurence.substitution_text(input_paths=input_paths))
+            B=LatexCode(occurence.substitution_text(input_paths=self.input_paths))
             substitution_code[occurence]=B.substitute_all_inputs(fast=fast)
         for occ in list_input:
             A=A.substitute_occurence_input(occ)
+        A.input_paths=self.input_paths
         return A
     def change_macro_argument(self,macro_name,n,func,n_args):
         r"""
@@ -319,7 +329,8 @@ class LatexCode(object):
             self.__init__(self.given_text+add_given_text)
     def rough_source(self,filename,bibliography_bbl_filename=None,index_ind_filename=None,fast=False):
         """
-        Return the name of a file where there is a rough latex code ready to be published to Arxiv
+        Return the name of a file where there is a rough latex
+        code ready to be published to Arxiv
         """
         from latexparser.RoughSources import LatexCodeToRoughSource
         return LatexCodeToRoughSource(self,filename,bibliography_bbl_filename,index_ind_filename,fast=fast)
