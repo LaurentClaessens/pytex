@@ -22,6 +22,8 @@
 
 import os.path
 
+from latexparser.Utilities import dprint
+
 class InputPaths(object):
     """
     This object recall the list of paths in which \input will search for its files.

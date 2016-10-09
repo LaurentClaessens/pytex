@@ -21,6 +21,7 @@
 # email: laurent@claessens-donadello.eu
 
 import codecs
+from latexparser.InputPaths import InputPaths
 
 class Occurrence(object):
     """
@@ -129,40 +130,45 @@ class Occurrence_newcommand(object):
         self.definition = self.occurrence[-1][0]
 
 class Occurrence_label(object):
-    def __init__(self,occurence):
-        self.occurence=occurence
-        self.label=self.occurence.arguments[0]
+    def __init__(self,occurrence):
+        self.occurrence=occurrence
+        self.label=self.occurrence.arguments[0]
 class Occurrence_ref(object):
-    def __init__(self,occurence):
-        self.occurence=occurence
-        self.label=self.occurence.arguments[0]
+    def __init__(self,occurrence):
+        self.occurrence=occurrence
+        self.label=self.occurrence.arguments[0]
 class Occurrence_eqref(object):
-    def __init__(self,occurence):
-        self.occurence=occurence
-        self.label=self.occurence.arguments[0]
+    def __init__(self,occurrence):
+        self.occurrence=occurrence
+        self.label=self.occurrence.arguments[0]
 
 class Occurrence_input(Occurrence):
     def __init__(self,occurrence):
         Occurrence.__init__(self,occurrence.name,occurrence.arguments,as_written=occurrence.as_written,position=occurrence.position)
         self.occurrence = occurrence
         self.filename = self.occurrence[0]
-        self._substitution_text=None        # Make substitution_text "lazy"
-    def substitution_text(self,input_paths=None):
+        self.input_paths=InputPaths()
+        self._file_content=None        # Make file_content "lazy"
+    def file_content(self,input_paths=None):
         r"""
+        return the content of the file corresponding to this occurrence of
+        \input.
+        This is not recursive.
+
         - 'input_path' is the list of paths in which we can search for files.
 
         See the macro `\addInputPath` in the file
         https://github.com/LaurentClaessens/mazhe/blob/master/configuration.tex
         """
         import os.path
-        from latexparser.InputPaths import InputPaths
 
         # Memoize
-        if self._substitution_text is not None :
-            return self._substitution_text
+        if self._file_content is not None :
+            return self._file_content
 
         # At least, we are searching in the current directory :
         if input_paths is None :
+            raise # Just to know who should do something like that
             input_paths=InputPaths()
 
         # Creating the filename
@@ -174,10 +180,10 @@ class Occurrence_input(Occurrence):
         # Searching for the correct file in the subdirectories
         fn=input_paths.get_file(strict_filename)
         try:
-            text = "".join( codecs.open(fn,"r",encoding="utf8") )[:-1]    # Without [:-1] I got an artificial empty line at the end.
+            # Without [:-1] I got an artificial empty line at the end. 
+            text = "".join( codecs.open(fn,"r",encoding="utf8") )[:-1]   
         except IOError :
             print("Warning : file %s not found."%strict_filename)
             raise
         self._substitution_text=text
         return self._substitution_text
-

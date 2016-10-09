@@ -23,6 +23,8 @@
 import re
 from latexparser.all import FileToLatexCode
 
+from latexparser.Utilities import dprint
+
 # TODO : this function is buggy when fast=True
 def LatexCodeToRoughSource(codeLaTeX,filename,bibliography_bbl_filename=None,index_ind_filename=None,fast=False):
     """
@@ -67,5 +69,4 @@ def LatexCodeToRoughSource(codeLaTeX,filename,bibliography_bbl_filename=None,ind
         new_code = new_code.replace("\printindex",code_index.text_brut)
     new_code.filename = filename
     new_code.save()
-    new_code.input_paths=codeLaTeX.input_paths
     return new_code

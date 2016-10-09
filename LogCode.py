@@ -122,7 +122,7 @@ def ListOfCitation(filelist):
     new_filelist=[a+".tex" for a in filelist]
     for f in new_filelist :
         codeLaTeX =FileToLatexCode(f)
-        occurences = codeLaTeX.analyse_use_of_macro("\cite",1)
-        for occ in occurences :
+        occurrences = codeLaTeX.analyse_use_of_macro("\cite",1)
+        for occ in occurrences :
             l.append(occ.label)
     return l

@@ -26,6 +26,23 @@ from latexparser.Utilities import ensure_unicode
 from latexparser.Utilities import RemoveComments
 from latexparser.InputPaths import InputPaths
 
+from latexparser.Utilities import dprint
+
+def inherit_properties(f):
+    """
+    Decorator. A method of 'LatexCode' that is marked with this decorator
+    will return 'LatexCode' object that inherits from the base object.
+    """
+    def g(code,*args):
+        # Create the new code as the original function would do it 
+        new_code=f(code,*args)
+
+        # Inherit the attributes
+        new_code.input_paths=code.input_paths
+        new_code.filename=code.filename
+        new_code.included_file_list=code.included_file_list
+        return new_code
+    return g
 
 class LatexCode(object):
     """
@@ -145,7 +162,7 @@ class LatexCode(object):
 
         Optional argument: number_of_arguments=None, to be passed to search_use_of_macro
         """
-        return [occurence.analyse() for occurence in self.search_use_of_macro(name,number_of_arguments) ]
+        return [occurrence.analyse() for occurrence in self.search_use_of_macro(name,number_of_arguments) ]
     def macro_definition(self,name):
         return MacroDefinition(self,name)
     def statistics_of_the_macro(self,name):
@@ -184,26 +201,31 @@ class LatexCode(object):
             self._list_of_input_files = list
         return self._list_of_input_files
 
-    def substitute_occurence_input(self,occurence):
+    def substitute_occurrence_input(self,occurrence,substitution_text):
         """
-        `occurence` is the occurence of an \input{<filename>}. 
+        - `occurrence` is the occurrence of an \input{<filename>}. 
+        - `substitution_text` is the text with whom we have to
+           substitute the occurrence of \input
 
-        Replace the occurence by the content of filename.
+        Replace the occurrence by the given substitution text
+
+        This is not intrinsically recursive, but when we call this method,
+        the recursion is already done.
         """
-        text=occurence.substitution_text()
-        print("Adding file",occurence.filename)
+        print("Adding file",occurrence.filename)
         A = LatexCode(self.text_brut)
         A.included_file_list=self.included_file_list
-        A.included_file_list.append(occurence.filename)
-        A=A.replace(occurence.as_written,text)
+        A.included_file_list.append(occurrence.filename)
+        A=A.replace(occurrence.as_written,substitution_text)
         return A
-    def substitute_all_inputs(self,fast=False):
+    def substitute_all_inputs(self,fast=False,input_paths=None):
         r"""
         Recursively change all the \input{...} by the content of the corresponding file. 
         Return a new object latexparser.LatexCode
         """
-
         A = LatexCode(self.text_brut)
+        if input_paths is None :
+            input_paths=InputPaths()
 
         # The \input macro search for the files in the directories
         # listed in \input@path. In mazhe I define the macro
@@ -215,23 +237,27 @@ class LatexCode(object):
                 [x.analyse() for x in \
                 A.search_use_of_macro(r"\addInputPath",1,fast=fast)]
         for occ in list_addInputPath :
-            self.input_paths.append(occ.directory)
-        list_input =\
-                [x.analyse() for x in \
-                A.search_use_of_macro("\input",1,fast=fast)]
+            input_paths.append(occ.directory)
+        list_input=[]
+        for x in A.search_use_of_macro("\input",1,fast=fast):
+            y=x.analyse()
+            y.input_paths=input_paths
+            list_input.append(y)
         if list_input==[]:
             return self
-        substitution_code={}
-        for occurence in list_input:
-            B=LatexCode(occurence.substitution_text(input_paths=self.input_paths))
-            substitution_code[occurence]=B.substitute_all_inputs(fast=fast)
-        for occ in list_input:
-            A=A.substitute_occurence_input(occ)
-        A.input_paths=self.input_paths
-        return A
+        new_code=LatexCode(self.text_brut)
+        for occurrence in list_input:
+            file_content=occurrence.file_content(input_paths)
+            A=LatexCode(file_content)
+            B=A.substitute_all_inputs(input_paths=input_paths)
+            new_code=new_code.substitute_occurrence_input(\
+                    occurrence,B.text_brut)
+        new_code.input_paths=input_paths
+        return new_code
     def change_macro_argument(self,macro_name,n,func,n_args):
         r"""
-        Apply the function <func> to the <n>th argument of each use of <macro_name>.
+        Apply the function <func> to the <n>th argument 
+        of each use of <macro_name>.
 
         return a new_object LatexCode
         """
@@ -291,11 +317,12 @@ class LatexCode(object):
         b=self.text_brut.index("\n",position)
         return self.text_brut[a+1:b]
     def find(self,arg):
-        # Up to November 25, 2014, it was 'text' instead of 'text_brut'.
-        # and it was a bug.
         return self.text_brut.find(arg)
+    @inherit_properties
     def replace(self,textA,textB):
-        """ Replace textA by textB including in the comments """
+        """ 
+        Replace textA by textB including in the comments 
+        """
         textA=ensure_unicode(textA)
         textB=ensure_unicode(textB)
         new_text = self.text_brut.replace(textA,textB)
@@ -333,7 +360,8 @@ class LatexCode(object):
         code ready to be published to Arxiv
         """
         from latexparser.RoughSources import LatexCodeToRoughSource
-        return LatexCodeToRoughSource(self,filename,bibliography_bbl_filename,index_ind_filename,fast=fast)
+        a = LatexCodeToRoughSource(self,filename,bibliography_bbl_filename,index_ind_filename,fast=fast)
+        return a
     def __add__(self,other):
         new_given_text=self.given_text+other.given_text
         return LatexCode(new_given_text)
