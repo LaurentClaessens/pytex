@@ -263,6 +263,12 @@ class Traitement(object):
                     h.update(line_ref.encode("utf8"))
                     hexdigest=h.hexdigest()
 
+                    # Referencing a picture should be allowed, so I keep this piece of code
+                    # that lists the references to pictures.
+                    #if lab.startswith("LabelFig") :
+                    #    with open("travail.txt",'a') as f:
+                    #        f.write(hexdigest+"\n")
+
                     if hexdigest not in ok_hash :
                         num=num+1
                         ecrire("--------- label {0} -----".format(lab),34)
