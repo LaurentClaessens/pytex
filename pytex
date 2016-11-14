@@ -355,7 +355,6 @@ class Traitement(object):
             # Before Python3 :   (december 15, 2014)
             #module = __import__(os.path.basename(FichierReq))
             module=importlib.import_module(os.path.basename(FichierReq.replace('.py','')))
-            
 
             self.myRequest = module.myRequest
 
