@@ -29,6 +29,7 @@ import subprocess
 import importlib
 
 from latexparser.all import *
+from Utilities import logging
 
 """
 Note 25637 : THE PLUGIN TYPES
@@ -136,6 +137,7 @@ class Traitement(object):
         self.before_pytex_plugin_list = []
         self.nombre_prob=0
         self.new_output_filename=None  # see copy_final_file
+        self.new_output_filenames=None
         for arg in self.arguments:
             if arg[0]!="-":
                 self.LireFichier(arg)
@@ -305,32 +307,58 @@ class Traitement(object):
         elif num==1:
             print("Still one future reference".format(num))
         print("Concerned files :")
-    def copy_final_file(self):
+    def make_final_copy(self,pdf_output,new_filename):
         """
-        It is intended to be used after the compilation. It copies the 'pdf' resulting file to a new one.
-        The aim is to let the pdf viewer with the same pdf file until the last moment.
+        Copy 'pdf_output' to 'new_filename'
+
+        - 'pdf_output' is supposed to be the filename produced by pdflatex itself.
+        - 'new_filename' is the name we want to use.
+
+        The main point of this function is not the copy itself (shutil.copy2), but the fact
+        to manage the ".synctex.gz" files in the same time.
         """
-        pdf_filename=os.path.split(self.pytex_filename)[1]
-        output_filename=pdf_filename.replace(".tex",".pdf")
-        if not self.new_output_filename :
-            self.new_output_filename="0-"+output_filename
         import shutil
-        print("Copy : ",output_filename,"-->",self.new_output_filename)
-        shutil.copy2(output_filename,self.new_output_filename)
+        logging("Copy : "+pdf_output+" --> "+new_filename)
+        shutil.copy2(pdf_output,new_filename)
 
         # One has to copy the file foo.synctex.gz to  0-foo.synctex.gz
-        output_synctex=output_filename.replace(".pdf",".")+"synctex.gz"
-        self.new_output_filename=self.new_output_filename#.decode('utf8')
-        new_output_synctex=self.new_output_filename.replace(".pdf",".synctex.gz")
+        output_synctex=pdf_output.replace(".pdf",".")+"synctex.gz"
+        new_output_synctex=new_filename.replace(".pdf",".synctex.gz")
         if not os.path.exists(output_synctex):
             raise NameError("This is a problem about synctex. {0} do not exist".format(output_synctex))
             # TODO : this message produces an unicode error when there are accents in the path name.
         shutil.copy2(output_synctex,new_output_synctex)
+    def copy_final_file(self):
+        """
+        It is intended to be used after the compilation. It copies the 'pdf' resulting file to a new one.
+        The aim is to let the pdf viewer with the same pdf file until the last moment.
+
+        The difference between `new_output_filename` and `new_output_filenames` is that the latter is a list.
+        When `new_output_filenames` is given, we produce as much files as given new filenames.
+        """
+        tex_filename=os.path.split(self.pytex_filename)[1]
+        pdf_output=tex_filename.replace(".tex",".pdf")
+
+        # new_filenames contains both 
+        # 'new_output_filename' and 'new_output_filenames'
+        new_filenames=[]
+        if self.new_output_filename is not None :
+            new_filenames.append(self.new_output_filename)
+        if self.new_output_filenames is not None :
+            new_filenames.extend(self.new_output_filenames)
+
+        # fix the default is nothing is given
+        if new_filenames==[]:
+            new_filenames=["0-"+pdf_output]
+
+        for f in new_filenames :
+            self.make_final_copy(pdf_output,f)
+
     def bibliographie(self):
         """
         Return the bbl file that corresponds to the principal file
         
-        We take as basis the pytex filename because the bibliorgaphy is created (via bibtex) when we
+        We take as basis the pytex filename because the bibliography is created (via bibtex) when we
         compile that one.
         """
         return self.pytex_filename.replace("_pytex.tex","_pytex.bbl")
@@ -370,6 +398,7 @@ class Traitement(object):
             #self.original_file = manip.Fichier(self.myRequest.original_filename)
             self.original_file = self.myRequest.original_filename
             self.new_output_filename=self.myRequest.new_output_filename
+            self.new_output_filenames=self.myRequest.new_output_filenames
             self.ok_filenames_list.extend([x.replace(".tex","") for x in self.myRequest.ok_filenames_list])
         if FichierReq.endswith(".lst"):
             self.listeFichPrendre.append(FichierReq)
