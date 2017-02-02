@@ -42,6 +42,11 @@ Note 25637 : THE PLUGIN TYPES
                                 checks before to compile.
              Example : check that a file exist before to compile, or write a greeting to the user.
 
+        * 'after_compilation' : applied on nothing, after the compilation.
+                                Such a plugin does not return anything. It is devoted to perform some
+                                checks after compilation.
+             Example : check that a file has been created or make some research in the auxiliary files.
+
 """
 
 """
@@ -415,14 +420,13 @@ class Traitement(object):
             self._intermediate_code=ProduceIntermediateCode(self)
         return self._intermediate_code
     def apply_plugin(self,A,hook_name):
-        for plugin in [x for x in self.myRequest.plugin_list if x.hook_name==hook_name]:
+        for plugin in [x for x in self.myRequest.plugin_list if x.hook_name==hook_name] :
             print("Applying the plugin",plugin.fun)
-            if hook_name=="before_compilation" :
+            if hook_name in ["before_compilation", "after_compilation" ]:
                 plugin.fun()
-                return None
             else :
                 A=plugin(A) 
-                return A
+        return A
     def pytex_file(self):
         if not self._pytex_file :
 
@@ -432,6 +436,7 @@ class Traitement(object):
             self.text_before_pytex=A
 
             A=ProducePytexCode(self)                   # The conversion text -> LatexCode is done here
+
             A=self.apply_plugin(A,"after_pytex")
 
             # Writing \UseCorrectionFile does not work because of \U which is a Unicode stuff causing a syntax error.
@@ -525,6 +530,7 @@ def RunMe(medicament):
         print("Le fichier qui ne fut pas compilé est",medicament.pytex_filename)
     else :
         print("Le fichier qui fut compilé est",medicament.pytex_filename)
+        medicament.apply_plugin("","after_compilation")
     if medicament.Compil.verif:
         medicament.future_reference_verification(medicament)
 
