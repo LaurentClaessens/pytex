@@ -1,7 +1,7 @@
 #! /usr/bin/python3
 # -*- coding: utf8 -*-
 
-#Copyright 2015-2016 
+#Copyright 2015-2017
 # Laurent Claessens
 #contact : laurent@claessens-donadello.eu
 
@@ -37,7 +37,10 @@ Note 25637 : THE PLUGIN TYPES
         * 'medicament' : applied to the Traitement itself, it is applied after the import
         * 'before_pytex' : applied on the text (as sting) before to create the pytex file.
         * 'after_pytex' : applied on the LaTeXCode of the pytex file.
-        * 'before_compilation' : applied on nothing, before the compilation
+        * 'before_compilation' : applied on nothing, before the compilation.
+                                Such a plugin does not return anything. It is devoted to perform some
+                                checks before to compile.
+             Example : check that a file exist before to compile, or write a greeting to the user.
 
 """
 
@@ -394,7 +397,6 @@ class Traitement(object):
             for plugin in [ x for x in self.myRequest.plugin_list if x.hook_name=="medicament"]:
                 plugin(self)
 
-
             #self.original_file = manip.Fichier(self.myRequest.original_filename)
             self.original_file = self.myRequest.original_filename
             self.new_output_filename=self.myRequest.new_output_filename
@@ -415,8 +417,12 @@ class Traitement(object):
     def apply_plugin(self,A,hook_name):
         for plugin in [x for x in self.myRequest.plugin_list if x.hook_name==hook_name]:
             print("Applying the plugin",plugin.fun)
-            A=plugin(A)
-        return A
+            if hook_name=="before_compilation" :
+                plugin.fun()
+                return None
+            else :
+                A=plugin(A) 
+                return A
     def pytex_file(self):
         if not self._pytex_file :
 
