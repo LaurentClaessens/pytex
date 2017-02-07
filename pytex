@@ -251,7 +251,7 @@ class Traitement(object):
         star=[]
         for directory in rough_code.input_paths :
             star.extend([os.path.join(directory,x) for x in os.listdir(directory)\
-                    if x.endswith(".tex") if "-source-" not in x  ]    )
+                    if x.endswith(".tex") if "-source-" not in x ]    )
 
 
         ok_hash=self.myRequest.ok_hash
@@ -283,6 +283,8 @@ class Traitement(object):
 
                         if A==[]:
                             from Utilities import ReferenceNotFoundException
+                            print("A problem occurred searching for the line ")
+                            print(line_ref)
                             raise ReferenceNotFoundException("\n I'm not able to found back the future reference \\ref. Look at the docstring of ReferenceNotFoundException in Utilies.py for more details.")
                         for result in A:
                             print(result.filename,":",result.linenumber)
