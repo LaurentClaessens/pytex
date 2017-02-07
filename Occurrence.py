@@ -169,7 +169,6 @@ class Occurrence_input(Occurrence):
         # At least, we are searching in the current directory :
         if input_paths is None :
             raise # Just to know who should do something like that
-            input_paths=InputPaths()
 
         # Creating the filename
         filename=self.filename
@@ -185,5 +184,5 @@ class Occurrence_input(Occurrence):
         except IOError :
             print("Warning : file %s not found."%strict_filename)
             raise
-        self._substitution_text=text
-        return self._substitution_text
+        self._file_content=text
+        return self._file_content
