@@ -26,8 +26,6 @@ from latexparser.Utilities import ensure_unicode
 from latexparser.Utilities import RemoveComments
 from latexparser.InputPaths import InputPaths
 
-from latexparser.Utilities import dprint
-
 def inherit_properties(f):
     """
     Decorator. A method of 'LatexCode' that is marked with this decorator
@@ -90,7 +88,7 @@ class LatexCode(object):
         are returning new objects.
         See for example 
         RoughSources.LatexCodeToRoughSource
-        Although 'new_code' is at the beggining a 'copy', we still have to update
+        Although 'new_code' is at the beginning a 'copy', we still have to update
         by hand the input_list.
         """
         A = LatexCode(self.text_brut)
