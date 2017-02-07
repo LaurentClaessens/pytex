@@ -251,7 +251,8 @@ class Traitement(object):
         star=[]
         for directory in rough_code.input_paths :
             star.extend([os.path.join(directory,x) for x in os.listdir(directory)\
-                    if x.endswith(".tex") if "-source-" not in x])
+                    if x.endswith(".tex") if "-source-" not in x  ]    )
+
 
         ok_hash=self.myRequest.ok_hash
         usefull_ok_hash=[]
@@ -269,21 +270,20 @@ class Traitement(object):
 
                     line_ref=rough_code.position_to_line(ref.position).replace("\n","")
                     line_label=rough_code.position_to_line(label_pos).replace("\n","")
+
                     h=hashlib.new("sha1")
                     h.update(line_ref.encode("utf8"))
                     hexdigest=h.hexdigest()
-
-                    # Referencing a picture should be allowed, so I keep this piece of code
-                    # that lists the references to pictures.
-                    #if lab.startswith("LabelFig") :
-                    #    with open("travail.txt",'a') as f:
-                    #        f.write(hexdigest+"\n")
 
                     if hexdigest not in ok_hash :
                         num=num+1
                         ecrire("--------- label {0} -----".format(lab),34)
                         A=pygrep.grep(re.escape(line_ref),star,first_result=True)
                         B=pygrep.grep(re.escape(line_label),star,first_result=True)
+
+                        if A==[]:
+                            from Utilities import ReferenceNotFoundException
+                            raise ReferenceNotFoundException("\n I'm not able to found back the future reference \\ref. Look at the docstring of ReferenceNotFoundException in Utilies.py for more details.")
                         for result in A:
                             print(result.filename,":",result.linenumber)
                             print(result.string.replace(lab,"\033[0;33;40m"+lab+"\033[0;47;40m"))

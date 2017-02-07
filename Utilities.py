@@ -17,8 +17,45 @@
 #   along with phystricks.py.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
 
-# copyright (c) Laurent Claessens, 2010-2016
+# copyright (c) Laurent Claessens, 2010-2017
 # email: laurent@claessens-donadello.eu
+
+# If one moves the class 'ReferenceNotFoundException', one has to update the message in pytex.
+class ReferenceNotFoundException(Exception):
+    """
+    Exception raised when pytex is not able to find back the fautive \\ref causing a future reference.
+
+    EXPLANATION
+
+    In order to detect the future references, pytex creates a big latex document (in RAM) that recursively contains all the \input. This is more or less a single self-contained file equivalent to the given file.
+
+    When a future reference is found in that document, we search back the line in the real files in order to provide the user an instructive message (filename+line number)
+
+    Suppose that we have
+    \input{foo}     % this is a comment
+    and that the last line of 'foo.tex' contains the fautive \\ref :
+    "using theorem \ref{LAB}, blah"
+
+    In that case, the processus of creating the big document will replace the  \input{foo} by its content and LEAVE THE COMMENT, so that we are left with the line
+
+    "using theorem \ref{LAB}, blah    % this is a comment"           (1)
+
+    (in fact the comment itself is discarded but this is an other story : the point is that we get extra spaces and %)
+
+    So when seraching back the line, we are searching for the line (1) which does not exist in the actual code.
+
+
+    HOW TO FIX MY CODE ?
+
+    you should do one or more of the following
+    - add an empty (or not empty) line after the line containing the fautive \\ref
+    - remove the comment on the line containing the \input.
+    
+    """
+    def __init__(self,text):
+        self.text=text
+    def __str__(self):
+        return self.text
 
 def ensure_unicode(s):
     """
