@@ -17,7 +17,7 @@
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
 
-# copyright (c) Laurent Claessens, 2010, 2012-2015
+# copyright (c) Laurent Claessens, 2010, 2012-2015,2017
 # email: moky.math@gmail.com
 
 """
@@ -80,37 +80,6 @@ class Compilation(object):
         program=u"/usr/bin/pdflatex -synctex=1   -shell-escape"
         # The following line does not work without the u"...". Even if {0} and {1} are type unicode
         commande_e=u"""{0} {1} """.format(program,self.filename)
-        self.do_it(commande_e)
-
-    def chain_dvi_ps(self,papertype="a4"):
-        raise DeprecationWarning
-        """
-        The chain tex->div->ps
-
-        After compiling by self.latex(), produce a ps file from the dvi by the command
-        dvips -t <papertype> <self.filename>.dvi
-        
-        Optional parameter : papertype is "a4" by default
-        """
-        self.latex()
-        commande_e="dvips -t %s %s.dvi"%(papertype,self.generic_filename)
-        print(commande_e)
-        self.do_it(commande_e)
-    def chain_dvi_ps_pdf(self,papertype="a4",quiet=True):
-        raise DeprecationWarning
-        """
-        The chain tex->dvi-ps->pdf 
-        This is more or less the only way to produce a pdf file containing pstricsk figures and hyperref links.
-
-        After having produced the ps by self.chain_dvi_ps(), produce a pdf file from the ps by the command
-        ps2pdf <self.filename>.ps
-        
-        Optional parameter : papertype is "a4" by default (to be passed to dvips)
-        """
-        self.chain_dvi_ps(papertype)
-        commande_e="ps2pdf "+self.generic_filename+".ps" 
-        if not quiet:
-            print(commande_e,"...")
         self.do_it(commande_e)
     def latex_more(self):
         self.special_stuffs()
