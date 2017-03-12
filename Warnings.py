@@ -20,13 +20,13 @@
 # copyright (c) Laurent Claessens, 2010,2012-2016
 # email: laurent@claessens-donadello.eu
 
-import subprocess
 
 class LaTeXWarning(object):
     def __init__(self,label,page):
         self.label = label
         self.page = page
     def grep_result(self):
+        import subprocess
         a=[]
         command_e="grep --color=always -n \\\\ref{"+self.label+"} *.tex"
         a.append(subprocess.getoutput(command_e))
