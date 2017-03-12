@@ -35,32 +35,6 @@ def FileToCodeBibtex(name):
     content = FileToText(name)
     return CodeBibtex(content,filename=name)
 
-def NextMacroCandidate_old(s,macro_name):
-    """
-    return the a tuple (boolean,integer) saying if macro_name is present in string s
-    and where.
-
-    This function is supposed to be only used on string representing LaTeX code with removed comments, that 
-    is where % is immediately followed by \n (or preceded by \).
-
-    This is the old version.
-    """
-    raise DeprecationWarning        # October 7, 2016
-    turtle = 0
-    while turtle < len(s):
-        if s[turtle:turtle+len(macro_name)] == macro_name :
-            return True,turtle
-        if s[turtle]=="%":
-            a=s[turtle:]
-            pos = a.find("\n")
-            if pos == -1:
-                return False,-1
-            turtle = turtle+pos
-        turtle=turtle+1
-    return False,-1
-
-
-
 def MacroDefinition(code,name):
     r"""
     Finds the (last) definition of a macro and returns the corresponding object
