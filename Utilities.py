@@ -20,6 +20,12 @@
 # copyright (c) Laurent Claessens, 2010-2017
 # email: laurent@claessens-donadello.eu
 
+import sys
+import codecs
+
+LOGGING_FILENAME=".pytex.log"
+DEPLOY_FILENAME=".deploy.log"
+
 # If one moves the class 'ReferenceNotFoundException', one has to update the message in pytex.
 class ReferenceNotFoundException(Exception):
     """
@@ -42,7 +48,7 @@ class ReferenceNotFoundException(Exception):
 
     (in fact the comment itself is discarded but this is an other story : the point is that we get extra spaces and %)
 
-    So when seraching back the line, we are searching for the line (1) which does not exist in the actual code.
+    So when searching back the line, we are searching for the line (1) which does not exist in the actual code.
 
 
     HOW TO FIX MY CODE ?
@@ -100,7 +106,6 @@ def dprint(*args):
     print(" ".join(a))
 
 def logging(text,pspict=None):
-    LOGGING_FILENAME=".pytex.log"
     import codecs
     #text=ensure_unicode(text)
     if pspict :
@@ -108,3 +113,17 @@ def logging(text,pspict=None):
     print(text)
     with codecs.open(LOGGING_FILENAME,"a",encoding="utf8") as f:
         f.write(text+"\n")
+
+class DeployLog(object):
+    """
+    When something is going bad, add the warnings in '.deploy.log'
+    """
+    def __init__(self):
+        self.old_out=sys.stdout
+        sys.stdout=self
+    def write(self,s):
+        self.old_out.write(s)
+        with codecs.open(DEPLOY_FILENAME,"a",encoding="utf8") as f:
+            f.write(s)
+    def close(self):
+        sys.stdout=self.old_out

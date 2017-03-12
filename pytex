@@ -30,6 +30,7 @@ import importlib
 
 from latexparser.all import *
 from Utilities import logging
+from Utilities import DeployLog
 
 """
 Note 25637 : THE PLUGIN TYPES
@@ -53,8 +54,6 @@ Note 25637 : THE PLUGIN TYPES
 Options :
     --no-compilation    Do not compile, but produce the final _pytex.tex file and print the commands that were to be launched without.
     --rough-source  Output an extremely hard-coded pytex file which is ready for ArXiv.
-    - ``--pdflatex`` - Use pdflatex (default)
-    - ``--dvi`` - Use latex and produce a dvi file instead of pdf.
 
 """
 
@@ -211,6 +210,10 @@ class Traitement(object):
         label_dict={}
 
         print("Working on future references ...")
+
+        deploy_log=DeployLog()    # from now on, the 'print' are also written in ".deploy.log".
+                                  # finishes when 'deploy_log.close()' is called.
+
         for occ in labels : 
             label = occ.arguments[0]
             ref_dict[label]=[]
@@ -308,6 +311,7 @@ class Traitement(object):
                     else :
                         usefull_ok_hash.append(hexdigest)
 
+        deploy_log.close()              # No more logging the errors in '.deploy.log'
         for f in concerned_files :
             print("""myRequest.ok_filenames_list.append("{0}")""".format(f))
         if num==0 :
@@ -372,7 +376,6 @@ class Traitement(object):
         compile that one.
         """
         return self.pytex_filename.replace("_pytex.tex","_pytex.bbl")
-        #return Fichier(self.pytex_filename.replace("_pytex.tex","_pytex.bbl"))
     def index(self):
         """ retourne le fichier ind qui correspond au fichier principal """
         return self.pytex_filename.replace("_pytex.tex","_pytex.ind")
@@ -390,8 +393,6 @@ class Traitement(object):
         if FichierReq.endswith(".py"):
             sys.path.append(os.path.dirname(FichierReq))
 
-            # Before Python3 :   (december 15, 2014)
-            #module = __import__(os.path.basename(FichierReq))
             module=importlib.import_module(os.path.basename(FichierReq.replace('.py','')))
 
             self.myRequest = module.myRequest
@@ -466,7 +467,10 @@ def verif_grep(medicament):
     if medicament.nombre_prob == 1 :
         print("Only one problem to be fixed. Next to perfection !!")
     x = FileToLogCode(medicament.log_filename)
+
+    deploy_log=DeployLog()
     print(x)
+    deploy_log.close()
 
 def ProduceIntermediateCode(medicament):
     codeLaTeX = string_to_latex_code(medicament.text_before_pytex)
