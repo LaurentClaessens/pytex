@@ -24,7 +24,6 @@ import sys
 import codecs
 
 LOGGING_FILENAME=".pytex.log"
-DEPLOY_FILENAME=".deploy.log"
 
 # If one moves the class 'ReferenceNotFoundException', one has to update the message in pytex.
 class ReferenceNotFoundException(Exception):
@@ -113,17 +112,3 @@ def logging(text,pspict=None):
     print(text)
     with codecs.open(LOGGING_FILENAME,"a",encoding="utf8") as f:
         f.write(text+"\n")
-
-class DeployLog(object):
-    """
-    When something is going bad, add the warnings in '.deploy.log'
-    """
-    def __init__(self):
-        self.old_out=sys.stdout
-        sys.stdout=self
-    def write(self,s):
-        self.old_out.write(s)
-        with codecs.open(DEPLOY_FILENAME,"a",encoding="utf8") as f:
-            f.write(s)
-    def close(self):
-        sys.stdout=self.old_out

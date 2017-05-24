@@ -30,7 +30,6 @@ import importlib
 
 from latexparser.all import *
 from Utilities import logging
-from Utilities import DeployLog
 
 """
 Note 25637 : THE PLUGIN TYPES
@@ -64,6 +63,43 @@ ColTexte = 33
 utilisateur=subprocess.getoutput("whoami")
 HOME=subprocess.getoutput("echo $HOME")
 PYTHONPATH=subprocess.getoutput("echo $PYTHONPATH")
+
+class SummaryOutput(object):
+    """
+    This class serves to replace `print` for the summary messages
+    """
+    def __init__(self,out):
+        self.out=out
+    def __call__(self,*args):
+        text=""
+        for a in args:
+            text=text+str(a)+" "
+        self.out.write(text+"\n")
+
+class FileOutput(object):
+    """
+    A `FileOutput` object is intended to be given as `out` in 
+    `SummaryOutput`. Thus here the write` function always gets
+    a single `str` argument, since the work of conversion from `*args` is
+    done in `SummaryOutput.__call__`
+    """
+    def __init__(self,filename):
+        self.filename=filename
+    def write(self,text):
+        sys.stdout.write(text)
+        with open(self.filename,'a') as f:
+            f.write(text)
+
+def arg_to_output(arg):
+    """
+    from a string of the form
+    'output=<filename>'
+    creates an output that prints on the screen and in the file.
+    """
+    filename=arg.split("=")[1]
+    with open(filename,'w') as f:
+        f.write("Here is the log file")
+    return SummaryOutput(FileOutput(filename))
 
 
 def ecrire(texte,couleur):
@@ -145,6 +181,7 @@ class Traitement(object):
         self.nombre_prob=0
         self.new_output_filename=None  # see copy_final_file
         self.new_output_filenames=None
+        self.output=SummaryOutput(sys.stdout)
         for arg in self.arguments:
             if arg[0]!="-":
                 self.LireFichier(arg)
@@ -160,6 +197,8 @@ class Traitement(object):
             if arg == "--rough-source" :
                 self.Sortie.rough_source = True
                 self.Sortie.nocompilation = True
+            if "--output=" in arg:
+                self.output=arg_to_output(arg)
 
         self.listeFichPris = []
         self.pytex_filename = self.pwd+"/"+"Inter_"+self.prefix+"-"+os.path.basename(self.original_file).replace(".tex","_pytex.tex")
@@ -211,9 +250,6 @@ class Traitement(object):
 
         print("Working on future references ...")
 
-        deploy_log=DeployLog()    # from now on, the 'print' are also written in ".deploy.log".
-                                  # finishes when 'deploy_log.close()' is called.
-
         for occ in labels : 
             label = occ.arguments[0]
             ref_dict[label]=[]
@@ -232,9 +268,9 @@ class Traitement(object):
         for occ in labels:
             label = occ.arguments[0]
             if label in label_dict.keys() :
-                print("The label <{0}> is used multiple times".format(label))
-                print("Here is the last time I see that")
-                print(occ.as_written)
+                output("The label <{0}> is used multiple times".format(label))
+                output("Here is the last time I see that")
+                output(occ.as_written)
                 raise NameError
             label_dict[label]=occ
 
@@ -286,12 +322,12 @@ class Traitement(object):
 
                         if A==[]:
                             from Utilities import ReferenceNotFoundException
-                            print("A problem occurred searching for the line ")
-                            print(line_ref)
+                            output("A problem occurred searching for the line ")
+                            output(line_ref)
                             raise ReferenceNotFoundException("\n I'm not able to found back the future reference \\ref. Look at the docstring of ReferenceNotFoundException in Utilies.py for more details.")
                         for result in A:
-                            print(result.filename,":",result.linenumber)
-                            print(result.string.replace(lab,"\033[0;33;40m"+lab+"\033[0;47;40m"))
+                            output(result.filename,":",result.linenumber)
+                            output(result.string.replace(lab,"\033[0;33;40m"+lab+"\033[0;47;40m"))
 
                             star.remove(result.filename)    
                             star.insert(0,result.filename)  # Thus the next time we begin with this file.
@@ -301,9 +337,9 @@ class Traitement(object):
 
                             concerned_files.append(result.filename)
                         for result in B:
-                            print(result.filename,":",result.linenumber)
+                            output(result.filename,":",result.linenumber)
 
-                            print(result.string.replace(lab,"\033[0;33;40m"+lab+"\033[0;47;40m"))
+                            output(result.string.replace(lab,"\033[0;33;40m"+lab+"\033[0;47;40m"))
                             concerned_files.append(result.filename)
 
                         print("hash : "+hexdigest)
@@ -311,15 +347,14 @@ class Traitement(object):
                     else :
                         usefull_ok_hash.append(hexdigest)
 
-        deploy_log.close()              # No more logging the errors in '.deploy.log'
         for f in concerned_files :
-            print("""myRequest.ok_filenames_list.append("{0}")""".format(f))
+            output("""myRequest.ok_filenames_list.append("{0}")""".format(f))
         if num==0 :
-            print("No future references")
+            output("No future references")
         elif num > 1:
-            print("Still {0} future references".format(num))
+            output("Still {0} future references".format(num))
         elif num==1:
-            print("Still one future reference".format(num))
+            output("Still one future reference".format(num))
         print("Concerned files :")
     def make_final_copy(self,pdf_output,new_filename):
         """
@@ -463,14 +498,12 @@ class Traitement(object):
 
 def verif_grep(medicament):
     if medicament.nombre_prob > 1 :
-        print("Still "+str(medicament.nombre_prob)+" problems to be fixed. Good luck !")
+        output("Still "+str(medicament.nombre_prob)+" problems to be fixed. Good luck !")
     if medicament.nombre_prob == 1 :
-        print("Only one problem to be fixed. Next to perfection !!")
+        output("Only one problem to be fixed. Next to perfection !!")
     x = FileToLogCode(medicament.log_filename)
 
-    deploy_log=DeployLog()
-    print(x)
-    deploy_log.close()
+    output(x)
 
 def ProduceIntermediateCode(medicament):
     codeLaTeX = string_to_latex_code(medicament.text_before_pytex)
@@ -546,4 +579,7 @@ def RunMe(medicament):
 #
 ###############################
 
-RunMe(Traitement(sys.argv[1:]))
+
+t=Traitement(sys.argv[1:])
+output=t.output
+RunMe(t)
