@@ -54,6 +54,10 @@ Options :
     --no-compilation    Do not compile, but produce the final _pytex.tex file and print the commands that were to be launched without.
     --rough-source  Output an extremely hard-coded pytex file which is ready for ArXiv.
 
+    --output=<filame> output the summary informations in <filename>. This does not
+                    empties the file if it exists, but creates it if it does not
+                    exist.
+
 """
 
         
@@ -82,9 +86,18 @@ class FileOutput(object):
     `SummaryOutput`. Thus here the write` function always gets
     a single `str` argument, since the work of conversion from `*args` is
     done in `SummaryOutput.__call__`
+
+    Creating an object does not empties the log file. The reasons is that
+    one round of testing a document asks for several launch of `pytex`. Only
+    the output of the last one would be available in the log file.
+
+    However, here we check that the file exists; if not we create it.
     """
     def __init__(self,filename):
         self.filename=filename
+        if not os.path.isfile(self.filename):
+            with open(self.filename,'w') as f:
+                f.write("Here is the log file")
     def write(self,text):
         sys.stdout.write(text)
         with open(self.filename,'a') as f:
@@ -97,8 +110,6 @@ def arg_to_output(arg):
     creates an output that prints on the screen and in the file.
     """
     filename=arg.split("=")[1]
-    with open(filename,'w') as f:
-        f.write("Here is the log file")
     return SummaryOutput(FileOutput(filename))
 
 
@@ -498,12 +509,11 @@ class Traitement(object):
 
 def verif_grep(medicament):
     if medicament.nombre_prob > 1 :
-        output("Still "+str(medicament.nombre_prob)+" problems to be fixed. Good luck !")
+        medicament.output("Still "+str(medicament.nombre_prob)+" problems to be fixed. Good luck !")
     if medicament.nombre_prob == 1 :
-        output("Only one problem to be fixed. Next to perfection !!")
+        medicament.output("Only one problem to be fixed. Next to perfection !!")
     x = FileToLogCode(medicament.log_filename)
-
-    output(x)
+    medicament.output(x)
 
 def ProduceIntermediateCode(medicament):
     codeLaTeX = string_to_latex_code(medicament.text_before_pytex)
