@@ -113,10 +113,14 @@ def arg_to_output(arg):
     return SummaryOutput(FileOutput(filename))
 
 
-def ecrire(texte,couleur):
+def ecrire(texte,couleur,output=None):
     # Noir 30 40, Rouge 31 41, Vert 32 42, Jaune 33 43, Bleu 34 44, Magenta 35 45, Cyan 36 46, Blanc 37 47, 
     # la police: 0->rien,  1->gras, 4->souligné, 5->clignotant, 7->inversée
-    print("\033[0;"+str(couleur)+";40m"+texte+"\033[0;47;40m")
+    string="\033[0;"+str(couleur)+";40m"+texte+"\033[0;47;40m"
+    if output is None :
+        print(string)
+    else :
+        output(string)
 
 class Compil(object):
     def __init__(self):     
@@ -327,7 +331,7 @@ class Traitement(object):
 
                     if hexdigest not in ok_hash :
                         num=num+1
-                        ecrire("--------- label {0} -----".format(lab),34)
+                        ecrire("--------- label {0} -----".format(lab),34,output=output)
                         A=pygrep.grep(re.escape(line_ref),star,first_result=True)
                         B=pygrep.grep(re.escape(line_label),star,first_result=True)
 
@@ -353,7 +357,7 @@ class Traitement(object):
                             output(result.string.replace(lab,"\033[0;33;40m"+lab+"\033[0;47;40m"))
                             concerned_files.append(result.filename)
 
-                        print("hash : "+hexdigest)
+                        output("hash : "+hexdigest)
 
                     else :
                         usefull_ok_hash.append(hexdigest)
@@ -437,9 +441,10 @@ class Traitement(object):
         FichierReq = self.NomVersChemin(nom)
         self.prefix = os.path.basename(FichierReq).replace(".py","").replace("lst-","").replace("lst_","")
         if FichierReq.endswith(".py"):
-            sys.path.append(os.path.dirname(FichierReq))
 
-            module=importlib.import_module(os.path.basename(FichierReq.replace('.py','')))
+            sys.path.append(os.path.dirname(FichierReq))
+            module_filename=os.path.basename(FichierReq.replace('.py',''))
+            module=importlib.import_module(module_filename)
 
             self.myRequest = module.myRequest
 
