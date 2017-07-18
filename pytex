@@ -116,7 +116,7 @@ def arg_to_output(arg):
 def ecrire(texte,couleur,output=None):
     # Noir 30 40, Rouge 31 41, Vert 32 42, Jaune 33 43, Bleu 34 44, Magenta 35 45, Cyan 36 46, Blanc 37 47, 
     # la police: 0->rien,  1->gras, 4->souligné, 5->clignotant, 7->inversée
-    string="\033[0;"+str(couleur)+";40m"+texte+"\033[0;47;40m"
+    string="\033[0;"+str(couleur)+";33m"+texte+"\033[0;47;33m"
     if output is None :
         print(string)
     else :
@@ -331,7 +331,7 @@ class Traitement(object):
 
                     if hexdigest not in ok_hash :
                         num=num+1
-                        ecrire("--------- label {0} -----".format(lab),34,output=output)
+                        ecrire("--------- label {0} -----".format(lab),33,output=output)
                         A=pygrep.grep(re.escape(line_ref),star,first_result=True)
                         B=pygrep.grep(re.escape(line_label),star,first_result=True)
 
@@ -342,7 +342,7 @@ class Traitement(object):
                             raise ReferenceNotFoundException("\n I'm not able to found back the future reference \\ref. Look at the docstring of ReferenceNotFoundException in Utilies.py for more details.")
                         for result in A:
                             output(result.filename,":",result.linenumber)
-                            output(result.string.replace(lab,"\033[0;33;40m"+lab+"\033[0;47;40m"))
+                            output(result.string.replace(lab,"\033[0;33;33m"+lab+"\033[0;47;33m"))
 
                             star.remove(result.filename)    
                             star.insert(0,result.filename)  # Thus the next time we begin with this file.
@@ -354,7 +354,7 @@ class Traitement(object):
                         for result in B:
                             output(result.filename,":",result.linenumber)
 
-                            output(result.string.replace(lab,"\033[0;33;40m"+lab+"\033[0;47;40m"))
+                            output(result.string.replace(lab,"\033[0;33;33m"+lab+"\033[0;47;33m"))
                             concerned_files.append(result.filename)
 
                         output("hash : "+hexdigest)
