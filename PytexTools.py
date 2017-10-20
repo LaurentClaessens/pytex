@@ -77,7 +77,7 @@ class Compilation(object):
         self.makeindex()
         self.nomenclature()
     def latex(self):
-        program=u"/usr/bin/pdflatex -synctex=1   -shell-escape"
+        program=u"pdflatex -synctex=1   -shell-escape"
         # The following line does not work without the u"...". Even if {0} and {1} are type unicode
         commande_e=u"""{0} {1} """.format(program,self.filename)
         self.do_it(commande_e)
