@@ -257,7 +257,7 @@ class Traitement(object):
         labels=rough_code.search_use_of_macro("\label",1,fast=fast)
 
         print("Analysing the document for ref")
-        ref=rough_code.search_use_of_macro(r"\\ref",1,fast=fast)    # why r"\ref" does not work ?
+        ref=rough_code.search_use_of_macro(r"\ref",1,fast=fast) 
 
         print("Analysing the document for eqref")
         eqref=rough_code.search_use_of_macro("\eqref",1,fast=fast)

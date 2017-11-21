@@ -62,9 +62,12 @@ def LatexCodeToRoughSource(codeLaTeX,filename,bibliography_bbl_filename=None,ind
     if resultBib != None :
         ligne_biblio = resultBib.group()
         new_code = new_code.replace(ligne_biblio,code_biblio.text_brut)
-    resultIndex = re.search("\printindex",new_code.text_brut)
+
+    printindex=re.escape("\printindex")
+    resultIndex = re.search(printindex,new_code.text_brut)
+
     if resultIndex != None :
-        new_code = new_code.replace("\printindex",code_index.text_brut)
+        new_code = new_code.replace(printindex,code_index.text_brut)
     new_code.filename = filename
     new_code.save()
     return new_code

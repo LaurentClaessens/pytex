@@ -186,7 +186,7 @@ class LatexCode(object):
         if self._dict_of_definition_macros == {} :
             print("Je réinvente la roue")
             dico = {}
-            for definer in definition_commands :            
+            for definer in definition_commands :
                 for occurrence in self.search_use_of_macro(definer,3):
                     newcommand = Occurrence_newcommand(occurrence)
                     name = newcommand.name

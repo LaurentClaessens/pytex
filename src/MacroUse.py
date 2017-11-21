@@ -22,7 +22,7 @@
 
 import re
 from src.Occurrence import Occurrence
-
+from src.Utilities import dprint
 
 paires = { "{":"}","[":"]","`":"'"}
 accepted_between_arguments = ["%","\n"," ","    "] # the last one is a TAB
@@ -184,7 +184,10 @@ def SearchUseOfMacro(code,macro_name,number_of_arguments=None,give_configuration
     use=[]
     s = code.text_brut
     if fast :       
-        results=re.finditer(macro_name+"{",s)
+
+        e_macro_name=re.escape(macro_name)
+        results=re.finditer(e_macro_name+"{",s)
+
         for res in results :
             start = res.start()
             # Only works with exactly one argument up to now :
