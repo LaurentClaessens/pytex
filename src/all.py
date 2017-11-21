@@ -17,13 +17,13 @@
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
 
-# copyright (c) Laurent Claessens, 2010,2012-2016
+# copyright (c) Laurent Claessens, 2010,2012-2017
 # email: laurent@claessens-donadello.eu
 
 import os.path
 import codecs
-
-from latexparser.LatexCode import LatexCode
+from src.LogCode import LogCode
+from src.LatexCode import LatexCode
 
 def FileToLatexCode(name,fast=False,keep_comments=False):
     """ return a codeLaTeX from a file """
@@ -40,13 +40,11 @@ def FileToText(name):
     l=[]
     if not os.path.isfile(name):
         return ""
-    import codecs
     for line in codecs.open(name,"r",encoding="utf8"):
         l.append(line)
     return "".join(l)
 
 def string_to_latex_code(s):
-    from latexparser.LatexCode import LatexCode
     return LatexCode(s)
 
 def FileToLogCode(name,stop_on_first=False):
@@ -58,5 +56,4 @@ def FileToLogCode(name,stop_on_first=False):
         print("Problem with",name)
         list_content = list(codecs.open(name,"r",encoding="iso8859-1"))
     a="".join(list_content)
-    from latexparser.LogCode import LogCode
     return LogCode("".join(list_content),filename=name,stop_on_first=stop_on_first)

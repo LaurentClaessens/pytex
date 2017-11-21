@@ -21,16 +21,17 @@
 # email: laurent@claessens-donadello.eu
 
 
-from latexparser.Warnings import ReferenceWarning
-from latexparser.Warnings import MultiplyLabelWarning
-from latexparser.Warnings import CitationWarning
-from latexparser.Warnings import LabelWarning
+from src.Warnings import ReferenceWarning
+from src.Warnings import MultiplyLabelWarning
+from src.Warnings import CitationWarning
+from src.Warnings import LabelWarning
 
 class LogCode(object):
     """
     Contains informations about log file.
 
-    If your code is in a file, please use the function FileToLatexCode :
+    If your code is in a file, please use the function
+    FileToLatexCode :
     FileToLogCode("MyFile.log")
     """
     def __init__(self,text_brut,filename=None,stop_on_first=False):

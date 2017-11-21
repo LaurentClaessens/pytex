@@ -21,15 +21,15 @@
 # email: moky.math@gmail.com
 
 """
-Contains tools (using latexparser) intended to create good plugins for pytex.
-
-pytex is a non-yet published pre-compilation system. Don't try to understand what this module serves to.
+Contains tools intended to create good plugins for pytex.
 """
 
 import os
 import hashlib
 from xml.dom import minidom
-import latexparser
+
+from src.all import FileToText
+from src.LatexCode import LatexCode
 
 # TODO : there should be a possibility to compile "up to all references are correct" from here. 
 #       I mean : the checking algorithm should be here.
@@ -41,9 +41,9 @@ class Compilation(object):
     Optional boolean argument <nocompilation>. If set to True, the compilations are not actually done, but the command line is printed.
 
     Usage examples
-    X=latexparser.Compilation("MyLaTeXFile.tex")    # Creates the Compilation object
-    X.bibtex()                  # Apply bibtex
-    X.chain_dvi_ps_pdf()                # Produce the pdf file
+    X=Compilation("MyLaTeXFile.tex") # Creates the Compilation object
+    X.bibtex()                       # Apply bibtex
+    X.chain_dvi_ps_pdf()             # Produce the pdf file
     """
     def __init__(self,filename,nocompilation=False,pdflatex=True,dvi=False):
         import os
@@ -90,7 +90,7 @@ def ChangeLabelsAndRef(codeLaTeX,func):
     r"""
     Apply the function func to each argument of \label, \ref, \eqref in codeLaTeX.
 
-    return a new object latexparser.LatexCode
+    return a new object LatexCode
     """
     list_occurrences = codeLaTeX.search_use_of_macro("\label",1)
 
@@ -144,7 +144,7 @@ class CodeBox(dict):
                 label = box.getAttribute("label")
                 pre_code = getText(box.childNodes)
                 code = "\n".join(pre_code.split("\n")[1:-1])    # Because minidom adds an empty line at first and last position.
-                self[label]=latexparser.LatexCode(code.replace("[PytexSpecial amp]","&"))
+                self[label]=LatexCode(code.replace("[PytexSpecial amp]","&"))
     def put(self,codeLaTeX,tag):
         # This function is added to the plugin list of Request when using the method Request.create_magic_box
         r"""
@@ -155,7 +155,7 @@ class CodeBox(dict):
             This is my \LaTeX\ code.
         You can (this is the aim!) substitute the code at several places.
 
-        return a new object latexparser.LatexCode
+        return a new object LatexCode
         """
         A=codeLaTeX.copy()
         liste_occurrences = A.search_use_of_macro(self.put_macro,2)
@@ -179,14 +179,14 @@ def FileToCodeBox(filename,boxname):
     """
     Return a CodeBox object fed by the content of the given file.
     """
-    magic_box_code = latexparser.FileToText(filename)
+    magic_box_code = FileToText(filename)
     magic_box = CodeBox(boxname)
     magic_box.feed(magic_box_code)
     return magic_box
 
 def PytexNotIn(name,codeLaTeX):
     r"""
-    Return a latexparser.LatexCode object build from codeLaTeX and changing the occurrences of
+    Return a LatexCode object build from codeLaTeX and changing the occurrences of
     \PytexNotIn{name1,name2,...}{code}
     by <code> if name is not in the liste name1, name2, ... Else, remove it completely.
 
@@ -205,7 +205,7 @@ def PytexNotIn(name,codeLaTeX):
 
 def PytexOnlyIn(name,codeLaTeX):
     r"""
-    Return a latexparser.LatexCode object build from codeLaTeX and changing the occurrences of
+    Return a LatexCode object build from codeLaTeX and changing the occurrences of
     \PytexOnlyIn{name1,name2,...}{code}
     by <code> if name is in the liste name1, name2, ... Else, remove it completely.
 
@@ -226,10 +226,10 @@ class CodeFactory(object):
     """
     Contain what one needs to build LaTeX code from files, plugin, magical boxes, ...
 
-    For most of methods, see the docstring of the corresponding method in latexparser.LatexCode
+    For most of methods, see the docstring of the corresponding method in LatexCode
     """
     def __init__(self):
-        self.codeLaTeX=latexparser.LatexCode("")
+        self.codeLaTeX=LatexCode("")
         self.plugin_list = []
         self.code_box_list = []
         self.fileTracking = FileTracking()
@@ -241,7 +241,7 @@ class CodeFactory(object):
         text=self.codeLaTeX.text_brut
         for plugin in self.plugin_list :
             text = plugin(text)
-        self.codeLaTeX = latexparser.LatexCode(text)
+        self.codeLaTeX = LatexCode(text)
     def apply_all_code_box(self,tag):
         A=self.codeLaTeX.copy()
         for box in self.code_box_list:

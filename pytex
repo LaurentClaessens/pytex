@@ -20,16 +20,18 @@
 
 # https://github.com/LaurentClaessens/pytex
 
-from __future__ import division
-
 import os
 import sys
 import hashlib
 import subprocess
 import importlib
 
-from latexparser.all import *
-from Utilities import logging
+from src.Utilities import logging
+from src.all import FileToText
+from src.all import FileToLatexCode
+from src.all import FileToLogCode
+from src.all import string_to_latex_code
+from src.PytexTools import Compilation
 
 """
 Note 25637 : THE PLUGIN TYPES
@@ -169,7 +171,7 @@ def randombase(n=6):
 class Traitement(object):
     r"""
     self.original_file : the original file, written by hand
-    self.intermediate_code() : latexparser.LatexCode object containing the same as original_file but with
+    self.intermediate_code() : LatexCode object containing the same as original_file but with
                     removed \input that are not in the list. 
                     This does not has to be written in a real file.
     self.pytex_file : all the remaining \input are explicitly performed. 
@@ -465,7 +467,8 @@ class Traitement(object):
             self.listeFichPrendre.append(FichierReq)
     def create_rough_source(self,filename):
         """
-        Write the file that contains the source code to be sent to Arxiv in the file <filename> :)
+        Write the file that contains the source code to
+        be sent to Arxiv in the file <filename>.
         """
         self.source_filename=filename
         CreateRoughCode(self)
@@ -474,9 +477,11 @@ class Traitement(object):
             self._intermediate_code=ProduceIntermediateCode(self)
         return self._intermediate_code
     def apply_plugin(self,A,hook_name):
-        for plugin in [x for x in self.myRequest.plugin_list if x.hook_name==hook_name] :
+        for plugin in [x for x  in self.myRequest.plugin_list 
+                                if x.hook_name==hook_name] :
             print("Applying the plugin",plugin.fun)
-            if hook_name in ["before_compilation", "after_compilation" ]:
+            if hook_name in ["before_compilation",
+                            "after_compilation" ]:
                 plugin.fun()
             else :
                 A=plugin(A) 
@@ -489,12 +494,16 @@ class Traitement(object):
             A=self.apply_plugin(A,"before_pytex")
             self.text_before_pytex=A
 
-            A=ProducePytexCode(self)                   # The conversion text -> LatexCode is done here
+            # The conversion text -> LatexCode is done here 
+            A=ProducePytexCode(self)                  
 
             A=self.apply_plugin(A,"after_pytex")
 
-            # Writing \UseCorrectionFile does not work because of \U which is a Unicode stuff causing a syntax error.
-            # But Writing \\UseCorrectionFile will not work neither because it will write an explicit \\UseCorrectionFile in the LaTeX file.
+            # Writing \UseCorrectionFile does not work because
+            # of \U which is a Unicode stuff causing a syntax error.
+            # But Writing \\UseCorrectionFile will not 
+            # work neither because it will write an explicit 
+            # \\UseCorrectionFile in the LaTeX file.
 
             rbase=randombase()
             A=A.replace(r"""\begin{document}""",r"""\begin{document}
@@ -509,8 +518,12 @@ class Traitement(object):
     def compilation(self):
         self.apply_plugin("","before_compilation")
         f=self.pytex_file()
-        from latexparser.PytexTools import Compilation
-        return Compilation(f,self.Sortie.nocompilation,pdflatex=self.Compil.pdflatex,dvi=self.Compil.dvi)
+        return Compilation(
+                        f,
+                        self.Sortie.nocompilation,
+                        pdflatex=self.Compil.pdflatex,
+                        dvi=self.Compil.dvi
+                        )
 
 def verif_grep(medicament):
     if medicament.nombre_prob > 1 :
@@ -528,7 +541,8 @@ def ProduceIntermediateCode(medicament):
         for occurrence in list_input :
             A=occurrence.analyse()
             # If an "\input" is before "\begin{document}", we keep it.
-            # This behaviour is due to the fact that some "\input" are in the preamble,
+            # This behaviour is due to the fact that some
+            # "\input" are in the preamble,
             # inside \newcommand for example.
             if A.position > begin_document :
                 if not medicament.accept_input(A.filename):
@@ -540,7 +554,7 @@ def ProduceIntermediateCode(medicament):
 def ProducePytexCode(medicament):
     """
     See the docstring of Traitement 
-    return an object latexparser.LatexCode because it has to be passed to plugins.
+    return an object LatexCode because it has to be passed to plugins.
     """
     # The plugin has to do itself the work to apply inputs if he wants to.
     # The reason is that some plugin just want to deal with the main tex file.
@@ -551,7 +565,7 @@ def CreateRoughCode(medicament):
     """
     Creates a latex file that is ready to be send to Arxiv.
 
-    See docstring of LatexCode.rough_source in latexparser
+    See docstring of LatexCode.rough_source.
     """
     rough_code = medicament.rough_code(medicament)
     rough_code.save(medicament.source_filename)

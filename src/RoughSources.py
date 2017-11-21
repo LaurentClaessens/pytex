@@ -17,11 +17,10 @@
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
 
-# copyright (c) Laurent Claessens, 2010,2012-2016
+# copyright (c) Laurent Claessens, 2010,2012-2017
 # email: laurent@claessens-donadello.eu
 
 import re
-from latexparser.all import FileToLatexCode
 
 # TODO : this function is buggy when fast=True
 def LatexCodeToRoughSource(codeLaTeX,filename,bibliography_bbl_filename=None,index_ind_filename=None,fast=False):
@@ -36,17 +35,18 @@ def LatexCodeToRoughSource(codeLaTeX,filename,bibliography_bbl_filename=None,ind
         1. Check for pdflatex compliance. 
 
     Input 
-        codeLaTeX : an object of type latexparser.LatexCode
+        codeLaTeX : an object of type LatexCode
         filename : the name of the file in which the new code will be written
     Optional
         bibliography_bbl_filename : the name of the .bbl file. If not give, will be guesse by changing ".tex"->".bbl" in codeLaTeX.filename
         index_ind_filename :        the name of the .bbl file. If not give, will be guesse by changing ".tex"->".ind" in codeLaTeX.filename
     Output
         Create the file named <filename>
-        return the new code as latexparser.LatexCode
+        return the new code as LatexCode
 
     The result is extremely hard-coded. One has not to understand it as a workable LaTeX source file.
     """
+    from src.all import FileToLatexCode
     if not bibliography_bbl_filename :
         bibliography_bbl_filename = codeLaTeX.filename.replace(".tex",".bbl")
     if not index_ind_filename :

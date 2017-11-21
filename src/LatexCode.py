@@ -17,14 +17,15 @@
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
 
-# copyright (c) Laurent Claessens, 2010,2012-2016
+# copyright (c) Laurent Claessens, 2010,2012-2017
 # email: laurent@claessens-donadello.eu
 
 import codecs
 
-from latexparser.Utilities import ensure_unicode
-from latexparser.Utilities import RemoveComments
-from latexparser.InputPaths import InputPaths
+from src.Utilities import ensure_unicode
+from src.Utilities import RemoveComments
+from src.InputPaths import InputPaths
+from src.RoughSources import LatexCodeToRoughSource
 
 def inherit_properties(f):
     """
@@ -144,15 +145,19 @@ class LatexCode(object):
         Optional argument: number_of_arguments=None
         If no occurrence are found, return an empty list.
 
-        If give_configuration is True, return a tuple of two lists. The first list is the same as with give_configuration=False, and the second gives the 
-        text between the occurrences. The ith element of the configuration list is what precedes the ith element of the occurrence list.
+        If give_configuration is True, return a tuple of two lists.
+        - The first list is the same as with give_configuration=False
+        - The second gives the text between the occurrences. 
+        
+        The ith element of the configuration list is what precedes
+        the ith element of the occurrence list.
         The configuration list has one more element.
         The following has to be true
         self.text_brut==configuration[0]+occurrence[0]+...+configuration[n]+occurrence[n]+configuration[n+1]
         """
         # Why should I explicitly write the "\" in the macro name ?
         # I don't remember, but it was an issue.
-        from latexparser.MacroUse import SearchUseOfMacro
+        from src.MacroUse import SearchUseOfMacro
         return SearchUseOfMacro(self,name,number_of_arguments,give_configuration,fast=fast)
     def analyse_use_of_macro(self,name,number_of_arguments=None):
         """
@@ -219,7 +224,7 @@ class LatexCode(object):
     def substitute_all_inputs(self,fast=False,input_paths=None):
         r"""
         Recursively change all the \input{...} by the content of the corresponding file. 
-        Return a new object latexparser.LatexCode
+        Return a new object LatexCode
         """
         A = LatexCode(self.text_brut)
         if input_paths is None :
@@ -283,7 +288,7 @@ class LatexCode(object):
         will become 
         Hello how do you do ?
 
-        Return a new latexparser.LatexCode object.
+        Return a new LatexCode object.
         """
         A = self.copy()
         liste_occurrences = A.search_use_of_macro(macro_name,number_of_arguments)
@@ -357,7 +362,6 @@ class LatexCode(object):
         Return the name of a file where there is a rough latex
         code ready to be published to Arxiv
         """
-        from latexparser.RoughSources import LatexCodeToRoughSource
         a = LatexCodeToRoughSource(self,filename,bibliography_bbl_filename,index_ind_filename,fast=fast)
         return a
     def __add__(self,other):

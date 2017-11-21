@@ -17,12 +17,10 @@
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
 
-# copyright (c) Laurent Claessens, 2016
+# copyright (c) Laurent Claessens, 2016-2017
 # email: laurent@claessens-donadello.eu
 
 import os.path
-
-from latexparser.Utilities import dprint
 
 class InputPaths(object):
     """

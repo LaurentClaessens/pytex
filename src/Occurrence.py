@@ -17,11 +17,11 @@
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
 
-# copyright (c) Laurent Claessens, 2010,2012-2016
+# copyright (c) Laurent Claessens, 2010,2012-2017
 # email: laurent@claessens-donadello.eu
 
 import codecs
-from latexparser.InputPaths import InputPaths
+from src.InputPaths import InputPaths
 
 class Occurrence(object):
     """
