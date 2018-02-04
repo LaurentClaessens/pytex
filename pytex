@@ -27,6 +27,7 @@ import subprocess
 import importlib
 
 from src.Utilities import logging
+from src.Utilities import ReferenceNotFoundException
 from src.all import FileToText
 from src.all import FileToLatexCode
 from src.all import FileToLogCode
@@ -338,7 +339,6 @@ class Traitement(object):
                         B=pygrep.grep(re.escape(line_label),star,first_result=True)
 
                         if A==[]:
-                            from Utilities import ReferenceNotFoundException
                             output("A problem occurred searching for the line ")
                             output(line_ref)
                             raise ReferenceNotFoundException("\n I'm not able to found back the future reference \\ref. Look at the docstring of ReferenceNotFoundException in Utilies.py for more details.")
