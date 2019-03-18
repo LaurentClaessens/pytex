@@ -153,7 +153,9 @@ class Sortie(object):
 
 def set_no_useexternal(A):
     r"""
-    This plugin is automatically applied when 'pytex' is invoked with '--no-external'. You have to put something like this before '\begin{document}' :
+    This plugin is automatically applied when 'pytex' is invoked with 
+    '--no-external'. You have to put something like this before
+    '\begin{document}' :
 
 
     \newcounter{useexternal}
