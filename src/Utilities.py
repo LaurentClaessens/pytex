@@ -1,5 +1,3 @@
-# -*- coding: utf8 -*-
-
 ###########################################################################
 #   This is part of the module phystricks
 #
@@ -24,9 +22,11 @@ import sys
 import codecs
 import re
 
-LOGGING_FILENAME=".pytex.log"
+LOGGING_FILENAME = ".pytex.log"
 
 # If one moves the class 'ReferenceNotFoundException', one has to update the message in pytex.
+
+
 class ReferenceNotFoundException(Exception):
     """
     Exception raised when pytex is not able to find back the fautive \\ref causing a future reference.
@@ -56,12 +56,15 @@ class ReferenceNotFoundException(Exception):
     you should do one or more of the following
     - add an empty (or not empty) line after the line containing the fautive \\ref
     - remove the comment on the line containing the \input.
-    
+
     """
-    def __init__(self,text):
-        self.text=text
+
+    def __init__(self, text):
+        self.text = text
+
     def __str__(self):
         return self.text
+
 
 def ensure_unicode(s):
     """
@@ -71,12 +74,14 @@ def ensure_unicode(s):
     str->unicode (via s.decode("utf8"))
     unicode->unicode (identity map)
     """
-    if isinstance(s,str):
+    if isinstance(s, str):
         return s.decode("utf8")
-    if isinstance(s,unicode):
+    if isinstance(s, unicode):
         return s
     testtype(s)
-    raise TypeError("You are trying to convert to unicode the following object "+str(s)+" of type "+str(type(s)))
+    raise TypeError("You are trying to convert to unicode the following object " +
+                    str(s)+" of type "+str(type(s)))
+
 
 def ensure_str(s):
     """
@@ -86,12 +91,13 @@ def ensure_str(s):
     unicode->str (via s.encode("utf8"))
     str->str (identity map)
     """
-    if isinstance(s,str):
+    if isinstance(s, str):
         return s
-    if isinstance(s,unicode):
+    if isinstance(s, unicode):
         return s.encode("utf8")
     testtype(s)
-    raise TypeError("You are trying to convert to unicode the following object "+str(s)+" of type "+str(type(s)))
+    raise TypeError("You are trying to convert to unicode the following object " +
+                    str(s)+" of type "+str(type(s)))
 
 
 def dprint(*args):
@@ -99,17 +105,19 @@ def dprint(*args):
     This function is for debug purpose. It serves to roughly print stuff
     on the screen. Then "grep dprint" helps to remove all the garbage.
     """
-    a=[str(x) for x in list(args)]
+    a = [str(x) for x in list(args)]
     print(" ".join(a))
 
-def logging(text,pspict=None):
+
+def logging(text, pspict=None):
     import codecs
-    #text=ensure_unicode(text)
-    if pspict :
-        text="in "+pspict.name+" : "+text
+    # text=ensure_unicode(text)
+    if pspict:
+        text = "in "+pspict.name+" : "+text
     print(text)
-    with codecs.open(LOGGING_FILENAME,"a",encoding="utf8") as f:
+    with codecs.open(LOGGING_FILENAME, "a", encoding="utf8") as f:
         f.write(text+"\n")
+
 
 def ensure_unicode(text):
     """
@@ -117,8 +125,10 @@ def ensure_unicode(text):
     """
     return text
 
+
 def testtype(s):
-    print(s,type(s))
+    print(s, type(s))
+
 
 def RemoveComments(text):
     """
@@ -129,28 +139,27 @@ def RemoveComments(text):
     line_withoutPC = []
     # we remove the end of lines with % if not preceded by \
     pattern = "[^\\\]%"
-    search=re.compile(pattern).search
+    search = re.compile(pattern).search
     # This search only matches the % that are preceded by something else than \.
     # This does not match the % at the beginning of the line. This is why a second test is performed.
     for lineC in text.split("\n"):
-        s=search(lineC)
+        s = search(lineC)
 
-        if s :
-            ligne=s.string[:s.start()+2]    # We keep the "%" itself.
-        else :             
-            ligne=lineC
+        if s:
+            ligne = s.string[:s.start()+2]    # We keep the "%" itself.
+        else:
+            ligne = lineC
 
         # % at the beginning of a line is not matched by the regex.
         if ligne.startswith("%"):
-            ligne="%"
+            ligne = "%"
 
         line_withoutPC.append(ligne)
     code_withoutPC = "\n".join(line_withoutPC)
 
     # Now we remove what is after \end{document}
 
-    final_code=code_withoutPC
-    if "\end{document}" in code_withoutPC :
+    final_code = code_withoutPC
+    if "\end{document}" in code_withoutPC:
         final_code = code_withoutPC.split("\end{document}")[0]+"\end{document}"
     return final_code
-
