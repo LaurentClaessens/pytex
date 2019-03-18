@@ -33,7 +33,7 @@ class ReferenceNotFoundException(Exception):
 
     EXPLANATION
 
-    In order to detect the future references, pytex creates a big latex document (in RAM) that recursively contains all the \input. This is more or less a single self-contained file equivalent to the given file.
+    In order to detect the future references, pytex creates a big latex document (in memory) that recursively contains all the \input. This is more or less a single self-contained file equivalent to the given file.
 
     When a future reference is found in that document, we search back the line in the real files in order to provide the user an instructive message (filename+line number)
 
