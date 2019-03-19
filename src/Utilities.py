@@ -15,27 +15,60 @@
 #   along with phystricks.py.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
 
-# copyright (c) Laurent Claessens, 2010-2017
+# copyright (c) Laurent Claessens, 2010-2017, 2019
 # email: laurent@claessens-donadello.eu
 
+import re
+import os
 import sys
 import codecs
-import re
+import subprocess
+from pathlib import Path
 
 LOGGING_FILENAME = ".pytex.log"
 
+dprint = print
+
 # If one moves the class 'ReferenceNotFoundException', one has to update the message in pytex.
 
+def git_tracked_files(dirname):
+    """
+    Yield the files that are git-tracked
+
+    @param {string or PosixPath}
+    """
+
+    # I know there are git modules for Python, but I want to
+    # have no dependencies since 'pytex' is already an heavy 
+    # dependency for Frido.
+    git_dir = Path(dirname)
+    old_dir = Path.cwd()
+    os.chdir(git_dir)
+
+    bash_command = "git ls-tree --name-only -r master"
+    process = subprocess.Popen(bash_command.split(), stdout=subprocess.PIPE)
+    os.chdir(old_dir)
+    output, error = process.communicate()
+    output = output.decode('utf8')
+
+    for filename in output.split("\n"):
+        yield git_dir / filename
 
 class ReferenceNotFoundException(Exception):
     """
-    Exception raised when pytex is not able to find back the fautive \\ref causing a future reference.
+    Exception raised when pytex is not able to find back the
+    fautive \\ref causing a future reference.
 
     EXPLANATION
 
-    In order to detect the future references, pytex creates a big latex document (in memory) that recursively contains all the \input. This is more or less a single self-contained file equivalent to the given file.
+    In order to detect the future references, pytex creates a big
+    latex document (in memory) that recursively contains all the \input.
+    This is more or less a single self-contained file equivalent 
+    to the given file.
 
-    When a future reference is found in that document, we search back the line in the real files in order to provide the user an instructive message (filename+line number)
+    When a future reference is found in that document, we search back
+    the line in the real files in order to provide the user an
+    instructive message (filename+line number)
 
     Suppose that we have
     \input{foo}     % this is a comment
