@@ -1,4 +1,5 @@
 *.swp
+test.py
 .directory
 .kk.log
 tests/*
