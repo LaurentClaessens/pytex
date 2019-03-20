@@ -126,7 +126,7 @@ class LogCode(object):
 
         self.remove_duplicate_warnings()
 
-        for warn in self.warnings[0:20]:
+        for warn in self.warnings:
             print(f'Search for {warn.label}')
             a.append(warn.__str__())
         if self.probs_number > 1:
@@ -135,8 +135,6 @@ class LogCode(object):
         if self.probs_number == 1:
             a.append(
                 "C'est ton dernier problème à régler. Encore un peu de courage !")
-        if len(self.warnings) > 20:
-            a.append("There are more warnings")
 
         return "\n".join(a)
 

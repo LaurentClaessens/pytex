@@ -1,4 +1,5 @@
 *.swp
+*.swo
 test.py
 .directory
 .kk.log

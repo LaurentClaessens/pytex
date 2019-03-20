@@ -35,6 +35,8 @@ from src.all import string_to_latex_code
 from src.PytexTools import Compilation
 from src.grep_wrapper import PytexGrep
 
+dprint = print
+
 """
 Note 25637 : THE PLUGIN TYPES
 
@@ -138,7 +140,7 @@ class Compil(object):
     def __init__(self):
         self.simple = 1
         self.tout = 0
-        self.lotex = 1
+        self.lotex = True
         self.pdflatex = True
         self.dvi = False
         self.verif = 0
@@ -225,9 +227,7 @@ class Options(object):
                 self.Compil.tout = 1
             if arg == "--verif":
                 self.Compil.verif = True
-                self.Compil.lotex = 0
-            if arg == "--no-lotex":
-                self.Compil.lotex = 0
+                self.Compil.lotex = False
             if arg == "--no-compilation":
                 self.Sortie.nocompilation = True
             if arg == "--rough-source":
@@ -253,7 +253,7 @@ class Options(object):
 
         self.pytex_grep = PytexGrep(Path.cwd())
     def grep(self, command, label):
-        return self.pytex_grep(command, label)
+        return self.pytex_grep.grep(command, label)
     def accept_input(self, filename):
         if filename in self.ok_filenames_list and filename not in self.refute_filenames_list:
             return True
@@ -500,7 +500,9 @@ class Options(object):
             if "--no-external" in sys.argv:
                 self.myRequest.add_plugin(set_no_useexternal, "after_pytex")
 
-            # This is the application of a plugin on Options itself, see note  25637
+            # This is the application of a plugin on Options itself, 
+            # see note  25637
+            # position ooMEVCoo
             for plugin in [x for x in self.myRequest.plugin_list if x.hook_name == "options"]:
                 plugin(self)
 
@@ -527,6 +529,10 @@ class Options(object):
         return self._intermediate_code
 
     def apply_plugin(self, A, hook_name):
+        """
+        The plugin on the options object itself are called
+        at the position ooMEVCoo
+        """
         for plugin in [x for x in self.myRequest.plugin_list
                        if x.hook_name == hook_name]:
             print("Applying the plugin", plugin.fun)
@@ -538,40 +544,42 @@ class Options(object):
         return A
 
     def pytex_file(self):
-        if not self._pytex_file:
+        if self._pytex_file:
+            return self._pytex_file
 
-            A = FileToText(self.original_file)
+        A = FileToText(self.original_file)
 
-            A = self.apply_plugin(A, "before_pytex")
-            self.text_before_pytex = A
+        A = self.apply_plugin(A, "before_pytex")
+        self.text_before_pytex = A
 
-            # The conversion text -> LatexCode is done here
-            A = ProducePytexCode(self)
+        # The conversion text -> LatexCode is done here
+        A = ProducePytexCode(self)
 
-            A = self.apply_plugin(A, "after_pytex")
+        A = self.apply_plugin(A, "after_pytex")
 
-            # Writing \UseCorrectionFile does not work because
-            # of \U which is a Unicode stuff causing a syntax error.
-            # But Writing \\UseCorrectionFile will not
-            # work neither because it will write an explicit
-            # \\UseCorrectionFile in the LaTeX file.
+        # Writing \UseCorrectionFile does not work because
+        # of \U which is a Unicode stuff causing a syntax error.
+        # But Writing \\UseCorrectionFile will not
+        # work neither because it will write an explicit
+        # \\UseCorrectionFile in the LaTeX file.
 
-            rbase = randombase()
-            A = A.replace(r"""\begin{document}""", r"""\begin{document}
+        rbase = randombase()
+        A = A.replace(r"""\begin{document}""", r"""\begin{document}
                     \makeatletter
 \@ifundefined{UseCorrectionFile}{}{"""+"\\"+r"""UseCorrectionFile{AEWooFLTbT}}
 \makeatother
                     """.replace("AEWooFLTbT", "CorrPytexFile"+rbase+"corr"))
 
-            A.save(self.pytex_filename)
-            self._pytex_file = A.filename
-        return self._pytex_file
+        A.save(self.pytex_filename)
+        self._pytex_file = A.filename
+
+        return self.pytex_file()
 
     def compilation(self):
         self.apply_plugin("", "before_compilation")
-        f = self.pytex_file()
+        pytex_filename = self.pytex_file()
         return Compilation(
-            f,
+            pytex_filename,
             self.Sortie.nocompilation,
             pdflatex=self.Compil.pdflatex,
             dvi=self.Compil.dvi
@@ -585,7 +593,7 @@ def verif_grep(options):
     if options.nombre_prob == 1:
         options.output(
             "Only one problem to be fixed. Next to perfection !!")
-    x = FileToLogCode(options.log_filename)
+    x = FileToLogCode(options)
     options.output(x)
 
 
@@ -639,16 +647,16 @@ def RunMe(options):
     if options.Sortie.rough_source:
         options.create_rough_source(options.source_filename)
 
-    if (options.Compil.verif == False)and(options.Compil.lotex == 0)and(options.Compil.simple == 1)and(options.Sortie.pdf == 0):
+    if (options.Compil.verif == False)and(not options.Compil.lotex)and(options.Compil.simple == 1)and(options.Sortie.pdf == 0):
         options.compilation().latex_more()
         options.copy_final_file()
 
-    if (options.Compil.lotex == 1):
+    if options.Compil.lotex:
         on = True
         while on:
             options.compilation().latex_more()
             options.copy_final_file()
-            x = FileToLogCode(options.log_filename, stop_on_first=True)
+            x = FileToLogCode(options, stop_on_first=True)
             on = x.rerun_to_get_cross_references(stop_on_first=True)
     if not options.Sortie.nocompilation and not options.Compil.verif:
         verif_grep(options)

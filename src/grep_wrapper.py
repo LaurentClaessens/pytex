@@ -27,6 +27,8 @@ import subprocess
 from pathlib import Path
 from src.Utilities import git_tracked_files
 
+dprint = print
+
 class PytexGrep():
     """
     This class serves to search for "label", "ref" and "eqref"
@@ -38,7 +40,7 @@ class PytexGrep():
         self.dirname = dirname
         self.ref_dict = {}
         self.eqref_dict = {}
-        self.labelref_dict = {}
+        self.label_dict = {}
         self._done_dict = False
     def create_lines_dict(self):
         """
@@ -46,7 +48,6 @@ class PytexGrep():
         """
         for filename in git_tracked_files(Path.cwd()):
             if not filename.name.endswith('.tex'):
-                dprint("Je saute: ", filename.name)
                 continue
             ref_dict, eqref_dict, label_dict = self.read_file(filename)
             self.ref_dict = {**self.ref_dict, **ref_dict}
@@ -67,7 +68,7 @@ class PytexGrep():
         searches for \eqref{FOO}
         """
         if not self._done_dict:
-            self.create_lines_dict(self.dirname)
+            self.create_lines_dict()
         if command == "ref":
             line_dict = self.ref_dict
         if command == "eqref":
@@ -75,10 +76,10 @@ class PytexGrep():
         if command == "label":
             line_dict = self.label_dict
         string = "\\" + command + "{" + label + "}"
-        dprint("Je vais chercher la string: *"+string+"*")
         for key, line in line_dict.items():
             if string in line:
-                yield key, line
+                color_label = f"\033[35;37m{label}\033[35;33m"
+                yield key, line.replace(label, color_label)
     def read_file(self, filename):
         """
         Read the given file and add its lines in `self`'s 

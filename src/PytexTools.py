@@ -352,8 +352,8 @@ class Request(object):
         for plug in self.prerequiste_list:
             plug(arg)
         self.fileTracking.save()
-    def add_plugin(self,fun,hook_name):
-        self.plugin_list.append(Plugin(fun,hook_name))
+    def add_plugin(self, fun, hook_name):
+        self.plugin_list.append(Plugin(fun, hook_name))
 
 class Array(object):
     def __init__(self,dic):
@@ -431,6 +431,5 @@ class keep_script_marks(object):
         new_text= "\n".join(B)
         return new_text
 
-def accept_all_input(medicament):
-    medicament.accept_input=lambda x: True
-
+def accept_all_input(options):
+    options.accept_input=lambda x: True

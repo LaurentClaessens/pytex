@@ -45,8 +45,9 @@ def FileToText(name):
 def string_to_latex_code(s):
     return LatexCode(s)
 
-def FileToLogCode(name, options, stop_on_first=False):
+def FileToLogCode(options, stop_on_first=False):
     """ return a codeLog from a file """
+    name = options.log_filename
     try:
         list_content = list(codecs.open(name,"r",encoding="utf8"))
     # I've noticed that the log file was ISO-8859 English text
