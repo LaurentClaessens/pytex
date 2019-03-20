@@ -1,5 +1,3 @@
-# -*- coding: utf8 -*-
-
 ###########################################################################
 #   This is the package latexparser
 #
@@ -20,25 +18,26 @@
 # copyright (c) Laurent Claessens, 2010,2012-2016, 2019
 # email: laurent@claessens-donadello.eu
 
-import subprocess
 
 class LaTeXWarning(object):
-    def __init__(self, label, page):
+    def __init__(self, label, page, options):
         self.label = label
         self.page = page
+        self.options = options
 
     def grep_result(self):
         a = []
-        command_e = "grep --color=always -n \\\\ref{"+self.label+"} *.tex"
-        a.append(subprocess.getoutput(command_e))
-        command_e = "grep --color=always -n \\label{"+self.label+"} *.tex"
-        a.append(subprocess.getoutput(command_e))
+        for command in ["ref", "eqref", "label"]:
+            for key, line in self.options.grep(command, self.label):
+                filename = key[0].name
+                line_number = key[1]
+                a.append(f"{filename}, {line_number}: {line}")
+                a.append('')
         return "\n".join(a)
 
-
 class ReferenceWarning(LaTeXWarning):
-    def __init__(self, label, page):
-        LaTeXWarning.__init__(self, label, page)
+    def __init__(self, label, page, options):
+        LaTeXWarning.__init__(self, label, page, options)
 
     def __str__(self):
         # +"\n"

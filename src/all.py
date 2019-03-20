@@ -1,5 +1,3 @@
-# -*- coding: utf8 -*-
-
 ###########################################################################
 #   This is the package latexparser
 #
@@ -17,7 +15,7 @@
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
 
-# copyright (c) Laurent Claessens, 2010,2012-2017
+# copyright (c) Laurent Claessens, 2010,2012-2017, 2019
 # email: laurent@claessens-donadello.eu
 
 import os.path
@@ -47,7 +45,7 @@ def FileToText(name):
 def string_to_latex_code(s):
     return LatexCode(s)
 
-def FileToLogCode(name,stop_on_first=False):
+def FileToLogCode(name, options, stop_on_first=False):
     """ return a codeLog from a file """
     try:
         list_content = list(codecs.open(name,"r",encoding="utf8"))
@@ -56,4 +54,7 @@ def FileToLogCode(name,stop_on_first=False):
         print("Problem with",name)
         list_content = list(codecs.open(name,"r",encoding="iso8859-1"))
     a="".join(list_content)
-    return LogCode("".join(list_content),filename=name,stop_on_first=stop_on_first)
+    return LogCode("".join(list_content),
+                   options=options,
+                   filename=name,
+                   stop_on_first=stop_on_first)

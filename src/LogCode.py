@@ -24,6 +24,7 @@ from src.Warnings import MultiplyLabelWarning
 from src.Warnings import CitationWarning
 from src.Warnings import LabelWarning
 
+dprint = print
 
 class LogCode(object):
     """
@@ -34,10 +35,11 @@ class LogCode(object):
     FileToLogCode("MyFile.log")
     """
 
-    def __init__(self, text_brut, filename=None, stop_on_first=False):
+    def __init__(self, text_brut, options, filename=None, stop_on_first=False):
         """
         self.text_brut          contains the tex code as given
         """
+        self.options = options
         self.text_brut = text_brut
         self.filename = filename
         self.undefined_references = []
@@ -79,15 +81,15 @@ class LogCode(object):
                     if genre == "Reference":
                         if label not in [w.label for w in self.undefined_references]:
                             self.undefined_references.append(
-                                ReferenceWarning(label, page))
+                                ReferenceWarning(label, page, self.options))
                     if genre == "Label":
                         if label not in [w.label for w in self.undefined_labels]:
                             self.multiply_labels.append(
-                                MultiplyLabelWarning(label, page))
+                                MultiplyLabelWarning(label, page, self.options))
                     if genre == "Citation":
                         if label not in [w.label for w in self.undefined_citations]:
                             self.undefined_citations.append(
-                                CitationWarning(label, page))
+                                CitationWarning(label, page, self.options))
                 except ValueError:
                     pass
             self.warnings = []
@@ -111,9 +113,21 @@ class LogCode(object):
     def tex_capacity_exeeded(self):
         return self.TeXcapacityexeeded in self.text_brut
 
+    def remove_duplicate_warnings(self):
+        labels = []
+        new_warns = []
+        for warn in self.warnings:
+            if warn.label not in labels:
+                new_warns.append(warn)
+                labels.append(warn.label)
+        self.warnings = new_warns
     def __str__(self):
         a = []
-        for warn in self.warnings:
+
+        self.remove_duplicate_warnings()
+
+        for warn in self.warnings[0:20]:
+            print(f'Search for {warn.label}')
             a.append(warn.__str__())
         if self.probs_number > 1:
             a.append("Il reste encore %s problèmes à régler. Bon travail." %
@@ -121,6 +135,9 @@ class LogCode(object):
         if self.probs_number == 1:
             a.append(
                 "C'est ton dernier problème à régler. Encore un peu de courage !")
+        if len(self.warnings) > 20:
+            a.append("There are more warnings")
+
         return "\n".join(a)
 
     def __unicode__(self):

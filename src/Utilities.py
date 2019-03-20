@@ -45,14 +45,15 @@ def git_tracked_files(dirname):
     old_dir = Path.cwd()
     os.chdir(git_dir)
 
-    bash_command = "git ls-tree --name-only -r master"
+    bash_command = "git ls-tree --name-only -r HEAD"
     process = subprocess.Popen(bash_command.split(), stdout=subprocess.PIPE)
     os.chdir(old_dir)
     output, error = process.communicate()
     output = output.decode('utf8')
 
     for filename in output.split("\n"):
-        yield git_dir / filename
+        if os.path.isfile(filename):
+            yield git_dir / filename
 
 class ReferenceNotFoundException(Exception):
     """

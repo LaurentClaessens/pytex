@@ -24,6 +24,7 @@ import sys
 import hashlib
 import subprocess
 import importlib
+from pathlib import Path
 
 from src.Utilities import logging
 from src.Utilities import ReferenceNotFoundException
@@ -32,11 +33,12 @@ from src.all import FileToLatexCode
 from src.all import FileToLogCode
 from src.all import string_to_latex_code
 from src.PytexTools import Compilation
+from src.grep_wrapper import PytexGrep
 
 """
 Note 25637 : THE PLUGIN TYPES
 
-        * 'medicament' : applied to the Traitement itself, it is applied after the import
+        * 'options' : applied to the Options itself, it is applied after the import
         * 'before_pytex' : applied on the text (as sting) before to create the pytex file.
         * 'after_pytex' : applied on the LaTeXCode of the pytex file.
         * 'before_compilation' : applied on nothing, before the compilation.
@@ -182,7 +184,7 @@ def randombase(n=6):
     return rb
 
 
-class Traitement(object):
+class Options(object):
     r"""
     self.original_file : the original file, written by hand
     self.intermediate_code() : LatexCode object containing the same as original_file but with
@@ -249,19 +251,22 @@ class Traitement(object):
         self.log_filename = self.pytex_filename.replace(
             "_pytex.tex", "_pytex.log")
 
+        self.pytex_grep = PytexGrep(Path.cwd())
+    def grep(self, command, label):
+        return self.pytex_grep(command, label)
     def accept_input(self, filename):
         if filename in self.ok_filenames_list and filename not in self.refute_filenames_list:
             return True
         return False
 
-    def rough_code(self, medicament, fast=False):
-        codeLaTeX = FileToLatexCode(medicament.pytex_file())
+    def rough_code(self, options, fast=False):
+        codeLaTeX = FileToLatexCode(options.pytex_file())
         print("Creating rough code")
         rough_code = codeLaTeX.rough_source(
-            medicament.source_filename, medicament.bibliographie(), medicament.index(), fast=fast)
+            options.source_filename, options.bibliographie(), options.index(), fast=fast)
         return rough_code
 
-    def future_reference_verification(self, medicament, fast=True):
+    def future_reference_verification(self, options, fast=True):
         r"""
         Print the list of references that are made to the future.
 
@@ -278,7 +283,7 @@ class Traitement(object):
         import re
 
         # rough_code with fast=True is buggy.
-        rough_code = self.rough_code(medicament, fast=False)
+        rough_code = self.rough_code(options, fast=False)
 
         print("Analysing the document for label")
         labels = rough_code.search_use_of_macro("\label", 1, fast=fast)
@@ -495,8 +500,8 @@ class Traitement(object):
             if "--no-external" in sys.argv:
                 self.myRequest.add_plugin(set_no_useexternal, "after_pytex")
 
-            # This is the application of a plugin on Traitement itself, see note  25637
-            for plugin in [x for x in self.myRequest.plugin_list if x.hook_name == "medicament"]:
+            # This is the application of a plugin on Options itself, see note  25637
+            for plugin in [x for x in self.myRequest.plugin_list if x.hook_name == "options"]:
                 plugin(self)
 
             #self.original_file = manip.Fichier(self.myRequest.original_filename)
@@ -573,20 +578,20 @@ class Traitement(object):
         )
 
 
-def verif_grep(medicament):
-    if medicament.nombre_prob > 1:
-        medicament.output("Still "+str(medicament.nombre_prob) +
+def verif_grep(options):
+    if options.nombre_prob > 1:
+        options.output("Still "+str(options.nombre_prob) +
                           " problems to be fixed. Good luck !")
-    if medicament.nombre_prob == 1:
-        medicament.output(
+    if options.nombre_prob == 1:
+        options.output(
             "Only one problem to be fixed. Next to perfection !!")
-    x = FileToLogCode(medicament.log_filename)
-    medicament.output(x)
+    x = FileToLogCode(options.log_filename)
+    options.output(x)
 
 
-def ProduceIntermediateCode(medicament):
-    codeLaTeX = string_to_latex_code(medicament.text_before_pytex)
-    if medicament.Compil.tout == 0:
+def ProduceIntermediateCode(options):
+    codeLaTeX = string_to_latex_code(options.text_before_pytex)
+    if options.Compil.tout == 0:
         list_input = codeLaTeX.search_use_of_macro("\input", 1)
         begin_document = codeLaTeX.find("\\begin{document}")
         for occurrence in list_input:
@@ -596,64 +601,64 @@ def ProduceIntermediateCode(medicament):
             # "\input" are in the preamble,
             # inside \newcommand for example.
             if A.position > begin_document:
-                if not medicament.accept_input(A.filename):
+                if not options.accept_input(A.filename):
                     codeLaTeX = codeLaTeX.replace(occurrence.as_written, "%")
                 else:
                     pass
     return codeLaTeX
 
 
-def ProducePytexCode(medicament):
+def ProducePytexCode(options):
     """
-    See the docstring of Traitement 
+    See the docstring of Options 
     return an object LatexCode because it has to be passed to plugins.
     """
     # The plugin has to do itself the work to apply inputs if he wants to.
     # The reason is that some plugin just want to deal with the main tex file.
-    codeLaTeX = medicament.intermediate_code()
+    codeLaTeX = options.intermediate_code()
     return codeLaTeX
 
 
-def CreateRoughCode(medicament):
+def CreateRoughCode(options):
     """
     Creates a latex file that is ready to be send to Arxiv.
 
     See docstring of LatexCode.rough_source.
     """
-    rough_code = medicament.rough_code(medicament)
-    rough_code.save(medicament.source_filename)
-    print("I created the source", medicament.source_filename)
-    return medicament.source_filename
+    rough_code = options.rough_code(options)
+    rough_code.save(options.source_filename)
+    print("I created the source", options.source_filename)
+    return options.source_filename
 
 
-def RunMe(medicament):
+def RunMe(options):
     try:
-        medicament.myRequest.run_prerequistes(medicament)
+        options.myRequest.run_prerequistes(options)
     except AttributeError:
         pass
-    if medicament.Sortie.rough_source:
-        medicament.create_rough_source(medicament.source_filename)
+    if options.Sortie.rough_source:
+        options.create_rough_source(options.source_filename)
 
-    if (medicament.Compil.verif == False)and(medicament.Compil.lotex == 0)and(medicament.Compil.simple == 1)and(medicament.Sortie.pdf == 0):
-        medicament.compilation().latex_more()
-        medicament.copy_final_file()
+    if (options.Compil.verif == False)and(options.Compil.lotex == 0)and(options.Compil.simple == 1)and(options.Sortie.pdf == 0):
+        options.compilation().latex_more()
+        options.copy_final_file()
 
-    if (medicament.Compil.lotex == 1):
+    if (options.Compil.lotex == 1):
         on = True
         while on:
-            medicament.compilation().latex_more()
-            medicament.copy_final_file()
-            x = FileToLogCode(medicament.log_filename, stop_on_first=True)
+            options.compilation().latex_more()
+            options.copy_final_file()
+            x = FileToLogCode(options.log_filename, stop_on_first=True)
             on = x.rerun_to_get_cross_references(stop_on_first=True)
-    if not medicament.Sortie.nocompilation and not medicament.Compil.verif:
-        verif_grep(medicament)
-    if medicament.Sortie.nocompilation:
-        print("Le fichier qui ne fut pas compilé est", medicament.pytex_filename)
+    if not options.Sortie.nocompilation and not options.Compil.verif:
+        verif_grep(options)
+    if options.Sortie.nocompilation:
+        print("Le fichier qui ne fut pas compilé est", options.pytex_filename)
     else:
-        print("Le fichier qui fut compilé est", medicament.pytex_filename)
-        medicament.apply_plugin("", "after_compilation")
-    if medicament.Compil.verif:
-        medicament.future_reference_verification(medicament)
+        print("Le fichier qui fut compilé est", options.pytex_filename)
+        options.apply_plugin("", "after_compilation")
+    if options.Compil.verif:
+        options.future_reference_verification(options)
 
 #############################
 #
@@ -662,6 +667,6 @@ def RunMe(medicament):
 ###############################
 
 
-t = Traitement(sys.argv[1:])
+t = Options(sys.argv[1:])
 output = t.output
 RunMe(t)
