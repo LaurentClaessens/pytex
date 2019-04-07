@@ -54,8 +54,8 @@ class CitationWarning(LaTeXWarning):
 
 
 class MultiplyLabelWarning(LaTeXWarning):
-    def __init__(self, label, page):
-        LaTeXWarning.__init__(self, label, page)
+    def __init__(self, label, page, options):
+        LaTeXWarning.__init__(self, label, page, options)
 
     def __str__(self):
         # +"\n"

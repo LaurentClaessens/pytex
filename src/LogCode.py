@@ -85,11 +85,15 @@ class LogCode(object):
                     if genre == "Label":
                         if label not in [w.label for w in self.undefined_labels]:
                             self.multiply_labels.append(
-                                MultiplyLabelWarning(label, page, self.options))
+                                MultiplyLabelWarning(label, 
+                                                     page,
+                                                     self.options))
                     if genre == "Citation":
                         if label not in [w.label for w in self.undefined_citations]:
                             self.undefined_citations.append(
-                                CitationWarning(label, page, self.options))
+                                CitationWarning(label, 
+                                                page, 
+                                                self.options))
                 except ValueError:
                     pass
             self.warnings = []
