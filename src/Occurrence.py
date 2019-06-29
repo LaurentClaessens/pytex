@@ -27,10 +27,10 @@ from src.InputPaths import InputPaths
 class Occurrence(object):
     """
     self.as_written : the code as it appears in the file, including \MyMacro, including the backslash.
-    self.position : the position at which this occurrence appears. 
+    self.position : the position at which this occurrence appears.
         Example, if we look at the LatexCode
 
-        Hello word, \MyMacro{first} 
+        Hello word, \MyMacro{first}
         and then \MyMacro{second}
 
         the first occurrence of \MyMacro has position=12
@@ -178,16 +178,26 @@ class Occurrence_input(Occurrence):
 
     def file_content(self, input_paths=None):
         r"""
-        return the content of the file corresponding to this occurrence of
-        \input.
+        return the content of the file corresponding to
+        this occurrence of \input.
         This is not recursive.
 
-        - 'input_path' is the list of paths in which we can search for files.
+        - 'input_path' is the list of paths in which
+          we can search for files.
+
+        If the filename contains some strange characters, return "".
+        The reason is to deal with macros which are including files.
 
         See the macro `\addInputPath` in the file
         https://github.com/LaurentClaessens/mazhe/blob/master/configuration.tex
         """
         import os.path
+
+        excluded = ["\\", "#"]
+        for c in excluded:
+            if c in self.filename:
+                print("I do not include the filename ", self.filename)
+                return ""
 
         # Memoize
         if self._file_content is not None:
