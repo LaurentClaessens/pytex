@@ -1,5 +1,3 @@
-# -*- coding: utf8 -*-
-
 ###########################################################################
 #   This is the package latexparser
 #
@@ -17,31 +15,44 @@
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
 
-# copyright (c) Laurent Claessens, 2016-2017
+# copyright (c) Laurent Claessens, 2016-2017, 2019
 # email: laurent@claessens-donadello.eu
 
 import os.path
+
+dprint = print
+
 
 class InputPaths(object):
     """
     This object recall the list of paths in which \input will search for its files.
     """
+
     def __init__(self):
-        self.directory_list=["."]
-    def append(self,dirname):
+        self.directory_list = ["."]
+
+    def append(self, dirname):
         self.directory_list.append(dirname)
-    def get_file(self,filename):
+
+    def get_file(self, filename):
         """
         - `filename` : a file name like "foo.tex"
 
-        Search in the subdirectories for a `foo.tex` and return the first found.
+        Search in the subdirectories for a `foo.tex`
+        and return the first found.
         """
-        for directory in self.directory_list :
-            fn=os.path.join(directory,filename)
+
+        dprint("directory_list ", self.directory_list)
+        dprint("je cherche : ", filename)
+
+        for directory in self.directory_list:
+            fn = os.path.join(directory, filename)
             if os.path.exists(fn):
                 return fn
-        raise NameError("No file found with name ",filename)
+        raise NameError("No file found with name ", filename)
+
     def __str__(self):
         return str(self.directory_list)
+
     def __iter__(self):
         return iter(self.directory_list)
