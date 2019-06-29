@@ -35,8 +35,6 @@ from src.all import string_to_latex_code
 from src.PytexTools import Compilation
 from src.grep_wrapper import PytexGrep
 
-dprint = print
-
 """
 Note 25637 : THE PLUGIN TYPES
 

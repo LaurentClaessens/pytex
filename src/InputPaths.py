@@ -41,10 +41,6 @@ class InputPaths(object):
         Search in the subdirectories for a `foo.tex`
         and return the first found.
         """
-
-        dprint("directory_list ", self.directory_list)
-        dprint("je cherche : ", filename)
-
         for directory in self.directory_list:
             fn = os.path.join(directory, filename)
             if os.path.exists(fn):
