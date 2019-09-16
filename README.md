@@ -67,8 +67,6 @@ This will generates `MySmallPart.pdf` containing the result of the compilation w
 
 ## Installation and dependencies
 
-* Download [LaTeXparser](https://github.com/LaurentClaessens/LaTeXparser) and save it somewhere Python will be able to find.
-
 * Download [pytex](https://github.com/LaurentClaessens/pytex) and save it somewhere bash will be able to find.
 
 
@@ -82,7 +80,6 @@ This will generates `MySmallPart.pdf` containing the result of the compilation w
 
 * The option `--verif` checks if the document contains `\ref` or `\eqref` for which the corresponding `\label` lies later in the document (in a text math, one should refer to theorems that will be proven later). You can define exceptions : sentences that you allow to refer to "future" label.
 
-* `pytex` inherits from the functionalities of [LaTeXparser](https://github.com/LaurentClaessens/LaTeXparser).
 
 ## Examples
 
