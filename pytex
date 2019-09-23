@@ -2,7 +2,7 @@
 
 # Copyright 2015-2017, 2019
 # Laurent Claessens
-#contact : laurent@claessens-donadello.eu
+# contact : laurent@claessens-donadello.eu
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -250,8 +250,10 @@ class Options(object):
             "_pytex.tex", "_pytex.log")
 
         self.pytex_grep = PytexGrep(Path.cwd())
+
     def grep(self, command, label):
         return self.pytex_grep.grep(command, label)
+
     def accept_input(self, filename):
         if filename in self.ok_filenames_list and filename not in self.refute_filenames_list:
             return True
@@ -498,7 +500,7 @@ class Options(object):
             if "--no-external" in sys.argv:
                 self.myRequest.add_plugin(set_no_useexternal, "after_pytex")
 
-            # This is the application of a plugin on Options itself, 
+            # This is the application of a plugin on Options itself,
             # see note  25637
             # position ooMEVCoo
             for plugin in [x for x in self.myRequest.plugin_list if x.hook_name == "options"]:
@@ -587,7 +589,7 @@ class Options(object):
 def verif_grep(options):
     if options.nombre_prob > 1:
         options.output("Still "+str(options.nombre_prob) +
-                          " problems to be fixed. Good luck !")
+                       " problems to be fixed. Good luck !")
     if options.nombre_prob == 1:
         options.output(
             "Only one problem to be fixed. Next to perfection !!")
