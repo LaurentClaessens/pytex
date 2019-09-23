@@ -20,6 +20,7 @@
 # https://github.com/LaurentClaessens/pytex
 
 import os
+import re
 import sys
 import hashlib
 import subprocess
@@ -34,6 +35,10 @@ from src.all import FileToLogCode
 from src.all import string_to_latex_code
 from src.PytexTools import Compilation
 from src.grep_wrapper import PytexGrep
+import pygrep
+
+print(pygrep)
+raise
 
 """
 Note 25637 : THE PLUGIN TYPES
@@ -279,8 +284,6 @@ class Options(object):
         or
         \label{foo\Macro{bar}boor}
         """
-        import pygrep  # home made
-        import re
 
         # rough_code with fast=True is buggy.
         rough_code = self.rough_code(options, fast=False)
