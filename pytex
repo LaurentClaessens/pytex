@@ -37,35 +37,45 @@ from src.PytexTools import Compilation
 from src.grep_wrapper import PytexGrep
 import pygrep
 
-print(pygrep)
-raise
 
 """
 Note 25637 : THE PLUGIN TYPES
 
-        * 'options' : applied to the Options itself, it is applied after the import
-        * 'before_pytex' : applied on the text (as sting) before to create the pytex file.
-        * 'after_pytex' : applied on the LaTeXCode of the pytex file.
-        * 'before_compilation' : applied on nothing, before the compilation.
-                                Such a plugin does not return anything. It is devoted to perform some
-                                checks before to compile.
-             Example : check that a file exist before to compile, or write a greeting to the user.
+* 'options' :
+    applied to the Options itself, it is applied after the import
+* 'before_pytex' :
+    applied on the text (as sting) before to create the pytex file.
+* 'after_pytex' :
+    applied on the LaTeXCode of the pytex file.
+* 'before_compilation' :
+    applied on nothing, before the compilation.
+    Such a plugin does not return anything. It is devoted to perform
+    some checks before to compile.
+    Example : check that a file exist before to compile,
+    or write a greeting to the user.
 
-        * 'after_compilation' : applied on nothing, after the compilation.
-                                Such a plugin does not return anything. It is devoted to perform some
-                                checks after compilation.
-             Example : check that a file has been created or make some research in the auxiliary files.
+* 'after_compilation' :
+    applied on nothing, after the compilation.
+    Such a plugin does not return anything. It is devoted to
+    perform some checks after compilation.
+    Example : check that a file has been created or make
+    some research in the auxiliary files.
 
 """
 
 """
 Options :
-    --no-compilation    Do not compile, but produce the final _pytex.tex file and print the commands that were to be launched without.
-    --rough-source  Output an extremely hard-coded pytex file which is ready for ArXiv.
+    --no-compilation
+        Do not compile, but produce the final _pytex.tex file and
+        print the commands that were to be launched without.
+    --rough-source
+        Output an extremely hard-coded pytex file which is
+        ready for ArXiv.
 
-    --output=<filame> output the summary informations in <filename>. This does not
-                    empties the file if it exists, but creates it if it does not
-                    exist.
+    --output=<filame>
+        Output the summary informations in <filename>.
+        This does not empties the file if it exists,
+        but creates it if it does not exist.
 
 """
 
@@ -95,7 +105,7 @@ class SummaryOutput(object):
 
 class FileOutput(object):
     """
-    A `FileOutput` object is intended to be given as `out` in 
+    A `FileOutput` object is intended to be given as `out` in
     `SummaryOutput`. Thus here the write` function always gets
     a single `str` argument, since the work of conversion from `*args` is
     done in `SummaryOutput.__call__`
@@ -159,7 +169,7 @@ class Sortie(object):
 
 def set_no_useexternal(A):
     r"""
-    This plugin is automatically applied when 'pytex' is invoked with 
+    This plugin is automatically applied when 'pytex' is invoked with
     '--no-external'. You have to put something like this before
     '\begin{document}' :
 
@@ -193,13 +203,13 @@ class Options(object):
     r"""
     self.original_file : the original file, written by hand
     self.intermediate_code() : LatexCode object containing the same as original_file but with
-                    removed \input that are not in the list. 
+                    removed \input that are not in the list.
                     This does not has to be written in a real file.
-    self.pytex_file : all the remaining \input are explicitly performed. 
+    self.pytex_file : all the remaining \input are explicitly performed.
                 (the bibliography/index still have to be created by bibtex/makeindex)
                 This file still contains the comments.
                 This is the one to be usually compiled.
-    self.source_file : the file with everything explicit including the bibliography and the index.   
+    self.source_file : the file with everything explicit including the bibliography and the index.
                 The comments are removed.
                 This is for Arxiv.
     """
@@ -485,7 +495,7 @@ class Options(object):
         """
         If the file extension is .py, interpret it as a module and we extract the relevant informations.
         module.plugin_list  : a list of functions that will be applied to the LaTeX code before to give it to LaTeX
-        module.original_file 
+        module.original_file
         module.ok_filenames_list
         """
         FichierReq = self.NomVersChemin(nom)
@@ -621,7 +631,7 @@ def ProduceIntermediateCode(options):
 
 def ProducePytexCode(options):
     """
-    See the docstring of Options 
+    See the docstring of Options
     return an object LatexCode because it has to be passed to plugins.
     """
     # The plugin has to do itself the work to apply inputs if he wants to.
