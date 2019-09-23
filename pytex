@@ -61,9 +61,6 @@ Note 25637 : THE PLUGIN TYPES
     Example : check that a file has been created or make
     some research in the auxiliary files.
 
-"""
-
-"""
 Options :
     --no-compilation
         Do not compile, but produce the final _pytex.tex file and
