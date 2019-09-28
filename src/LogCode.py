@@ -26,6 +26,7 @@ from src.Warnings import LabelWarning
 
 dprint = print
 
+
 class LogCode(object):
     """
     Contains informations about log file.
@@ -85,14 +86,14 @@ class LogCode(object):
                     if genre == "Label":
                         if label not in [w.label for w in self.undefined_labels]:
                             self.multiply_labels.append(
-                                MultiplyLabelWarning(label, 
+                                MultiplyLabelWarning(label,
                                                      page,
                                                      self.options))
                     if genre == "Citation":
                         if label not in [w.label for w in self.undefined_citations]:
                             self.undefined_citations.append(
-                                CitationWarning(label, 
-                                                page, 
+                                CitationWarning(label,
+                                                page,
                                                 self.options))
                 except ValueError:
                     pass
@@ -125,6 +126,7 @@ class LogCode(object):
                 new_warns.append(warn)
                 labels.append(warn.label)
         self.warnings = new_warns
+
     def __str__(self):
         a = []
 
