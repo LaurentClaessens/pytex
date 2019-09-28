@@ -45,11 +45,10 @@ class ReferenceWarning(LaTeXWarning):
 
 
 class CitationWarning(LaTeXWarning):
-    def __init__(self, label, page):
-        LaTeXWarning.__init__(self, label, page)
+    def __init__(self, label, page, options):
+        LaTeXWarning.__init__(self, label, page, options)
 
     def __str__(self):
-        # +"\n"
         return "\033[35;33m------ Undefined citation \033[35;37m %s \033[35;33m à la page\033[35;33m %s \033[35;33m------" % (self.label, str(self.page))+"\n"+self.grep_result()
 
 

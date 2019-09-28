@@ -90,11 +90,13 @@ class LogCode(object):
                                                      page,
                                                      self.options))
                     if genre == "Citation":
-                        if label not in [w.label for w in self.undefined_citations]:
-                            self.undefined_citations.append(
-                                CitationWarning(label,
-                                                page,
-                                                self.options))
+                        undef_labels = [w.label 
+                                        for w in self.undefined_citations]
+                        if label not in undef_labels:
+                            warn = CitationWarning(label, 
+                                                   page,
+                                                   self.options)
+                            self.undefined_citations.append(warn)
                 except ValueError:
                     pass
             self.warnings = []
