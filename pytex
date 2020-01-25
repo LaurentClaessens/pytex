@@ -27,8 +27,8 @@ import subprocess
 import importlib
 from pathlib import Path
 
-from src.Utilities import logging
-from src.Utilities import ReferenceNotFoundException
+from src.utilities import logging
+from src.utilities import ReferenceNotFoundException
 from src.all import FileToText
 from src.all import FileToLatexCode
 from src.all import FileToLogCode
