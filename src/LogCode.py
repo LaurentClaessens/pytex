@@ -15,19 +15,23 @@
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
 
-# copyright (c) Laurent Claessens, 2010,2012-2016, 2019
+# copyright (c) Laurent Claessens, 2010,2012-2016, 2019-2020
 # email: laurent@claessens-donadello.eu
+
+"""Expose a class to manipulate/read a LaTeX log file."""
 
 
 from src.Warnings import ReferenceWarning
 from src.Warnings import MultiplyLabelWarning
 from src.Warnings import CitationWarning
 from src.Warnings import LabelWarning
+from src.Warnings import TeXCapacityExceededWarning
+from src.all import FileToLatexCode
 
-dprint = print
+dprint = print      # pylint: disable=invalid-name
 
 
-class LogCode(object):
+class LogCode:
     """
     Contains informations about log file.
 
@@ -35,9 +39,12 @@ class LogCode(object):
     FileToLatexCode :
     FileToLogCode("MyFile.log")
     """
+    # pylint: disable=too-many-instance-attributes
 
     def __init__(self, text_brut, options, filename=None, stop_on_first=False):
         """
+        Initialize.
+
         self.text_brut          contains the tex code as given
         """
         self.options = options
@@ -50,17 +57,24 @@ class LogCode(object):
         self.stop_on_first = stop_on_first
         self.search_for_errors(stop_on_first=self.stop_on_first)
         self._rerun_to_get_cross_references = None
+        self.warnings = None
+        self.maybe_more = None
+        self.maybe_more = "LaTeX Warning: Label(s) may have "\
+                          "changed. Rerun to get cross-references right."
 
     def rerun_to_get_cross_references(self, stop_on_first=False):
-        if self._rerun_to_get_cross_references == None:
+        """Re-run the compilation to get the cross-references right."""
+        if self._rerun_to_get_cross_references is None:
             self.search_for_errors(stop_on_first=stop_on_first)
         return self._rerun_to_get_cross_references
 
     def search_for_still_cross_references(self):
-        self.maybeMore = "LaTeX Warning: Label(s) may have changed. Rerun to get cross-references right."
-        return self.maybeMore in self.text_brut
+        """Search if there are still wrong cross-references."""
+        return self.maybe_more in self.text_brut
 
     def search_for_errors(self, stop_on_first=False):
+        """Search for errors."""
+        # pylint: disable=too-many-branches
         still_cross_references = self.search_for_still_cross_references()
         self._rerun_to_get_cross_references = False
         if stop_on_first:
@@ -68,10 +82,10 @@ class LogCode(object):
                 self._rerun_to_get_cross_references = True
         if not self._rerun_to_get_cross_references:
             print("Analysing log file", self.filename)
-            Warns = self.text_brut.split("Warning: ")
-            for warn in Warns[1:]:
+            warnings = self.text_brut.split("Warning: ")
+            for warning in warnings[1:]:
                 try:
-                    text = warn[0:warn.find(".")]
+                    text = warning[0:warning.find(".")]
                     mots = text.split(" ")
                     genre = mots[0]
                     label = mots[1][1:-1]
@@ -80,9 +94,13 @@ class LogCode(object):
                     except ValueError:
                         page = -1
                     if genre == "Reference":
-                        if label not in [w.label for w in self.undefined_references]:
+                        labels = [w.label
+                                  for w in self.undefined_references]
+                        if label not in labels:
                             self.undefined_references.append(
-                                ReferenceWarning(label, page, self.options))
+                                ReferenceWarning(label,
+                                                 page,
+                                                 self.options))
                     if genre == "Label":
                         if label not in [w.label for w in self.undefined_labels]:
                             self.multiply_labels.append(
@@ -90,13 +108,13 @@ class LogCode(object):
                                                      page,
                                                      self.options))
                     if genre == "Citation":
-                        undef_labels = [w.label 
+                        undef_labels = [w.label
                                         for w in self.undefined_citations]
                         if label not in undef_labels:
-                            warn = CitationWarning(label, 
-                                                   page,
-                                                   self.options)
-                            self.undefined_citations.append(warn)
+                            warning = CitationWarning(label,
+                                                      page,
+                                                      self.options)
+                            self.undefined_citations.append(warning)
                 except ValueError:
                     pass
             self.warnings = []
@@ -105,22 +123,22 @@ class LogCode(object):
             self.warnings.extend(self.multiply_labels)
 
             if still_cross_references:
-                self.warnings.append(LabelWarning(self.maybeMore))
+                self.warnings.append(LabelWarning(self.maybe_more))
                 self._rerun_to_get_cross_references = True
             else:
                 self._rerun_to_get_cross_references = False
 
-            self.TeXcapacityexeeded = "TeX capacity exceeded"
-            if self.TeXcapacityexeeded in self.text_brut:
-                self.warnings.append(
-                    TeXCapacityExceededWarning(self.TeXcapacityexeeded))
-
+            self.check_tex_capacity_exeeded()
             self.probs_number = len(self.warnings)
 
-    def tex_capacity_exeeded(self):
-        return self.TeXcapacityexeeded in self.text_brut
+    def check_tex_capacity_exeeded(self):
+        """Check for 'tex capacity exeeded'."""
+        search = "TeX capacity exceeded"
+        if search in self.text_brut:
+            self.warnings.append(TeXCapacityExceededWarning(search))
 
     def remove_duplicate_warnings(self):
+        """Remove the duplicate warnings."""
         labels = []
         new_warns = []
         for warn in self.warnings:
@@ -130,36 +148,33 @@ class LogCode(object):
         self.warnings = new_warns
 
     def __str__(self):
-        a = []
+        """Return a summary of the problems."""
+        answer = []
 
         self.remove_duplicate_warnings()
 
         for warn in self.warnings:
             print(f'Search for {warn.label}')
-            a.append(warn.__str__())
+            answer.append(warn.__str__())
         if self.probs_number > 1:
-            a.append("Il reste encore %s problèmes à régler. Bon travail." %
-                     str(self.probs_number))
+            answer.append("Il reste encore %s problèmes à régler. Bon travail." %
+                          str(self.probs_number))
         if self.probs_number == 1:
-            a.append(
+            answer.append(
                 "C'est ton dernier problème à régler. Encore un peu de courage !")
 
-        return "\n".join(a)
-
-    def __unicode__(self):
-        raise DeprecationWarning
-        return self.__unicode__().encode("utf8")
+        return "\n".join(answer)
 
 
-def ListOfCitation(filelist):
+def list_of_citations(filelist):
     r"""
     From a list of files, return the list of arguments in \cite{...}.
     """
-    l = []
+    citations = []
     new_filelist = [a+".tex" for a in filelist]
-    for f in new_filelist:
-        codeLaTeX = FileToLatexCode(f)
-        occurrences = codeLaTeX.analyse_use_of_macro("\cite", 1)
+    for new_file in new_filelist:
+        code_latex = FileToLatexCode(new_file)
+        occurrences = code_latex.analyse_use_of_macro(r"\cite", 1)
         for occ in occurrences:
-            l.append(occ.label)
-    return l
+            citations.append(occ.label)
+    return citations

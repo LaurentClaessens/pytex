@@ -1,5 +1,3 @@
-# -*- coding: utf8 -*-
-
 ###########################################################################
 #   This is the package latexparser
 #
@@ -17,7 +15,7 @@
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
 
-# copyright (c) Laurent Claessens, 2010,2012-2016
+# copyright (c) Laurent Claessens, 2010,2012-2016, 2020
 # email: laurent@claessens-donadello.eu
 
 """
@@ -79,12 +77,12 @@ def CreateBibtexFile(big_bibtex_file,small_bibtex_file,list_of_files):
     A warning is written if 
     - an entry in small_bibtex_file is not used in the list_of_files.
     """
-    list_of_citations=ListOfCitation(list_of_files)
+    citations = list_of_citations(list_of_files)
     big_bibtex=FileToCodeBibtex(big_bibtex_file)
-    extracted_big=big_bibtex.extract_list(list_of_citations)
+    extracted_big=big_bibtex.extract_list(citations)
     small_bibtex=FileToCodeBibtex(small_bibtex_file)
     for label in small_bibtex.entry_dict.keys() :
-        if label not in list_of_citations:
+        if label not in citations:
             print("Useless entry : %s"%label)
     new_bibtex=extracted_big+small_bibtex
     new_bibtex.save(small_bibtex_file)
