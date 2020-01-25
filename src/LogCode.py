@@ -26,6 +26,8 @@ from src.Warnings import MultiplyLabelWarning
 from src.Warnings import CitationWarning
 from src.Warnings import LabelWarning
 from src.Warnings import TeXCapacityExceededWarning
+from src.Utilities import IndentPrint
+from src.Utilities import is_empty_line
 
 dprint = print      # pylint: disable=invalid-name
 
@@ -120,6 +122,8 @@ class LogCode:
         self.warnings.extend(self.undefined_references)
         self.warnings.extend(self.undefined_citations)
         self.warnings.extend(self.multiply_labels)
+        with IndentPrint("Search for the Overfull hbox"):
+            self.check_overfull_hbox()
 
         if still_cross_references:
             self.warnings.append(LabelWarning(self.maybe_more))
@@ -127,32 +131,33 @@ class LogCode:
         else:
             self._rerun_to_get_cross_references = False
 
+
         self.check_tex_capacity_exeeded()
-        self.check_overfull_hbox()
         self.probs_number = len(self.warnings)
 
         return None
 
     def check_overfull_hbox(self):
-        """
+        r"""
         Check if there are Overful hbox.
 
         For each of them, we will display the line with 'Overfull \hbox'
         and the following lines up to the next empty line.
         """
-        search = r"Overfull \hbox"
-        is_overfull = False
+        search = "Overfull"
+        in_overfull = False
+        overfull_lines = []
         for line in self.text_brut.splitlines():
-            if is_overfull:
+            if in_overfull:
                 overfull_lines.append(line)
                 if is_empty_line(line):
                     in_overfull = False
+                    with IndentPrint("One overfull hbox"):
+                        print("\n".join(overfull_lines))
+                    overfull_lines = []
             if search in line:
                 overfull_lines.append(line)
                 in_overfull = True
-
-        import sys
-        sys.exit(1)
 
     def check_tex_capacity_exeeded(self):
         """Check for 'tex capacity exeeded'."""

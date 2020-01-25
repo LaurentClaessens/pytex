@@ -31,6 +31,30 @@ dprint = print
 
 # If one moves the class 'ReferenceNotFoundException', one has to update the message in pytex.
 
+
+class IndentPrint:
+    """Furnish a context manager for indenting the print."""
+
+    def __init__(self, title):
+        """Initialize with the title."""
+        self.title = title
+        self.old_stdout = None
+
+    def write(self, text):
+        """Print the given text with an indentation."""
+        self.old_stdout.write(f"  {text}")
+
+    def __enter__(self):
+        """Print the title before to initiate the indentations."""
+        self.old_stdout = sys.stdout
+        self.old_stdout.write(self.title + '\n')
+        sys.stdout = self
+
+    def __exit__(self, *arrgs):
+        """Give back the stdout."""
+        sys.stdout = self.old_stdout
+
+
 def git_tracked_files(dirname):
     """
     Yield the files that are git-tracked
