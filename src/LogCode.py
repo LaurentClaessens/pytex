@@ -79,56 +79,58 @@ class LogCode:
         if stop_on_first:
             if still_cross_references:
                 self._rerun_to_get_cross_references = True
-        if not self._rerun_to_get_cross_references:
-            print("Analysing log file", self.filename)
-            warnings = self.text_brut.split("Warning: ")
-            for warning in warnings[1:]:
-                try:
-                    text = warning[0:warning.find(".")]
-                    mots = text.split(" ")
-                    genre = mots[0]
-                    label = mots[1][1:-1]
-                    try:
-                        page = mots[mots.index("page")+1]
-                    except ValueError:
-                        page = -1
-                    if genre == "Reference":
-                        labels = [w.label
-                                  for w in self.undefined_references]
-                        if label not in labels:
-                            self.undefined_references.append(
-                                ReferenceWarning(label,
-                                                 page,
-                                                 self.options))
-                    if genre == "Label":
-                        if label not in [w.label for w in self.undefined_labels]:
-                            self.multiply_labels.append(
-                                MultiplyLabelWarning(label,
-                                                     page,
-                                                     self.options))
-                    if genre == "Citation":
-                        undef_labels = [w.label
-                                        for w in self.undefined_citations]
-                        if label not in undef_labels:
-                            warning = CitationWarning(label,
-                                                      page,
-                                                      self.options)
-                            self.undefined_citations.append(warning)
-                except ValueError:
-                    pass
-            self.warnings = []
-            self.warnings.extend(self.undefined_references)
-            self.warnings.extend(self.undefined_citations)
-            self.warnings.extend(self.multiply_labels)
+        if self._rerun_to_get_cross_references:
+            return None
 
-            if still_cross_references:
-                self.warnings.append(LabelWarning(self.maybe_more))
-                self._rerun_to_get_cross_references = True
-            else:
-                self._rerun_to_get_cross_references = False
+        print("Analysing log file", self.filename)
+        warnings = self.text_brut.split("Warning: ")
+        for warning in warnings[1:]:
+            text = warning[0:warning.find(".")]
+            mots = text.split(" ")
+            genre = mots[0]
+            label = mots[1][1:-1]
+            try:
+                page = mots[mots.index("page")+1]
+            except ValueError:
+                page = -1
+            if genre == "Reference":
+                labels = [w.label
+                          for w in self.undefined_references]
+                if label not in labels:
+                    self.undefined_references.append(
+                        ReferenceWarning(label,
+                                         page,
+                                         self.options))
+            if genre == "Label":
+                if label not in [w.label for w in self.undefined_labels]:
+                    self.multiply_labels.append(
+                        MultiplyLabelWarning(label,
+                                             page,
+                                             self.options))
+            if genre == "Citation":
+                undef_labels = [w.label
+                                for w in self.undefined_citations]
+                if label not in undef_labels:
+                    warning = CitationWarning(label,
+                                              page,
+                                              self.options)
+                    self.undefined_citations.append(warning)
 
-            self.check_tex_capacity_exeeded()
-            self.probs_number = len(self.warnings)
+        self.warnings = []
+        self.warnings.extend(self.undefined_references)
+        self.warnings.extend(self.undefined_citations)
+        self.warnings.extend(self.multiply_labels)
+
+        if still_cross_references:
+            self.warnings.append(LabelWarning(self.maybe_more))
+            self._rerun_to_get_cross_references = True
+        else:
+            self._rerun_to_get_cross_references = False
+
+        self.check_tex_capacity_exeeded()
+        self.probs_number = len(self.warnings)
+
+        return None
 
     def check_tex_capacity_exeeded(self):
         """Check for 'tex capacity exeeded'."""
