@@ -11,3 +11,4 @@ tests/*
 *~
 .ackrc
 __pycache__/*
+venv/*
