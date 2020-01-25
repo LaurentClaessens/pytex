@@ -26,7 +26,6 @@ from src.Warnings import MultiplyLabelWarning
 from src.Warnings import CitationWarning
 from src.Warnings import LabelWarning
 from src.Warnings import TeXCapacityExceededWarning
-from src.all import FileToLatexCode
 
 dprint = print      # pylint: disable=invalid-name
 
@@ -55,12 +54,12 @@ class LogCode:
         self.undefined_labels = []
         self.multiply_labels = []
         self.stop_on_first = stop_on_first
-        self.search_for_errors(stop_on_first=self.stop_on_first)
         self._rerun_to_get_cross_references = None
         self.warnings = None
-        self.maybe_more = None
         self.maybe_more = "LaTeX Warning: Label(s) may have "\
                           "changed. Rerun to get cross-references right."
+
+        self.search_for_errors(stop_on_first=self.stop_on_first)
 
     def rerun_to_get_cross_references(self, stop_on_first=False):
         """Re-run the compilation to get the cross-references right."""
@@ -164,17 +163,3 @@ class LogCode:
                 "C'est ton dernier problème à régler. Encore un peu de courage !")
 
         return "\n".join(answer)
-
-
-def list_of_citations(filelist):
-    r"""
-    From a list of files, return the list of arguments in \cite{...}.
-    """
-    citations = []
-    new_filelist = [a+".tex" for a in filelist]
-    for new_file in new_filelist:
-        code_latex = FileToLatexCode(new_file)
-        occurrences = code_latex.analyse_use_of_macro(r"\cite", 1)
-        for occ in occurrences:
-            citations.append(occ.label)
-    return citations

@@ -15,7 +15,7 @@
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
 
-# copyright (c) Laurent Claessens, 2010,2012-2017, 2019
+# copyright (c) Laurent Claessens, 2010,2012-2017, 2019-2020
 # email: laurent@claessens-donadello.eu
 
 import os.path
@@ -59,3 +59,19 @@ def FileToLogCode(options, stop_on_first=False):
                    options=options,
                    filename=name,
                    stop_on_first=stop_on_first)
+
+
+def list_of_citations(filelist):
+    """
+    Return the list of arguments in \cite{...}.
+
+    From a list of files, return the list of arguments in \cite{...}.
+    """
+    citations = []
+    new_filelist = [a+".tex" for a in filelist]
+    for new_file in new_filelist:
+        code_latex = FileToLatexCode(new_file)
+        occurrences = code_latex.analyse_use_of_macro(r"\cite", 1)
+        for occ in occurrences:
+            citations.append(occ.label)
+    return citations
