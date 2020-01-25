@@ -15,11 +15,11 @@
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
 
-# copyright (c) Laurent Claessens, 2010,2012-2016, 2019
+# copyright (c) Laurent Claessens, 2010,2012-2016, 2019-2020
 # email: laurent@claessens-donadello.eu
 
 
-class LaTeXWarning(object):
+class LaTeXWarning:
     def __init__(self, label, page, options):
         self.label = label
         self.page = page
@@ -34,6 +34,7 @@ class LaTeXWarning(object):
                 a.append(f"{filename}, {line_number}: {line}")
                 a.append('')
         return "\n".join(a)
+
 
 class ReferenceWarning(LaTeXWarning):
     def __init__(self, label, page, options):
