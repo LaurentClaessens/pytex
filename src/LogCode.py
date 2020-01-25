@@ -128,9 +128,31 @@ class LogCode:
             self._rerun_to_get_cross_references = False
 
         self.check_tex_capacity_exeeded()
+        self.check_overfull_hbox()
         self.probs_number = len(self.warnings)
 
         return None
+
+    def check_overfull_hbox(self):
+        """
+        Check if there are Overful hbox.
+
+        For each of them, we will display the line with 'Overfull \hbox'
+        and the following lines up to the next empty line.
+        """
+        search = r"Overfull \hbox"
+        is_overfull = False
+        for line in self.text_brut.splitlines():
+            if is_overfull:
+                overfull_lines.append(line)
+                if is_empty_line(line):
+                    in_overfull = False
+            if search in line:
+                overfull_lines.append(line)
+                in_overfull = True
+
+        import sys
+        sys.exit(1)
 
     def check_tex_capacity_exeeded(self):
         """Check for 'tex capacity exeeded'."""

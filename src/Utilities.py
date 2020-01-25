@@ -55,6 +55,14 @@ def git_tracked_files(dirname):
         if os.path.isfile(filename):
             yield git_dir / filename
 
+
+def is_empty_line(line):
+    """Say if the given line is an empty line."""
+    if not line.strip():
+        return True
+    return False
+
+
 class ReferenceNotFoundException(Exception):
     """
     Exception raised when pytex is not able to find back the
