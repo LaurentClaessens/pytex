@@ -1,5 +1,3 @@
-# -*- coding: utf8 -*-
-
 ###########################################################################
 #   This is the package latexparser
 #
@@ -17,13 +15,13 @@
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
 
-# copyright (c) Laurent Claessens, 2010,2012-2017
+# copyright (c) Laurent Claessens, 2010,2012-2017, 2020
 # email: laurent@claessens-donadello.eu
 
 import codecs
 
-from src.Utilities import ensure_unicode
-from src.Utilities import RemoveComments
+from src.utilities import ensure_unicode
+from src.utilities import RemoveComments
 from src.InputPaths import InputPaths
 from src.RoughSources import LatexCodeToRoughSource
 

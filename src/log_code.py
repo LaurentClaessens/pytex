@@ -26,8 +26,8 @@ from src.Warnings import MultiplyLabelWarning
 from src.Warnings import CitationWarning
 from src.Warnings import LabelWarning
 from src.Warnings import TeXCapacityExceededWarning
-from src.Utilities import IndentPrint
-from src.Utilities import is_empty_line
+from src.utilities import IndentPrint
+from src.utilities import is_empty_line
 
 dprint = print      # pylint: disable=invalid-name
 

@@ -1,5 +1,3 @@
-# -*- coding: utf8 -*-
-
 ###########################################################################
 #   This is the package latexparser
 #
@@ -17,12 +15,12 @@
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
 
-# copyright (c) Laurent Claessens, 2010,2012-2017
+# copyright (c) Laurent Claessens, 2010,2012-2017, 2020
 # email: laurent@claessens-donadello.eu
 
 import re
 from src.Occurrence import Occurrence
-from src.Utilities import dprint
+from src.utilities import dprint
 
 paires = { "{":"}","[":"]","`":"'"}
 accepted_between_arguments = ["%","\n"," ","    "] # the last one is a TAB

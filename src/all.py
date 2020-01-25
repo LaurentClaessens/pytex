@@ -20,7 +20,7 @@
 
 import os.path
 import codecs
-from src.LogCode import LogCode
+from src.log_code import LogCode
 from src.LatexCode import LatexCode
 
 def FileToLatexCode(name,fast=False,keep_comments=False):

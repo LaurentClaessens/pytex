@@ -15,7 +15,7 @@
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
 
-# copyright (c) Laurent Claessens, 2019
+# copyright (c) Laurent Claessens, 2019-2020
 # email: laurent@claessens-donadello.eu
 
 
@@ -25,7 +25,7 @@ This is a 'grep' adapted to our needs.
 
 import subprocess
 from pathlib import Path
-from src.Utilities import git_tracked_files
+from src.utilities import git_tracked_files
 
 dprint = print
 
