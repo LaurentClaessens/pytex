@@ -25,6 +25,7 @@ from src.Warnings import ReferenceWarning
 from src.Warnings import MultiplyLabelWarning
 from src.Warnings import CitationWarning
 from src.Warnings import LabelWarning
+from src.Warnings import OverfullWarning
 from src.Warnings import TeXCapacityExceededWarning
 from src.utilities import IndentPrint
 from src.utilities import is_empty_line
@@ -122,8 +123,6 @@ class LogCode:
         self.warnings.extend(self.undefined_references)
         self.warnings.extend(self.undefined_citations)
         self.warnings.extend(self.multiply_labels)
-        with IndentPrint("Search for the Overfull hbox"):
-            self.check_overfull_hbox()
 
         if still_cross_references:
             self.warnings.append(LabelWarning(self.maybe_more))
@@ -131,6 +130,8 @@ class LogCode:
         else:
             self._rerun_to_get_cross_references = False
 
+        with IndentPrint("Search for the Overfull hbox"):
+            self.check_overfull_hbox()
 
         self.check_tex_capacity_exeeded()
         self.probs_number = len(self.warnings)
@@ -146,18 +147,35 @@ class LogCode:
         """
         search = "Overfull"
         in_overfull = False
+        in_bbl = False
         overfull_lines = []
+        file_lines = []
         for line in self.text_brut.splitlines():
+            if ".tex" in line:
+                in_bbl = False
+                file_lines = [line]
+            if ".bbl" in line:
+                in_bbl = True
+                file_lines = [line]
+            if '[' in line or "]" in line:
+                file_lines.append(line)
+            if in_bbl:
+                in_overfull = False
             if in_overfull:
                 overfull_lines.append(line)
                 if is_empty_line(line):
                     in_overfull = False
+                    text = "\n".join(file_lines)
+                    text = text + "\n".join(overfull_lines)
+                    self.warnings.append(OverfullWarning(text))
                     with IndentPrint("One overfull hbox"):
-                        print("\n".join(overfull_lines))
+                        print(text)
                     overfull_lines = []
+                    file_lines = []
             if search in line:
-                overfull_lines.append(line)
-                in_overfull = True
+                if not in_bbl:
+                    overfull_lines.append(line)
+                    in_overfull = True
 
     def check_tex_capacity_exeeded(self):
         """Check for 'tex capacity exeeded'."""
@@ -182,8 +200,8 @@ class LogCode:
         self.remove_duplicate_warnings()
 
         for warn in self.warnings:
-            print(f'Search for {warn.label}')
-            answer.append(warn.__str__())
+            with IndentPrint("One warning"):
+                answer.append(warn.__str__())
         if self.probs_number > 1:
             answer.append("Il reste encore %s problèmes à régler. Bon travail." %
                           str(self.probs_number))

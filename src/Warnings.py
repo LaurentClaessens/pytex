@@ -36,6 +36,19 @@ class LaTeXWarning:
         return "\n".join(a)
 
 
+class OverfullWarning:
+    """A warning about an Overfull hbox."""
+    def __init__(self, text):
+        """Initialize with the text."""
+        self.text = text
+        self.label = None
+
+    def __str__(self):
+        """Return the message to be displayed."""
+        return self.text
+        
+
+
 class ReferenceWarning(LaTeXWarning):
     def __init__(self, label, page, options):
         LaTeXWarning.__init__(self, label, page, options)
