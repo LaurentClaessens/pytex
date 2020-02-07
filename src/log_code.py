@@ -93,9 +93,14 @@ class LogCode:
             genre = mots[0]
             label = mots[1][1:-1]
             try:
+                dprint("mots", mots)
                 page = mots[mots.index("page")+1]
             except ValueError:
                 page = -1
+            except IndexError:
+                # There is a warning 
+                # "I moved some lines to the next page."
+                continue
             if genre == "Reference":
                 labels = [w.label
                           for w in self.undefined_references]
