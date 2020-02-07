@@ -93,7 +93,6 @@ class LogCode:
             genre = mots[0]
             label = mots[1][1:-1]
             try:
-                dprint("mots", mots)
                 page = mots[mots.index("page")+1]
             except ValueError:
                 page = -1
