@@ -137,7 +137,8 @@ def arg_to_output(arg):
 
 
 def ecrire(texte, couleur, output=None):
-    # Noir 30 40, Rouge 31 41, Vert 32 42, Jaune 33 43, Bleu 34 44, Magenta 35 45, Cyan 36 46, Blanc 37 47,
+    # Noir 30 40, Rouge 31 41, Vert 32 42, Jaune 33 43, Bleu 34 44,
+    # Magenta 35 45, Cyan 36 46, Blanc 37 47,
     # la police: 0->rien,  1->gras, 4->souligné, 5->clignotant, 7->inversée
     string = "\033[0;"+str(couleur)+";33m"+texte+"\033[0;47;33m"
     if output is None:
@@ -173,13 +174,16 @@ def set_no_useexternal(A):
 
     \newcounter{useexternal}
     \setcounter{useexternal}{1}
-    \ifthenelse{\value{useexternal}=1}{ \usetikzlibrary{external} \tikzexternalize }{ \newcommand{\tikzsetnextfilename}[1]{} }
+    \ifthenelse{\value{useexternal}=1}
+            { \usetikzlibrary{external} \tikzexternalize }
+            { \newcommand{\tikzsetnextfilename}[1]{} }
 
-    This plugin will change the '1' into '0', in such a way that 'external' will not be used.
+    This plugin will change the '1' into '0', in such a way that
+    'external' will not be used.
 
     See position 2764113936
     """
-    u = "\setcounter{useexternal}{1}"
+    u = """\setcounter{useexternal}{1}"""
     A = A.replace(u, u.replace("1", "0"))
     return A
 
@@ -199,15 +203,17 @@ def randombase(n=6):
 class Options(object):
     r"""
     self.original_file : the original file, written by hand
-    self.intermediate_code() : LatexCode object containing the same as original_file but with
+    self.intermediate_code() : LatexCode object containing the same
+                    as original_file but with
                     removed \input that are not in the list.
                     This does not has to be written in a real file.
     self.pytex_file : all the remaining \input are explicitly performed.
-                (the bibliography/index still have to be created by bibtex/makeindex)
+                (the bibliography/index still have to be created
+                by bibtex/makeindex)
                 This file still contains the comments.
                 This is the one to be usually compiled.
-    self.source_file : the file with everything explicit including the bibliography and the index.
-                The comments are removed.
+    self.source_file : the file with everything explicit including the
+                bibliography and the index.  The comments are removed.
                 This is for Arxiv.
     """
 
@@ -267,22 +273,27 @@ class Options(object):
         return self.pytex_grep.grep(command, label)
 
     def accept_input(self, filename):
-        if filename in self.ok_filenames_list and filename not in self.refute_filenames_list:
-            return True
-        return False
+        if filename not in self.ok_filenames_list:
+            return False
+        if filename in self.refute_filenames_list:
+            return False
+        return True
 
     def rough_code(self, options, fast=False):
         codeLaTeX = FileToLatexCode(options.pytex_file())
         print("Creating rough code")
         rough_code = codeLaTeX.rough_source(
-            options.source_filename, options.bibliographie(), options.index(), fast=fast)
+            options.source_filename,
+            options.bibliographie(),
+            options.index(), fast=fast)
         return rough_code
 
     def future_reference_verification(self, options, fast=True):
         r"""
         Print the list of references that are made to the future.
 
-        If fast is true, make more assumptions on the LaTeX code. You will only catch references and label like
+        If fast is true, make more assumptions on the LaTeX code.
+        You will only catch references and label like
         \ref{foo}
         \label{bar}
         while not matching
