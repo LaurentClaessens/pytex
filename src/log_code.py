@@ -97,7 +97,7 @@ class LogCode:
             except ValueError:
                 page = -1
             except IndexError:
-                # There is a warning 
+                # There is a warning
                 # "I moved some lines to the next page."
                 continue
             if genre == "Reference":
@@ -204,8 +204,7 @@ class LogCode:
         self.remove_duplicate_warnings()
 
         for warn in self.warnings:
-            with IndentPrint("One warning"):
-                answer.append(warn.__str__())
+            answer.append(warn.__str__())
         if self.probs_number > 1:
             answer.append("Il reste encore %s problèmes à régler. Bon travail." %
                           str(self.probs_number))

@@ -543,12 +543,13 @@ class Options(object):
         The plugin on the options object itself are called
         at the position ooMEVCoo
         """
-        for plugin in [x for x in self.myRequest.plugin_list
-                       if x.hook_name == hook_name]:
-            print("Applying the plugin", plugin.fun)
+        for plugin in self.myRequest.plugin_list:
+            if plugin.hook_name != hook_name:
+                continue
+            print("Applying the plugin", plugin.fun, plugin.hook_name)
             if hook_name in ["before_compilation",
                              "after_compilation"]:
-                plugin.fun()
+                plugin.fun(self)
             else:
                 A = plugin(A)
         return A
