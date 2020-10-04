@@ -1,6 +1,6 @@
 #! /usr/bin/python3
 
-# Copyright 2015-2017, 2019
+# Copyright 2015-2017, 2019-2020
 # Laurent Claessens
 # contact : laurent@claessens-donadello.eu
 
@@ -20,22 +20,19 @@
 # https://github.com/LaurentClaessens/pytex
 
 import os
-import re
 import sys
-import hashlib
 import subprocess
 import importlib
 from pathlib import Path
 
 from src.utilities import logging
-from src.utilities import ReferenceNotFoundException
+from src.future_verif import get_future_warning
 from src.all import FileToText
 from src.all import FileToLatexCode
 from src.all import FileToLogCode
 from src.all import string_to_latex_code
 from src.PytexTools import Compilation
 from src.grep_wrapper import PytexGrep
-import pygrep
 
 
 """
@@ -354,85 +351,24 @@ class Options(object):
         # to find back the line in the original sources.
         # That is grepping the line in the real sources.
 
-        # 'star' is the list of files in which we are going to grep.
-
-        num = 0
-        star = []
-        for directory in rough_code.input_paths:
-            star.extend([os.path.join(directory, x) for x in os.listdir(directory)
-                         if x.endswith(".tex") if "-source-" not in x])
-
-        ok_hash = self.myRequest.ok_hash
-        usefull_ok_hash = []
-
         # For each future references, there are two concerned files
         # (maybe the same) :
         # the one in which we found the \(eq)ref and the one in which
         # is the corresponding \label. The 'concerned_files' list keeps is list
         # of the files that are concerned by a future references.
+        future_warnings = []
+        for tested_label in label_dict.keys():
+            for ref in ref_dict[tested_label]:
+                warning = get_future_warning(rough_code, label_dict,
+                                             tested_label, ref,
+                                             self.myRequest)
+                if warning:
+                    future_warnings.append(warning)
+
         concerned_files = []
-        for lab in label_dict.keys():
-            label_pos = label_dict[lab].position
-            for ref in ref_dict[lab]:
-                if ref.position < label_pos:
-
-                    line_ref = rough_code.position_to_line(
-                        ref.position).replace("\n", "")
-                    line_label = rough_code.position_to_line(
-                        label_pos).replace("\n", "")
-
-                    h = hashlib.new("sha1")
-                    h.update(line_ref.encode("utf8"))
-                    hexdigest = h.hexdigest()
-
-                    if hexdigest not in ok_hash:
-                        num = num+1
-                        ecrire(
-                            "--------- label {0} -----".format(lab), 33, output=output)
-                        A = pygrep.grep(re.escape(line_ref),
-                                        star, first_result=True)
-                        B = pygrep.grep(re.escape(line_label),
-                                        star, first_result=True)
-
-                        if A == []:
-                            output("A problem occurred searching for the line ")
-                            output(line_ref)
-                            raise ReferenceNotFoundException(
-                                "\n I'm not able to found back the future reference \\ref. Look at the docstring of ReferenceNotFoundException in Utilies.py for more details.")
-                        for result in A:
-                            output(result.filename, ":", result.linenumber)
-                            output(result.string.replace(
-                                lab, "\033[0;33;33m"+lab+"\033[0;47;33m"))
-
-                            star.remove(result.filename)
-                            # Thus the next time we begin with this file.
-                            star.insert(0, result.filename)
-
-                            # Not test if result.filename is already in concerned_files.
-                            # Thus the myRequest.append lines will appear by pairs of linked files.
-
-                            concerned_files.append(result.filename)
-                        for result in B:
-                            output(result.filename, ":", result.linenumber)
-
-                            output(result.string.replace(
-                                lab, "\033[0;33;33m"+lab+"\033[0;47;33m"))
-                            concerned_files.append(result.filename)
-
-                        output("hash : "+hexdigest)
-
-                    else:
-                        usefull_ok_hash.append(hexdigest)
-
-        for f in concerned_files:
-            output("""myRequest.ok_filenames_list.append("{0}")""".format(f))
-        if num == 0:
-            output("No future references")
-        elif num > 1:
-            output("Still {0} future references".format(num))
-        elif num == 1:
-            output("Still one future reference".format(num))
-        print("Concerned files :")
+        for warning in future_warnings:
+            self.myRequest.print_future_reference(warning)
+            concerned_files.extend(warning.concerned_files)
 
     def make_final_copy(self, pdf_output, new_filename):
         """
