@@ -14,6 +14,8 @@ import pygrep
 from src.utilities import ReferenceNotFoundException
 from src.future_reference import FutureReference
 
+dprint = print
+
 
 def is_tex_file(filename):
     """Say if the given filename is to be considered."""
@@ -64,6 +66,11 @@ def get_future_warning(rough_code, label_dict,
                   "future reference \\ref. Look at the " \
                   "docstring of ReferenceNotFoundException " \
                   "in Utilies.py for more details."
+        raise ReferenceNotFoundException(message)
+
+    if not label_lines:
+        ref_line = ref_lines[0]
+        message = f"Label {tested_label} not found for: {ref_line.matched}"
         raise ReferenceNotFoundException(message)
 
     label_line = label_lines[0]

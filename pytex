@@ -35,6 +35,9 @@ from src.PytexTools import Compilation
 from src.grep_wrapper import PytexGrep
 
 
+dprint = print
+
+
 """
 Note 25637 : THE PLUGIN TYPES
 
@@ -367,8 +370,11 @@ class Options(object):
 
         concerned_files = []
         for warning in future_warnings:
+            # The function `print_future_reference` is defined in
+            # the file `lst_foo.py`.
             self.myRequest.print_future_reference(warning)
             concerned_files.extend(warning.concerned_files)
+        print("Number of future references: ", len(future_warnings))
 
     def make_final_copy(self, pdf_output, new_filename):
         """
