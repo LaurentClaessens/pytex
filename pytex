@@ -369,12 +369,15 @@ class Options(object):
                     future_warnings.append(warning)
 
         concerned_files = []
+        total_futur = 0
         for warning in future_warnings:
-            # The function `print_future_reference` is defined in
+            # The function `has_to_be_printed` is defined in
             # the file `lst_foo.py`.
-            self.myRequest.print_future_reference(warning)
+            if self.myRequest.has_to_be_printed(warning):
+                warning.output()
+                total_futur += 1
             concerned_files.extend(warning.concerned_files)
-        print("Number of future references: ", len(future_warnings))
+        print(f"Number of future references: {total_futur}")
 
     def make_final_copy(self, pdf_output, new_filename):
         """
