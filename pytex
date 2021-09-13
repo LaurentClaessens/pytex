@@ -368,7 +368,7 @@ class Options(object):
                 if warning:
                     future_warnings.append(warning)
 
-        concerned_files = []
+        concerned_files = set()
         total_futur = 0
         for warning in future_warnings:
             # The function `has_to_be_printed` is defined in
@@ -376,8 +376,12 @@ class Options(object):
             if self.myRequest.has_to_be_printed(warning):
                 warning.output()
                 total_futur += 1
-            concerned_files.extend(warning.concerned_files)
+                for futur_file in warning.concerned_files:
+                    concerned_files.add(futur_file)
         print(f"Number of future references: {total_futur}")
+        print("concernd files:")
+        for futur_file in concerned_files:
+            print(futur_file)
 
     def make_final_copy(self, pdf_output, new_filename):
         """
