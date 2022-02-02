@@ -10,6 +10,7 @@ import re
 import os
 import hashlib
 import pygrep
+from types import SimpleNamespace
 
 from src.utilities import ReferenceNotFoundException
 from src.future_reference import FutureReference
@@ -71,7 +72,19 @@ def get_future_warning(rough_code, label_dict,
     if not label_lines:
         ref_line = ref_lines[0]
         message = f"Label {tested_label} not found for: {ref_line.matched}"
-        raise ReferenceNotFoundException(message)
+        print("")
+        print("")
+        print(message)
+        print("")
+        print("If this is a yanntricks reference, you have to add"
+              " it in the `ok_hash` list because the `.pstricks`"
+              " files are not included in the research for references."
+              )
+        print(hexdigest)
+        default_label_line = SimpleNamespace(filename="filenotfound",
+                                             linenumber=-1,
+                                             string="not found.")
+        label_lines = [default_label_line]
 
     label_line = label_lines[0]
     ref_line = ref_lines[0]
