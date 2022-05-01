@@ -370,14 +370,20 @@ class Options(object):
 
         concerned_files = set()
         total_futur = 0
+        hexdigests = []
         for warning in future_warnings:
             # The function `has_to_be_printed` is defined in
             # the file `lst_foo.py`.
             if self.myRequest.has_to_be_printed(warning):
                 warning.output()
+                hexdigests.append(warning.hexdigest)
                 total_futur += 1
                 for futur_file in warning.concerned_files:
                     concerned_files.add(futur_file)
+
+        print("All the wrong hashes:")
+        for hexdigest in hexdigests:
+            dprint(hexdigest)
         print(f"Number of future references: {total_futur}")
         print("concernd files:")
         for futur_file in concerned_files:
