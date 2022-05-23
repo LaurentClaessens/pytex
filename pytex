@@ -625,13 +625,13 @@ def RunMe(options):
         options.create_rough_source(options.source_filename)
 
     if (options.Compil.verif == False)and(not options.Compil.lotex)and(options.Compil.simple == 1)and(options.Sortie.pdf == 0):
-        options.compilation().latex_more()
+        options.compilation().latex_more(options)
         options.copy_final_file()
 
     if options.Compil.lotex:
         on = True
         while on:
-            options.compilation().latex_more()
+            options.compilation().latex_more(options)
             options.copy_final_file()
             x = FileToLogCode(options, stop_on_first=True)
             on = x.rerun_to_get_cross_references(stop_on_first=True)

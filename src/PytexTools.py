@@ -29,7 +29,7 @@ from xml.dom import minidom
 
 from src.all import FileToText
 from src.LatexCode import LatexCode
-from create_bbl import bbl_code
+from create_bbl import get_bbl_code
 from src.utilities import read_json_file
 
 
@@ -70,16 +70,13 @@ class Compilation(object):
             os.system(commande_e)
 
     def bibtex(self, options):
-        commande_e = "bibtex "+self.generic_basename
-        dprint("generic_basename:", self.generic_basename)
-        aux_file = Path("Inter_frido-mazhe_pytex.aux")
-        json_bib = read_json_file("mazhe.json")
-        bbl_template = Path("bbl_template.tex")
-        print(bbl_code(aux_file, json_bib, bbl_template))
-        raise
-        import sys
-        sys.exit(1)
-        self.do_it(commande_e)
+        bibliography = options.myRequest.bibliography
+        aux_file = Path(f"{self.generic_basename}.aux")
+        json_bib = read_json_file(bibliography["json_bib"])
+        bbl_template = Path(bibliography["template_bbl"])
+        bbl_code = get_bbl_code(aux_file, json_bib, bbl_template)
+        out_filepath = Path(f"{self.generic_basename}.bbl")
+        out_filepath.write_text(bbl_code)
 
     def makeindex(self):
         commande_e = "makeindex "+self.generic_basename
@@ -219,14 +216,17 @@ def FileToCodeBox(filename, boxname):
 
 def PytexNotIn(name, codeLaTeX):
     r"""
-    Return a LatexCode object build from codeLaTeX and changing the occurrences of
+    Return a LatexCode object build from codeLaTeX
+    and changing the occurrences of
     \PytexNotIn{name1,name2,...}{code}
-    by <code> if name is not in the liste name1, name2, ... Else, remove it completely.
+    by <code> if name is not in the liste
+    name1, name2, ... Else, remove it completely.
 
-    This acts like some inline CodeBox. This is the symmetric of PytexOnlyIn
+    This acts like some inline CodeBox. This is
+    the symmetric of PytexOnlyIn
     """
     A = codeLaTeX.copy()
-    occurrences = A.search_use_of_macro("\PytexNotIn", 2)
+    occurrences = A.search_use_of_macro(r"\PytexNotIn", 2)
     for occurrence in occurrences:
         tags = occurrence.arguments[0].split(",")
         if name not in tags:
@@ -239,14 +239,16 @@ def PytexNotIn(name, codeLaTeX):
 
 def PytexOnlyIn(name, codeLaTeX):
     r"""
-    Return a LatexCode object build from codeLaTeX and changing the occurrences of
+    Return a LatexCode object build from codeLaTeX
+    and changing the occurrences of
     \PytexOnlyIn{name1,name2,...}{code}
-    by <code> if name is in the liste name1, name2, ... Else, remove it completely.
+    by <code> if name is in the liste name1, name2, ...
+    Else, remove it completely.
 
     This acts like some inline CodeBox
     """
     A = codeLaTeX.copy()
-    occurrences = A.search_use_of_macro("\PytexOnlyIn", 2)
+    occurrences = A.search_use_of_macro(r"\PytexOnlyIn", 2)
     for occurrence in occurrences:
         tags = occurrence.arguments[0].split(",")
         if name in tags:
@@ -259,9 +261,8 @@ def PytexOnlyIn(name, codeLaTeX):
 
 class CodeFactory(object):
     """
-    Contain what one needs to build LaTeX code from files, plugin, magical boxes, ...
-
-    For most of methods, see the docstring of the corresponding method in LatexCode
+    Contain what one needs to build LaTeX code from
+    files, plugin, magical boxes, ...
     """
 
     def __init__(self):
@@ -289,7 +290,6 @@ class CodeFactory(object):
         self.codeLaTeX = A
 
     def apply_all(self, tag):
-        # TODO : this function should be recursive and apply plugin/code_box as long as necessary, so that one can nest them.
         r"""
         1. Substitute all the \input
         2. Apply the plugins
@@ -318,15 +318,12 @@ class FileTracking(object):
     TAG_FICHIER = "fichier"
     xml_filename = "pytextools.xml"
     old_sha = {}
-    try:
-        root = minidom.parse(xml_filename)
-        fileNodes = root.getElementsByTagName(ELEMENT_FOLLOWED_FILES)
-        for fileNode in fileNodes:
-            for fich in fileNode.getElementsByTagName(TAG_FICHIER):
-                old_sha[fich.getAttribute(
-                    "name")] = fich.getAttribute("sha1sum")
-    except:
-        print("XML file is probably empty.")
+    root = minidom.parse(xml_filename)
+    fileNodes = root.getElementsByTagName(ELEMENT_FOLLOWED_FILES)
+    for fileNode in fileNodes:
+        for fich in fileNode.getElementsByTagName(TAG_FICHIER):
+            old_sha[fich.getAttribute(
+                "name")] = fich.getAttribute("sha1sum")
     sha = {}
     for k in old_sha.keys():
         sha[k] = old_sha[k]
@@ -363,8 +360,11 @@ class FileTracking(object):
         return followed_files_xml.toprettyxml()
 
     def save(self, medicament=None):
-        # The medicament optional argument is in order to avoid to save if --no-compilation if passed to pytex. In that case, the changes are not taken into account,
-        # and thus the last "used" sha1sum is the one which is still in the file.
+        # The medicament optional argument is in order
+        # to avoid to save if --no-compilation if passed to pytex.
+        # In that case, the changes are not taken into account,
+        # and thus the last "used" sha1sum is the one which
+        # is still in the file.
         faire = True
         if medicament:
             if medicament.Sortie.nocompilation:
@@ -400,7 +400,7 @@ class Request(object):
         return self.fileTracking.is_file_changed(f)
 
     def create_magic_box(self, filename, boxname, name=None):
-        if name == None:
+        if name is None:
             name = self.name
         self.magic_box = FileToCodeBox(filename, boxname)
         self.plugin_list.append(self.magic_box.put)
