@@ -1,7 +1,5 @@
 import sys
-from pathlib import Path
 
-from src.utilities import read_json_file
 from src.utilities import write_json_file
 from src.utilities import random_string
 from src.utilities import json_to_str
@@ -42,7 +40,11 @@ def filter_duplicates(labels):
 
 def get_labels(aux_file):
     """Return the list of labels in the given aux file."""
-    lines = aux_file.read_text().splitlines()
+    try:
+        lines = aux_file.read_text().splitlines()
+    except FileNotFoundError:
+        # first compilation pass the aux file does not exist.
+        return []
 
     cited_labels = []
     for line in lines:
@@ -88,11 +90,12 @@ def bib_hash(elem):
     return text_hash(txt)
 
 
-def get_elem_bibitem(elem):
+def get_elem_bibitem(elem, num):
     """Return the bibitem line of a bbl entry."""
     label = elem["id"]
     _ = label
-    return f"\\bibitem[{bib_hash(elem)}]{{{label}}}"
+    # return f"\\bibitem[{bib_hash(elem)}]{{{label}}}"
+    return f"\\bibitem[{num}]{{{label}}}"
 
 
 def get_elem_author(elem):
@@ -104,13 +107,13 @@ def get_elem_author(elem):
     return "and".join(authors)+"."
 
 
-def json_to_bbl_elem(elem):
+def json_to_bbl_elem(elem, num):
     """From a json element, return the bbl code."""
     if elem is None:
         raise
 
     list_ans = []
-    list_ans.append(get_elem_bibitem(elem))
+    list_ans.append(get_elem_bibitem(elem, num))
     list_ans.append(get_elem_author(elem))
 
     title = elem.get("title", None)
@@ -132,9 +135,11 @@ def get_bbl_code(aux_file, json_bib, bbl_template):
     template = bbl_template.read_text()
     labels = get_labels(aux_file)
     bbl_list = []
+    num = 0
     for label in labels:
+        num += 1
         elem = get_json(json_bib, label)
-        block = json_to_bbl_elem(elem)
+        block = json_to_bbl_elem(elem, num)
         bbl_list.append(block)
 
     main_code = "\n\n".join(bbl_list)
