@@ -102,15 +102,28 @@ def get_elem_author(elem):
     """Return the author line."""
     if elem.get("author", None) is None:
         return None
+
     authors = [f"{author.get('given', '')} {author.get('family', '')}"
                for author in elem["author"]]
-    return "and".join(authors)+"."
+
+    return " and ".join(authors)+"."
+
+
+def utf_substitution(text):
+    """
+    Substitute some utf code that LaTeX cannot handle.
+
+    example: Levendorskiı̆
+    """
+    answer = text.replace("ı̆", "i")
+    answer = answer.replace("ı́", "i")
+    return answer
 
 
 def json_to_bbl_elem(elem, num):
     """From a json element, return the bbl code."""
     if elem is None:
-        raise
+        return ""
 
     list_ans = []
     list_ans.append(get_elem_bibitem(elem, num))
@@ -118,16 +131,21 @@ def json_to_bbl_elem(elem, num):
 
     title = elem.get("title", None)
     date = elem.get("date", None)
-    url = elem.get("URL", None)
+    url = elem.get("url", None)
+    note = elem.get("note", None)
     if title:
-        list_ans.append(f"\\newblock {title}.")
+        list_ans.append(f"\\newblock {title}")
     if date:
         list_ans.append(f"\\newblock {date}.")
     if url:
         list_ans.append(f"\\newblock URL \\url{{{url}}}.")
+    if note:
+        list_ans.append(f"\\newblock {note}")
 
     lines = [x for x in list_ans if x is not None]
-    return "\n".join(lines)
+    pre_answer = "\n".join(lines)
+    answer = utf_substitution(pre_answer)
+    return answer
 
 
 def get_bbl_code(aux_file, json_bib, bbl_template):

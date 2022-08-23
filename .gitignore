@@ -12,3 +12,5 @@ tests/*
 .ackrc
 __pycache__/*
 venv/*
+bib_mazhe.json
+new_bib.json
