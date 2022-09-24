@@ -46,20 +46,20 @@ import sys
 import subprocess
 from pathlib import Path
 
-from src.utilities_b import Sortie
-from src.utilities_b import Compil
-from src.utilities_b import arg_to_output
-from src.utilities_b import SummaryOutput
-from src.utilities_b import set_no_useexternal
-from src.utilities_b import CreateRoughCode
-from src.utilities_b import ProduceIntermediateCode
-from src.utilities_b import ProducePytexCode
-from src.utilities_b import randombase
-from src.grep_wrapper import PytexGrep
-from src.all import FileToLatexCode
-from src.utilities import logging
-from src.all import FileToText
-from src.PytexTools import Compilation
+from pytex.src.utilities_b import Sortie
+from pytex.src.utilities_b import Compil
+from pytex.src.utilities_b import arg_to_output
+from pytex.src.utilities_b import SummaryOutput
+from pytex.src.utilities_b import set_no_useexternal
+from pytex.src.utilities_b import CreateRoughCode
+from pytex.src.utilities_b import ProduceIntermediateCode
+from pytex.src.utilities_b import ProducePytexCode
+from pytex.src.utilities_b import randombase
+from pytex.src.grep_wrapper import PytexGrep
+from pytex.src.all import FileToLatexCode
+from pytex.src.utilities import logging
+from pytex.src.all import FileToText
+from pytex.src.PytexTools import Compilation
 
 
 dprint = print
@@ -84,6 +84,7 @@ class Options(object):
 
     def __init__(self, my_request):
 
+        self.my_request = my_request
         self.pwd = subprocess.getoutput("pwd")  # .decode("utf8")
         self._pytex_file = None
         self._intermediate_code = None
@@ -100,9 +101,8 @@ class Options(object):
         self.new_output_filename = None  # see copy_final_file
         self.new_output_filenames = None
         self.output = SummaryOutput(sys.stdout)
-        for arg in self.arguments:
-            if arg[0] != "-":
-                self.LireFichier(arg)
+        self.read_request()
+        for arg in sys.argv:
             if arg == "--all":
                 self.Compil.tout = 1
             if arg == "--verif":
@@ -224,7 +224,7 @@ class Options(object):
     def NomVersChemin(self, nom):
         return self.pwd+"/"+nom
 
-    def LireFichier(self, nom):
+    def read_request(self):
         """
         If the file extension is .py, interpret it as a module
         and we extract the relevant informations.
@@ -234,9 +234,7 @@ class Options(object):
         module.original_file
         module.ok_filenames_list
         """
-        FichierReq = self.NomVersChemin(nom)
-        self.prefix = os.path.basename(FichierReq).replace(
-            ".py", "").replace("lst-", "").replace("lst_", "")
+        self.prefix = self.my_request.prefix
 
         # See explanatons at position 2764113936
         if "--no-external" in sys.argv:

@@ -32,9 +32,9 @@ def LatexCodeToRoughSource(codeLaTeX,filename,bibliography_bbl_filename=None,ind
         3. Include the bibliography, include .bbl file (no bibtex needed)
         4. Include the index, include .ind file (no makeindex needed)
     What is does not
-        1. Check for pdflatex compliance. 
+        1. Check for pdflatex compliance.
 
-    Input 
+    Input
         codeLaTeX : an object of type LatexCode
         filename : the name of the file in which the new code will be written
     Optional
@@ -46,7 +46,7 @@ def LatexCodeToRoughSource(codeLaTeX,filename,bibliography_bbl_filename=None,ind
 
     The result is extremely hard-coded. One has not to understand it as a workable LaTeX source file.
     """
-    from src.all import FileToLatexCode
+    from pytex.src.all import FileToLatexCode
     if not bibliography_bbl_filename :
         bibliography_bbl_filename = codeLaTeX.filename.replace(".tex",".bbl")
     if not index_ind_filename :

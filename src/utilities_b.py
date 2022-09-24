@@ -5,8 +5,8 @@ import os
 import sys
 import subprocess
 
-from src.all import FileToLogCode
-from src.all import string_to_latex_code
+from pytex.src.all import FileToLogCode
+from pytex.src.all import string_to_latex_code
 
 
 class FileOutput(object):

@@ -19,13 +19,13 @@
 # email: laurent@claessens-donadello.eu
 
 import re
-from src.Occurrence import Occurrence
-from src.utilities import dprint
+from pytex.src.Occurrence import Occurrence
+from pytex.src.utilities import dprint
 
 paires = { "{":"}","[":"]","`":"'"}
 accepted_between_arguments = ["%","\n"," ","    "] # the last one is a TAB
 
-def compactization(text,accepted_between_arguments):        
+def compactization(text,accepted_between_arguments):
     for acc in accepted_between_arguments :
         text=text.replace(acc,"")
     return text
@@ -35,7 +35,7 @@ def SearchFitBrace(text,position,opening):
     """
     return a tuple containing the text withing the next pair of open/close brace and the position where the pair closes in text
 
-    As an example, consider the string 
+    As an example, consider the string
     s="Hello (Louis) how are you ?"
     SearchFitBrace(s,4,["(",")"])
     returns ('Louis', 6, 12)
@@ -56,9 +56,9 @@ def SearchFitBrace(text,position,opening):
 def ContinueSearch(s,opening):
     r"""
     Given the string s and the position s, return True if there is still a good candidate.
-    A «good» candidate is an opening bracket which is separated from the previous closing one by only elements of accepted_between_arguments. It does not takes into accounts stuff between a % and a \n 
+    A «good» candidate is an opening bracket which is separated from the previous closing one by only elements of accepted_between_arguments. It does not takes into accounts stuff between a % and a \n
     Return a tuple (boolean,int) where the integer is the position (in s) of the found opening bracket.
-    
+
     Id the result is False, the returned offset is -1
 
     Example
@@ -125,7 +125,7 @@ def SearchArguments(s,number_of_arguments):
 
 def NextMacroCandidate(s,macro_name,search_macro_name=None):
     """
-    return the a tuple (boolean,integer,boolena) saying 
+    return the a tuple (boolean,integer,boolena) saying
     1. if macro_name is present in string s
     2. where is it
     3. if this is in a comment  (False if there are no matching macro)
@@ -156,7 +156,7 @@ def SearchUseOfMacro(code,macro_name,number_of_arguments=None,give_configuration
     r"""
     <macro_name> has to contain the initial \ of the macro. I you want to search for \MyMacro, ask for "\MyMacro"; not only "MyMacro"
 
-    number_of_arguments is the number of arguments expected. 
+    number_of_arguments is the number of arguments expected.
                 Giving a too large number produces wrong results in the following example case where \MyMacro
                 is supposed to have 3 arguments :
                 \MyMacro{A}{B}{C}
@@ -181,7 +181,7 @@ def SearchUseOfMacro(code,macro_name,number_of_arguments=None,give_configuration
     """
     use=[]
     s = code.text_brut
-    if fast :       
+    if fast :
 
         e_macro_name=re.escape(macro_name)
         results=re.finditer(e_macro_name+"{",s)

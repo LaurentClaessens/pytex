@@ -19,7 +19,7 @@
 # email: laurent@claessens-donadello.eu
 
 import codecs
-from src.InputPaths import InputPaths
+from pytex.src.InputPaths import InputPaths
 
 
 class Occurrence(object):

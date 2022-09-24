@@ -1,12 +1,10 @@
 import sys
 
-from src.utilities import write_json_file
-from src.utilities import random_string
-from src.utilities import json_to_str
-from src.utilities import text_hash
-_ = write_json_file
-_ = random_string
-_ = sys
+from pytex.src.utilities import write_json_file
+from pytex.src.utilities import random_string
+from pytex.src.utilities import json_to_str
+from pytex.src.utilities import text_hash
+_ = [write_json_file, random_string, sys]
 
 
 dprint = print

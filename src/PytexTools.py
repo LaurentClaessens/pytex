@@ -27,10 +27,10 @@ import hashlib
 from pathlib import Path
 from xml.dom import minidom
 
-from src.all import FileToText
-from src.LatexCode import LatexCode
-from create_bbl import get_bbl_code
-from src.utilities import read_json_file
+from pytex.src.all import FileToText
+from pytex.src.LatexCode import LatexCode
+from pytex.create_bbl import get_bbl_code
+from pytex.src.utilities import read_json_file
 
 
 dprint = print
@@ -70,7 +70,7 @@ class Compilation(object):
             os.system(commande_e)
 
     def bibtex(self, options):
-        bibliography = options.myRequest.bibliography
+        bibliography = options.my_request.bibliography
         aux_file = Path(f"{self.generic_basename}.aux")
         json_bib = read_json_file(bibliography["json_bib"])
         bbl_template = Path(bibliography["template_bbl"])

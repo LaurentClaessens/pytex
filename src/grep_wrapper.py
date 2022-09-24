@@ -25,7 +25,7 @@ This is a 'grep' adapted to our needs.
 
 import subprocess
 from pathlib import Path
-from src.utilities import git_tracked_files
+from pytex.src.utilities import git_tracked_files
 
 dprint = print
 
@@ -56,7 +56,7 @@ class PytexGrep():
         self._done_dict = True
     def grep(self, command, label):
         """
-        Make the search. 
+        Make the search.
 
         @param {string} `command`
             must be "ref", "eqref" or "label"
@@ -82,7 +82,7 @@ class PytexGrep():
                 yield key, line.replace(label, color_label)
     def read_file(self, filename):
         """
-        Read the given file and add its lines in `self`'s 
+        Read the given file and add its lines in `self`'s
         line dictionary.
 
         @return {tuple of dictionaries}
@@ -104,12 +104,12 @@ class PytexGrep():
                 if "\label{" in line:
                     local_label_dict[(filename, number)] = line
         return local_ref_dict, local_eqref_dict, local_label_dict
-                
-                
+
+
     def is_correct_line(self, line):
         """
         Say if a line is interesting or not four our "grep" purpose.
-        To be interesting, the line must contain "\ref", "\eqref" 
+        To be interesting, the line must contain "\ref", "\eqref"
         or "\label"
         """
         if "\eqref{" in line:

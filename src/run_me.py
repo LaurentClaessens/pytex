@@ -1,6 +1,13 @@
-from src.options import Options
-from src.all import FileToLogCode
-from src.utilities_b import verif_grep
+
+import sys
+
+from pytex.src.options import Options
+from pytex.src.all import FileToLogCode
+from pytex.src.utilities_b import verif_grep
+from pytex.src.future_verification import future_reference_verification
+
+
+dprint = print
 
 
 def do_latex_more(options):
@@ -18,6 +25,10 @@ def do_latex_more(options):
 
 
 def RunMe(my_request):
+
+    dprint("ça ne devrait pas")
+    sys.exit(1)
+
     options = Options(my_request)
     try:
         options.myRequest.run_prerequistes(options)
@@ -45,4 +56,4 @@ def RunMe(my_request):
         print("Le fichier qui fut compilé est", options.pytex_filename)
         options.apply_plugin("", "after_compilation")
     if options.Compil.verif:
-        options.future_reference_verification(options)
+        future_reference_verification(options)

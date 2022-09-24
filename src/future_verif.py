@@ -9,11 +9,11 @@
 import re
 import os
 import hashlib
-import pygrep
 from types import SimpleNamespace
 
-from src.utilities import ReferenceNotFoundException
-from src.future_reference import FutureReference
+from pytex.src.utilities import ReferenceNotFoundException
+from pytex.src.future_reference import FutureReference
+import pytex.src.pygrep as pygrep
 
 dprint = print
 

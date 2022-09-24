@@ -20,10 +20,10 @@
 
 import codecs
 
-from src.utilities import ensure_unicode
-from src.utilities import RemoveComments
-from src.InputPaths import InputPaths
-from src.RoughSources import LatexCodeToRoughSource
+from pytex.src.utilities import ensure_unicode
+from pytex.src.utilities import RemoveComments
+from pytex.src.InputPaths import InputPaths
+from pytex.src.RoughSources import LatexCodeToRoughSource
 
 
 def inherit_properties(f):
@@ -164,7 +164,7 @@ class LatexCode(object):
         """
         # Why should I explicitly write the "\" in the macro name ?
         # I don't remember, but it was an issue.
-        from src.MacroUse import SearchUseOfMacro
+        from pytex.src.MacroUse import SearchUseOfMacro
         return SearchUseOfMacro(self, name, number_of_arguments, give_configuration, fast=fast)
 
     def analyse_use_of_macro(self, name, number_of_arguments=None):

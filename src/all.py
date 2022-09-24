@@ -20,8 +20,8 @@
 
 import os.path
 import codecs
-from src.log_code import LogCode
-from src.LatexCode import LatexCode
+from pytex.src.log_code import LogCode
+from pytex.src.LatexCode import LatexCode
 
 def FileToLatexCode(name,fast=False,keep_comments=False):
     """ return a codeLaTeX from a file """
@@ -32,7 +32,7 @@ def FileToLatexCode(name,fast=False,keep_comments=False):
 
 def FileToText(name):
     """ return the content of a file as string
-    
+
     If the file do not exist, return empty string.
     """
     l=[]
@@ -51,7 +51,7 @@ def FileToLogCode(options, stop_on_first=False):
     try:
         list_content = list(codecs.open(name,"r",encoding="utf8"))
     # I've noticed that the log file was ISO-8859 English text
-    except UnicodeDecodeError : 
+    except UnicodeDecodeError :
         print("Problem with",name)
         list_content = list(codecs.open(name,"r",encoding="iso8859-1"))
     a="".join(list_content)

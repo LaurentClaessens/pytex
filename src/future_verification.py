@@ -1,7 +1,7 @@
 """Check the references to the future."""
 
 
-from src.future_verif import get_future_warning
+from pytex.src.future_verif import get_future_warning
 
 
 dprint = print
