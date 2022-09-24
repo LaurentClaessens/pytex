@@ -5,6 +5,7 @@ from pytex.src.options import Options
 from pytex.src.all import FileToLogCode
 from pytex.src.utilities_b import verif_grep
 from pytex.src.future_verification import future_reference_verification
+_ = [sys]
 
 
 dprint = print
@@ -25,10 +26,6 @@ def do_latex_more(options):
 
 
 def RunMe(my_request):
-
-    dprint("ça ne devrait pas")
-    sys.exit(1)
-
     options = Options(my_request)
     try:
         options.myRequest.run_prerequistes(options)
