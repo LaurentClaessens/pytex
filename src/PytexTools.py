@@ -98,7 +98,6 @@ class Compilation(object):
         lua_sort = here.parent / "sort_ind.lua"
         myinput = open(ind_file, 'r')
         myoutput = open(tmp_ind_file, 'w')
-        _ = input(f"On va faire le call pour {ind_file}")
         try:
             subprocess.call(["luatex", lua_sort],
                             stdin=myinput,
@@ -110,8 +109,6 @@ class Compilation(object):
             myinput.close()
             myoutput.close()
         shutil.copy(tmp_ind_file, ind_file)
-        print("index file", ind_file)
-        sys.exit(1)
 
     def nomenclature(self):
         commande_e = "makeindex -s nomencl.ist -o " + \
