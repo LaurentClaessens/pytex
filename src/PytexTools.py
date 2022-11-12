@@ -15,15 +15,18 @@
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
 
-# copyright (c) Laurent Claessens, 2010, 2012-2015,2017
-# email: moky.math@gmail.com
+# copyright (c) Laurent Claessens, 2010, 2012-2015,2017,2022
+# email: laurent@claessens-donadello.eu
 
 """
 Contains tools intended to create good plugins for pytex.
 """
 
 import os
+import sys
+import shutil
 import hashlib
+import subprocess
 from pathlib import Path
 from xml.dom import minidom
 
@@ -82,6 +85,34 @@ class Compilation(object):
         commande_e = "makeindex "+self.generic_basename
         self.do_it(commande_e)
 
+    def sort_index(self):
+        """
+        Sort the index.
+
+        Contribution:
+        https://github.com/LaurentClaessens/mazhe/issues/162
+        """
+        ind_file = Path(f"{self.generic_basename}.ind").resolve()
+        tmp_ind_file = Path(f"{self.generic_basename}_tmp.ind").resolve()
+        here = Path(__file__).resolve()
+        lua_sort = here.parent / "sort_ind.lua"
+        myinput = open(ind_file, 'r')
+        myoutput = open(tmp_ind_file, 'w')
+        _ = input(f"On va faire le call pour {ind_file}")
+        try:
+            subprocess.call(["luatex", lua_sort],
+                            stdin=myinput,
+                            stdout=myoutput)
+        except FileNotFoundError:
+            print("luatex not found. Please write me. I can fix it.")
+            sys.exit(1)
+        finally:
+            myinput.close()
+            myoutput.close()
+        shutil.copy(tmp_ind_file, ind_file)
+        print("index file", ind_file)
+        sys.exit(1)
+
     def nomenclature(self):
         commande_e = "makeindex -s nomencl.ist -o " + \
             self.generic_basename+".nls "+self.generic_basename+".nlo"
@@ -91,6 +122,7 @@ class Compilation(object):
         self.bibtex(options)
         self.makeindex()
         self.nomenclature()
+        self.sort_index()
 
     def latex(self):
         program = u"pdflatex -synctex=1   -shell-escape"
