@@ -27,6 +27,7 @@ import sys
 import shutil
 import hashlib
 import subprocess
+import contextlib
 from pathlib import Path
 from xml.dom import minidom
 
@@ -119,7 +120,9 @@ class Compilation(object):
         self.bibtex(options)
         self.makeindex()
         self.nomenclature()
-        self.sort_index()
+        with contextlib.suppress(FileNotFoundError):
+            # The first time, the file 'ind' does not exist
+            self.sort_index()
 
     def latex(self):
         program = u"pdflatex -synctex=1   -shell-escape"
