@@ -35,16 +35,17 @@ def RunMe(my_request):
         options.create_rough_source(options.source_filename)
 
     if do_latex_more(options):
+        raise DeprecationWarning("Je pense que ceci ne sert plus.")
         options.compilation().latex_more(options)
         options.copy_final_file()
 
     if options.Compil.lotex:
-        on = True
-        while on:
+        has_to_redo = True
+        while has_to_redo:
             options.compilation().latex_more(options)
             options.copy_final_file()
             x = FileToLogCode(options, stop_on_first=True)
-            on = x.rerun_to_get_cross_references(stop_on_first=True)
+            has_to_redo = x.rerun_to_get_cross_references(stop_on_first=True)
     if not options.Sortie.nocompilation and not options.Compil.verif:
         verif_grep(options)
     if options.Sortie.nocompilation:
