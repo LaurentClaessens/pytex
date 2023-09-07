@@ -226,11 +226,13 @@ class Options(object):
         We take as basis the pytex filename because the
         bibliography is created (via bibtex) when we compile that one.
         """
-        return self.pytex_filename.replace("_pytex.tex", "_pytex.bbl")
+        name = f"{self.pytex_filename.stem}.bbl"
+        return self.pytex_filename.parent / name
 
     def index(self):
-        """ retourne le fichier ind qui correspond au fichier principal """
-        return self.pytex_filename.replace("_pytex.tex", "_pytex.ind")
+        """Return the ind file."""
+        name = f"{self.pytex_filename.stem}.ind"
+        return self.pytex_filename.parent / name
 
     def NomVersChemin(self, nom):
         return self.pwd+"/"+nom
