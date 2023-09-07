@@ -117,10 +117,18 @@ class Options(object):
                 self.output = arg_to_output(arg)
 
         self.listeFichPris = []
-        self.pytex_filename = self.pwd+"/"+"Inter_"+self.prefix+"-" + \
-            os.path.basename(self.original_file).replace(".tex", "_pytex.tex")
-        self.source_filename = self.pwd+"/"+self.prefix + \
-            "-source-"+os.path.basename(self.original_file)
+
+        self.pytex_filename = Path(self.pwd) / \
+            f"Inter_{self.prefix}-{self.original_file.stem}_pytex.tex"
+
+        # self.pytex_filename = self.pwd+"/"+"Inter_"+self.prefix+"-" + \
+        #    os.path.basename(self.original_file).replace(".tex", "_pytex.tex")
+
+        self.source_filename = Path(
+            self.pwd) / f"{self.prefix}-source-{self.original_file.name}"
+
+        # self.source_filename = self.pwd+"/"+self.prefix + \
+        #    "-source-"+os.path.basename(self.original_file)
 
         if self.Compil.tout == 1:
             self.source_filename = self.pwd+"/all-" + \
