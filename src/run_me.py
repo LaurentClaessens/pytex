@@ -1,11 +1,10 @@
-
 import sys
 
 from pytex.src.options import Options
 from pytex.src.all import FileToLogCode
 from pytex.src.utilities_b import verif_grep
 from pytex.src.future_verification import future_reference_verification
-_ = [sys]
+_ = sys
 
 
 dprint = print
@@ -33,25 +32,3 @@ def RunMe(my_request):
         pass
     if options.Sortie.rough_source:
         options.create_rough_source(options.source_filename)
-
-    if do_latex_more(options):
-        raise DeprecationWarning("Je pense que ceci ne sert plus.")
-        options.compilation().latex_more(options)
-        options.copy_final_file()
-
-    if options.Compil.lotex:
-        has_to_redo = True
-        while has_to_redo:
-            options.compilation().latex_more(options)
-            options.copy_final_file()
-            x = FileToLogCode(options, stop_on_first=True)
-            has_to_redo = x.rerun_to_get_cross_references(stop_on_first=True)
-    if not options.Sortie.nocompilation and not options.Compil.verif:
-        verif_grep(options)
-    if options.Sortie.nocompilation:
-        print("Le fichier qui ne fut pas compilé est", options.pytex_filename)
-    else:
-        print("Le fichier qui fut compilé est", options.pytex_filename)
-        options.apply_plugin("", "after_compilation")
-    if options.Compil.verif:
-        future_reference_verification(options)

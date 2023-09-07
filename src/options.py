@@ -136,8 +136,11 @@ class Options(object):
             self.pytex_filename = self.pwd+"/all-" + \
                 os.path.basename(self.original_file).replace(
                     ".tex", "_pytex.tex")
-        self.log_filename = self.pytex_filename.replace(
-            "_pytex.tex", "_pytex.log")
+
+        self.log_filename = self.pytex_filename.parent / \
+            f"{self.pytex_filename.stem}.log"
+        # self.log_filename = self.pytex_filename.replace(
+        #    "_pytex.tex", "_pytex.log")
 
         self.pytex_grep = PytexGrep(Path.cwd())
 
