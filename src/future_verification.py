@@ -2,9 +2,7 @@
 
 
 from pytex.src.future_verif import get_future_warning
-
-
-dprint = print
+from pytex.src.LatexCode import LatexCode
 
 
 def future_reference_verification(options, fast=True):
@@ -23,7 +21,9 @@ def future_reference_verification(options, fast=True):
     """
 
     # rough_code with fast=True is buggy.
-    rough_code = options.rough_code(options, fast=False)
+    rough_code: LatexCode = options.rough_code(options, fast=False)
+    rough_code.save("voir.tex")
+    ciao()
 
     print("Analysing the document for label")
     labels = rough_code.search_use_of_macro("\label", 1, fast=fast)
@@ -57,7 +57,8 @@ def future_reference_verification(options, fast=True):
     for occ in labels:
         label = occ.arguments[0]
         if label in label_dict.keys():
-            options.output("The label <{0}> is used multiple times".format(label))
+            options.output(
+                "The label <{0}> is used multiple times".format(label))
             options.output("Here is the last time I see that")
             options.output(occ.as_written)
             raise NameError
@@ -82,8 +83,8 @@ def future_reference_verification(options, fast=True):
     for tested_label in label_dict.keys():
         for ref in ref_dict[tested_label]:
             warning = get_future_warning(rough_code, label_dict,
-                                            tested_label, ref,
-                                            options.my_request)
+                                         tested_label, ref,
+                                         options.my_request)
             if warning:
                 future_warnings.append(warning)
 
@@ -102,7 +103,7 @@ def future_reference_verification(options, fast=True):
 
     print("All the wrong hashes:")
     for hexdigest in hexdigests:
-        dprint(hexdigest)
+        print(hexdigest)
     print(f"Number of future references: {total_futur}")
     print("concernd files:")
     for futur_file in concerned_files:

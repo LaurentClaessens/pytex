@@ -31,9 +31,13 @@ import random
 import string
 import hashlib
 
+from typing import Optional
+from typing import TextIO
+
+from colorama import Fore, Back, Style
+
 LOGGING_FILENAME = ".pytex.log"
 
-dprint = print
 
 # If one moves the class 'ReferenceNotFoundException', one has to update the message in pytex.
 
@@ -41,10 +45,10 @@ dprint = print
 class IndentPrint:
     """Furnish a context manager for indenting the print."""
 
-    def __init__(self, title):
+    def __init__(self, title: str):
         """Initialize with the title."""
         self.title = title
-        self.old_stdout = None
+        self.old_stdout: TextIO
 
     def write(self, text):
         """Print the given text with an indentation."""
@@ -56,8 +60,9 @@ class IndentPrint:
         self.old_stdout.write(self.title + '\n')
         sys.stdout = self
 
-    def __exit__(self, *arrgs):
+    def __exit__(self, *args):
         """Give back the stdout."""
+        _ = args
         sys.stdout = self.old_stdout
 
 
@@ -78,7 +83,7 @@ def git_tracked_files(dirname):
     bash_command = "git ls-tree --name-only -r HEAD"
     process = subprocess.Popen(bash_command.split(), stdout=subprocess.PIPE)
     os.chdir(old_dir)
-    output, error = process.communicate()
+    output, _ = process.communicate()
     output = output.decode('utf8')
 
     for filename in output.split("\n"):
@@ -94,7 +99,7 @@ def is_empty_line(line):
 
 
 class ReferenceNotFoundException(Exception):
-    """
+    r"""
     Exception raised when pytex is not able to find back the
     fautive \\ref causing a future reference.
 
@@ -138,42 +143,7 @@ class ReferenceNotFoundException(Exception):
         return self.text
 
 
-def ensure_unicode(s):
-    """
-    Return a 'unicode' object that represents 's'.
-    No conversion if 's' is already unicode.
-
-    str->unicode (via s.decode("utf8"))
-    unicode->unicode (identity map)
-    """
-    if isinstance(s, str):
-        return s.decode("utf8")
-    if isinstance(s, unicode):
-        return s
-    testtype(s)
-    raise TypeError("You are trying to convert to unicode the following object " +
-                    str(s)+" of type "+str(type(s)))
-
-
-def ensure_str(s):
-    """
-    Return a 'str' object that represents 's'.
-    No conversion if 's' is already str.
-
-    unicode->str (via s.encode("utf8"))
-    str->str (identity map)
-    """
-    if isinstance(s, str):
-        return s
-    if isinstance(s, unicode):
-        return s.encode("utf8")
-    testtype(s)
-    raise TypeError("You are trying to convert to unicode the following object " +
-                    str(s)+" of type "+str(type(s)))
-
-
 def logging(text, pspict=None):
-    # text=ensure_unicode(text)
     if pspict:
         text = "in "+pspict.name+" : "+text
     print(text)
@@ -181,26 +151,19 @@ def logging(text, pspict=None):
         f.write(text+"\n")
 
 
-def ensure_unicode(text):
-    """
-    No more useful since python3
-    """
-    return text
-
-
 def testtype(s):
     print(s, type(s))
 
 
 def RemoveComments(text):
-    """
+    r"""
     Takes text as a tex source file and remove the comments including what stands after \end{document}
     Input : string
     Output : string
     """
     line_withoutPC = []
     # we remove the end of lines with % if not preceded by \
-    pattern = "[^\\\]%"
+    pattern = r"[^\\\]%"
     search = re.compile(pattern).search
     # This search only matches the % that are preceded by something else than \.
     # This does not match the % at the beginning of the line. This is why a second test is performed.
@@ -222,15 +185,16 @@ def RemoveComments(text):
     # Now we remove what is after \end{document}
 
     final_code = code_withoutPC
-    if "\end{document}" in code_withoutPC:
-        final_code = code_withoutPC.split("\end{document}")[0]+"\end{document}"
+    if r"\end{document}" in code_withoutPC:
+        final_code = code_withoutPC.split(r"\end{document}")[
+            0]+r"\end{document}"
     return final_code
 
 
 def random_string(length):
     """return a random string."""
     alphabet = string.ascii_lowercase+string.ascii_uppercase
-    return "".join([random.choice(alphabet) for i in range(0, length)])
+    return "".join([random.choice(alphabet) for _ in range(0, length)])
 
 
 def human_timestamp(now=None):
@@ -299,3 +263,74 @@ def text_hash(text):
     b_text = text.encode("utf8")
     m.update(b_text)
     return m.hexdigest()
+
+
+class ColorOutput:
+    """Colored output"""
+
+    def __init__(self, fg: Optional[str] = None, bg: Optional[str] = None):
+        """Initialize."""
+        self.fg = fg
+        self.bg = bg
+
+    def __exit__(self, *args):
+        """Reset all the colors"""
+        _ = args
+        print(Style.RESET_ALL)
+
+    def __enter__(self):
+        """Initiate the requested color."""
+        fg_correspondance = {
+            "black": Fore.BLACK,
+            "red": Fore.RED,
+            "green": Fore.GREEN,
+            "yellow": Fore.YELLOW,
+            "blue": Fore.BLUE,
+            "magenta": Fore.MAGENTA,
+            "cyan": Fore.CYAN,
+            "white": Fore.WHITE
+        }
+        bg_correspondance = {
+            "black": Back.BLACK,
+            "red": Back.RED,
+            "green": Back.GREEN,
+            "yellow": Back.YELLOW,
+            "blue": Back.BLUE,
+            "magenta": Back.MAGENTA,
+            "cyan": Back.CYAN,
+            "white": Back.WHITE}
+
+        if self.fg:
+            print(fg_correspondance[self.fg])
+        if self.bg:
+            print(bg_correspondance[self.bg])
+
+    def __call__(self, fun):
+        """Turn the color outpus to a context manager"""
+        def wrapper(*args, **kwargs):
+            """Wrap the function."""
+            with self:
+                return fun(*args, **kwargs)
+        return wrapper
+
+
+def dprint(*args, **kwargs):
+    """Print with color for debug purposes."""
+    color = kwargs.pop('color', None)
+    with ColorOutput(color):
+        print(*args, **kwargs)
+
+
+def ciao(message=None):
+    """For debug only."""
+    if message:
+        with ColorOutput("yellow"):
+            print("\n", message, "\n")
+    x = random.random()
+    if x > 2:
+        return
+    print("ciao!")
+    x = random.random()
+    if x > 3:
+        return "pas possible"
+    sys.exit(1)
