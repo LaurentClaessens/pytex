@@ -3,6 +3,8 @@
 
 from pytex.src.future_verif import get_future_warning
 from pytex.src.LatexCode import LatexCode
+from pytex.src.utilities import ciao
+_ = ciao
 
 
 def future_reference_verification(options, fast=True):
@@ -22,17 +24,15 @@ def future_reference_verification(options, fast=True):
 
     # rough_code with fast=True is buggy.
     rough_code: LatexCode = options.rough_code(options, fast=False)
-    rough_code.save("voir.tex")
-    ciao()
 
     print("Analysing the document for label")
-    labels = rough_code.search_use_of_macro("\label", 1, fast=fast)
+    labels = rough_code.search_use_of_macro(r"\label", 1, fast=fast)
 
     print("Analysing the document for ref")
     ref = rough_code.search_use_of_macro(r"\ref", 1, fast=fast)
 
     print("Analysing the document for eqref")
-    eqref = rough_code.search_use_of_macro("\eqref", 1, fast=fast)
+    eqref = rough_code.search_use_of_macro(r"\eqref", 1, fast=fast)
 
     ref_dict = {}
     label_dict = {}

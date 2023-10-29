@@ -15,12 +15,11 @@
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
 
-# copyright (c) Laurent Claessens, 2010,2012-2017, 2020
+# copyright (c) Laurent Claessens, 2010,2012-2017, 2020, 2023
 # email: laurent@claessens-donadello.eu
 
 import codecs
 
-from pytex.src.utilities import ensure_unicode
 from pytex.src.utilities import RemoveComments
 from pytex.src.InputPaths import InputPaths
 from pytex.src.RoughSources import LatexCodeToRoughSource
@@ -68,9 +67,9 @@ class LatexCode(object):
         # If you change something here, it has to be changed in append_file.
         self.given_text = given_text
         if keep_comments:
-            self.text_brut = ensure_unicode(self.given_text)
+            self.text_brut = self.given_text
         else:
-            self.text_brut = ensure_unicode(RemoveComments(self.given_text))
+            self.text_brut = RemoveComments(self.given_text)
         self._dict_of_definition_macros = {}
         self._list_of_input_files = []
         self.filename = filename
@@ -354,8 +353,6 @@ class LatexCode(object):
         """
         Replace textA by textB including in the comments
         """
-        textA = ensure_unicode(textA)
-        textB = ensure_unicode(textB)
         new_text = self.text_brut.replace(textA, textB)
         A = LatexCode(new_text, oldLaTeX=self)
         return A

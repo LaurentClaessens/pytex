@@ -15,7 +15,7 @@
 #   along with phystricks.py.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
 
-# copyright (c) Laurent Claessens, 2010-2017, 2019
+# copyright (c) Laurent Claessens, 2010-2017, 2019, 2023
 # email: laurent@claessens-donadello.eu
 
 import re
@@ -163,7 +163,7 @@ def RemoveComments(text):
     """
     line_withoutPC = []
     # we remove the end of lines with % if not preceded by \
-    pattern = r"[^\\\]%"
+    pattern = "[^\\\]%"
     search = re.compile(pattern).search
     # This search only matches the % that are preceded by something else than \.
     # This does not match the % at the beginning of the line. This is why a second test is performed.
