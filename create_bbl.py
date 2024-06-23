@@ -45,7 +45,7 @@ def get_labels(aux_file):
         return []
     except UnicodeDecodeError as error:
         print(error)
-        print("Problem in {aux_file}")
+        print(f"Problem in {aux_file}")
         print("delete it and compile again")
         sys.exit(1)
 
