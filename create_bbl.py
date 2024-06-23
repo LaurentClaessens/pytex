@@ -43,6 +43,11 @@ def get_labels(aux_file):
     except FileNotFoundError:
         # first compilation pass the aux file does not exist.
         return []
+    except UnicodeDecodeError as error:
+        print(error)
+        print("Problem in {aux_file}")
+        print("delete it and compile again")
+        sys.exit(1)
 
     cited_labels = []
     for line in lines:
