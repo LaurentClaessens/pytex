@@ -1,16 +1,19 @@
 import sys
+from typing import Any
+from pathlib import Path
 
 from pytex.src.utilities import write_json_file
 from pytex.src.utilities import random_string
 from pytex.src.utilities import json_to_str
+from pytex.src.utilities import ciao
 from pytex.src.utilities import text_hash
-_ = [write_json_file, random_string, sys]
+from pytex.src.utilities import read_json_file
+_:Any = write_json_file, random_string, ciao
 
 
-dprint = print
 
 
-def line_to_labels(line):
+def line_to_labels(line:str):
     """Return the labels on a citation line."""
     start = line.find("{") + 1
     end = line.find("}")
@@ -18,12 +21,12 @@ def line_to_labels(line):
     return content.split(",")
 
 
-def is_citation_line(line):
+def is_citation_line(line:str):
     """Say if a line is a citation line."""
     return line.startswith("\\citation")
 
 
-def filter_duplicates(labels):
+def filter_duplicates(labels:list)->list:
     """
     Return a list without the duplicates.
 
@@ -64,11 +67,12 @@ def get_labels(aux_file):
     return cited_labels
 
 
-def get_json(json_bib, label):
+def get_json(json_bib, label)->dict[str,Any]:
     """Return the json of the requested label"""
     for elem in json_bib:
         if elem["id"] == label:
             return elem
+    raise NameError("Pas de {lable} dans le bib json.")
 
 
 def get_bibtex_lines(bibtex_lines, label):
@@ -123,7 +127,25 @@ def utf_substitution(text):
     return answer
 
 
-def json_to_bbl_elem(elem, num):
+def extract_url(elem:dict[str,str])->str|None:
+    """Return the url in the given bibliography element."""
+    if 'url' not in elem:
+        return None
+
+    raw_url = elem['url']
+    url = raw_url
+    src_dir = Path(__file__).parent / "src"
+    print(f"ici est : {src_dir}")
+    substitutions:dict[str,str] = read_json_file(src_dir/"percent.json")
+    for orig, code in substitutions.items():
+        url = url.replace(orig, code)
+    if url != raw_url:
+        print(f"originale : {raw_url}")
+        print(f"finale :    {url}")
+    return url
+
+
+def json_to_bbl_elem(elem:dict[str,str], num:int):
     """From a json element, return the bbl code."""
     if elem is None:
         return ""
@@ -134,7 +156,7 @@ def json_to_bbl_elem(elem, num):
 
     title = elem.get("title", None)
     date = elem.get("date", None)
-    url = elem.get("url", None)
+    url = extract_url(elem)
     note = elem.get("note", None)
     if title:
         list_ans.append(f"\\newblock {title}")
