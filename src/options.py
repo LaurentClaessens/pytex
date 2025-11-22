@@ -1,44 +1,4 @@
-"""
-The options object.
-
-Follow the anti-pattern of the god object ... hum ...
-
-Note 25637 : THE PLUGIN TYPES
-
-* 'options' :
-    applied to the Options itself, it is applied after the import
-* 'before_pytex' :
-    applied on the text (as sting) before to create the pytex file.
-* 'after_pytex' :
-    applied on the LaTeXCode of the pytex file.
-* 'before_compilation' :
-    applied on nothing, before the compilation.
-    Such a plugin does not return anything. It is devoted to perform
-    some checks before to compile.
-    Example : check that a file exist before to compile,
-    or write a greeting to the user.
-
-* 'after_compilation' :
-    applied on nothing, after the compilation.
-    Such a plugin does not return anything. It is devoted to
-    perform some checks after compilation.
-    Example : check that a file has been created or make
-    some research in the auxiliary files.
-
-Options :
-    --no-compilation
-        Do not compile, but produce the final _pytex.tex file and
-        print the commands that were to be launched without.
-    --rough-source
-        Output an extremely hard-coded pytex file which is
-        ready for ArXiv.
-
-    --output=<filame>
-        Output the summary informations in <filename>.
-        This does not empties the file if it exists,
-        but creates it if it does not exist.
-
-"""
+"""The options object."""
 
 
 import os
@@ -58,8 +18,10 @@ from pytex.src.utilities_b import randombase
 from pytex.src.grep_wrapper import PytexGrep
 from pytex.src.all import FileToLatexCode
 from pytex.src.utilities import logging
+from pytex.src.utilities import ciao
 from pytex.src.all import FileToText
 from pytex.src.PytexTools import Compilation
+_ = ciao
 
 
 dprint = print
@@ -121,14 +83,8 @@ class Options(object):
         self.pytex_filename = Path(self.pwd) / \
             f"Inter_{self.prefix}-{self.original_file.stem}_pytex.tex"
 
-        # self.pytex_filename = self.pwd+"/"+"Inter_"+self.prefix+"-" + \
-        #    os.path.basename(self.original_file).replace(".tex", "_pytex.tex")
-
         self.source_filename = Path(
             self.pwd) / f"{self.prefix}-source-{self.original_file.name}"
-
-        # self.source_filename = self.pwd+"/"+self.prefix + \
-        #    "-source-"+os.path.basename(self.original_file)
 
         if self.Compil.tout == 1:
             self.source_filename = self.pwd+"/all-" + \
@@ -139,8 +95,6 @@ class Options(object):
 
         self.log_filename = self.pytex_filename.parent / \
             f"{self.pytex_filename.stem}.log"
-        # self.log_filename = self.pytex_filename.replace(
-        #    "_pytex.tex", "_pytex.log")
 
         self.pytex_grep = PytexGrep(Path.cwd())
 
@@ -333,6 +287,4 @@ class Options(object):
         return Compilation(
             pytex_filename,
             self.Sortie.nocompilation,
-            pdflatex=self.Compil.pdflatex,
-            dvi=self.Compil.dvi
         )

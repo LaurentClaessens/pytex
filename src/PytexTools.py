@@ -25,12 +25,14 @@ Contains tools intended to create good plugins for pytex.
 import os
 import sys
 import shutil
-import hashlib
 import subprocess
 import contextlib
 from pathlib import Path
 from xml.dom import minidom
 
+from typing import Callable
+
+from pytex.src.utilities import get_file_hash
 from pytex.src.all import FileToText
 from pytex.src.LatexCode import LatexCode
 from pytex.create_bbl import get_bbl_code
@@ -55,8 +57,7 @@ class Compilation(object):
     X.chain_dvi_ps_pdf()             # Produce the pdf file
     """
 
-    def __init__(self, filename, nocompilation=False,
-                 pdflatex=True, dvi=False):
+    def __init__(self, filename, nocompilation=False):
         self.filename = filename
         self.nocompilation = nocompilation
         self.dirname = os.path.dirname(self.filename)
@@ -340,11 +341,6 @@ class CodeFactory(object):
         self.codeLaTeX.save(filename)
 
 
-def FileToSha1sum(f):
-    text = str(open(f).read())
-    return hashlib.sha1(text).hexdigest()
-
-
 class FileTracking(object):
     ELEMENT_FOLLOWED_FILES = "Followed_files"
     TAG_FICHIER = "fichier"
@@ -363,7 +359,7 @@ class FileTracking(object):
     def _is_file_changed(self, filename):
         sha_now = "XXX"
         try:
-            sha_now = FileToSha1sum(filename)
+            sha_now = get_file_hash(filename)
         except IOError:
             pass
         FileTracking.sha[filename] = sha_now
@@ -418,15 +414,21 @@ class Request(object):
     """ Contains what a lst_foo.py file has to contain """
 
     def __init__(self, name=None):
+        self.name = name
         self.plugin_list = []
         self.medicament = None
         self.medicament_plugin = None
-        self.original_filename = ""
         self.ok_filenames_list = []
         self.prerequiste_list = []
         self.fileTracking = FileTracking()
-        self.new_output_filename = None
         self.new_output_filenames = None
+        self.prefix: str
+        self.ok_hash: list[str]
+        self.bibliography: str
+        self.original_filename: Path
+        self.new_output_filename: str
+        self.has_to_be_printed: Callable
+        self.print_future_reference: Callable
 
     def is_file_changed(self, f):
         return self.fileTracking.is_file_changed(f)
@@ -521,11 +523,9 @@ class keep_script_marks(object):
             b = smd[mark][1]
             B.extend(lignes[a:b])
 
-            addtext = lignes[a:b]
-
         new_text = "\n".join(B)
         return new_text
 
 
 def accept_all_input(options):
-    options.accept_input = lambda x: True
+    options.accept_input = lambda _: True

@@ -22,6 +22,7 @@ import re
 import os
 import sys
 import codecs
+import inspect
 import subprocess
 from pathlib import Path
 import time
@@ -149,6 +150,39 @@ def logging(text, pspict=None):
     print(text)
     with codecs.open(LOGGING_FILENAME, "a", encoding="utf8") as f:
         f.write(text+"\n")
+
+
+def ensure_encoded(text, encoding='utf8'):
+    """
+    Return the encoded text.
+
+    - If it is already 'byte', leave as it.
+    - If not, encode.
+    """
+    try:
+        answer = text.encode(encoding)
+    except AttributeError:
+        answer = text
+    return answer
+
+
+def get_text_hash(text):
+    """Return a hash of the given text."""
+    sha1 = hashlib.sha1()
+    text = ensure_encoded(text, 'utf8')
+    sha1.update(text)
+    return sha1.hexdigest()
+
+
+def get_file_hash(filepath: Path):
+    """
+    Return a hash of the given file.
+
+    @return {string}
+        The hex digest of the content of the file.
+    """
+    content = filepath.read_bytes()
+    return get_text_hash(content)
 
 
 def testtype(s):
@@ -321,16 +355,19 @@ def dprint(*args, **kwargs):
         print(*args, **kwargs)
 
 
-def ciao(message=None):
+def ciao(message=None, color=None):
     """For debug only."""
+    if color is None:
+        color = "yellow"
     if message:
         with ColorOutput("yellow"):
             print("\n", message, "\n")
     x = random.random()
-    if x > 2:
-        return
-    print("ciao!")
-    x = random.random()
     if x > 3:
         return "pas possible"
+
+    current_frame = inspect.stack()[1]
+    current_file = Path(current_frame[1]).resolve()
+    current_line = current_frame[2]
+    print(f"{current_file}, line {current_line} --> ciao !")
     sys.exit(1)
