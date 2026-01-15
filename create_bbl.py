@@ -135,13 +135,9 @@ def extract_url(elem:dict[str,str])->str|None:
     raw_url = elem['url']
     url = raw_url
     src_dir = Path(__file__).parent / "src"
-    print(f"ici est : {src_dir}")
     substitutions:dict[str,str] = read_json_file(src_dir/"percent.json")
     for orig, code in substitutions.items():
         url = url.replace(orig, code)
-    if url != raw_url:
-        print(f"originale : {raw_url}")
-        print(f"finale :    {url}")
     return url
 
 
