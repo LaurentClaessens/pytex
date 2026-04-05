@@ -4,6 +4,7 @@
 import os
 import sys
 import subprocess
+from typing import Any
 from pathlib import Path
 
 from pytex.src.utilities_b import Sortie
@@ -21,10 +22,9 @@ from pytex.src.utilities import logging
 from pytex.src.utilities import ciao
 from pytex.src.all import FileToText
 from pytex.src.PytexTools import Compilation
-_ = ciao
+_:Any = ciao
 
 
-dprint = print
 
 
 class Options(object):

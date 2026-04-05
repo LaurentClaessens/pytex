@@ -15,12 +15,23 @@
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
 
-# copyright (c) Laurent Claessens, 2010,2012-2016, 2019-2020
+# copyright (c) Laurent Claessens, 2010,2012-2016, 2019-2020, 2026
 # email: laurent@claessens-donadello.eu
+
+from typing import Any
+from typing import TYPE_CHECKING
+
+from pytex.src.utilities import dprint
+from pytex.src.utilities import ciao
+_:Any = dprint, ciao
+
+
+if TYPE_CHECKING:
+    from pytex.src.options import Options
 
 
 class LaTeXWarning:
-    def __init__(self, label, page, options):
+    def __init__(self, label, page, options:'Options'):
         self.label = label
         self.page = page
         self.options = options
@@ -29,10 +40,10 @@ class LaTeXWarning:
         a = []
         for command in ["ref", "eqref", "label"]:
             for key, line in self.options.grep(command, self.label):
-                filename = key[0].name
+                filename = key[0]
                 line_number = key[1]
-                a.append(f"{filename}, {line_number}: {line}")
-                a.append('')
+                a.append(str(filename))
+                a.append(f"\n{line_number}: {line}\n")
         return "\n".join(a)
 
 

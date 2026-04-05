@@ -15,19 +15,15 @@
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
 
-# copyright (c) Laurent Claessens, 2019-2020
+# copyright (c) Laurent Claessens, 2019-2020, 2026
 # email: laurent@claessens-donadello.eu
 
 
-"""
-This is a 'grep' adapted to our needs.
-"""
+""" This is a 'grep' adapted to our needs. """
 
-import subprocess
 from pathlib import Path
 from pytex.src.utilities import git_tracked_files
 
-dprint = print
 
 class PytexGrep():
     """
@@ -42,6 +38,7 @@ class PytexGrep():
         self.eqref_dict = {}
         self.label_dict = {}
         self._done_dict = False
+
     def create_lines_dict(self):
         """
         Create the dictionaries (filename, line number) -> string
@@ -54,6 +51,7 @@ class PytexGrep():
             self.eqref_dict = {**self.eqref_dict, **eqref_dict}
             self.label_dict = {**self.label_dict, **label_dict}
         self._done_dict = True
+
     def grep(self, command, label):
         """
         Make the search.
@@ -65,7 +63,7 @@ class PytexGrep():
 
         ex:
         <myobject>.grep("eqref", "FOO")
-        searches for \eqref{FOO}
+        searches for `\eqref{FOO}`
         """
         if not self._done_dict:
             self.create_lines_dict()
@@ -80,6 +78,7 @@ class PytexGrep():
             if string in line:
                 color_label = f"\033[35;37m{label}\033[35;33m"
                 yield key, line.replace(label, color_label)
+
     def read_file(self, filename):
         """
         Read the given file and add its lines in `self`'s
@@ -104,7 +103,6 @@ class PytexGrep():
                 if "\label{" in line:
                     local_label_dict[(filename, number)] = line
         return local_ref_dict, local_eqref_dict, local_label_dict
-
 
     def is_correct_line(self, line):
         """

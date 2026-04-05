@@ -348,11 +348,7 @@ class ColorOutput:
         return wrapper
 
 
-def dprint(*args, **kwargs):
-    """Print with color for debug purposes."""
-    color = kwargs.pop('color', None)
-    with ColorOutput(color):
-        print(*args, **kwargs)
+dprint = print
 
 
 def ciao(message=None, color=None):
