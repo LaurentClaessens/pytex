@@ -72,7 +72,7 @@ def get_json(json_bib, label)->dict[str,Any]:
     for elem in json_bib:
         if elem["id"] == label:
             return elem
-    raise NameError("Pas de {lable} dans le bib json.")
+    raise NameError(f"Pas de {label} dans le bib json.")
 
 
 def get_bibtex_lines(bibtex_lines, label):
