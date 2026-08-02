@@ -15,14 +15,26 @@
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
 
-# copyright (c) Laurent Claessens, 2010,2012-2017, 2020, 2023
+# copyright (c) Laurent Claessens, 2010,2012-2017, 2020, 2023, 2026
 # email: laurent@claessens-donadello.eu
 
-import codecs
+from pathlib import Path
+from typing import Optional
+from typing import TYPE_CHECKING
+from typing import Any
+
 
 from pytex.src.utilities import RemoveComments
 from pytex.src.InputPaths import InputPaths
 from pytex.src.RoughSources import LatexCodeToRoughSource
+from pytex.src.MacroUse import SearchUseOfMacro
+from pytex.src.utilities import dprint
+from pytex.src.utilities import ciao
+from pytex.src.getters import get_options
+_:Any = dprint, ciao
+
+if TYPE_CHECKING:
+    from pytex.src.Occurrence import Occurrence
 
 
 def inherit_properties(f):
@@ -36,7 +48,7 @@ def inherit_properties(f):
 
         # Inherit the attributes
         new_code.input_paths = code.input_paths
-        new_code.filename = code.filename
+        new_code.filename = code.filepath
         new_code.included_file_list = code.included_file_list
         return new_code
     return g
@@ -58,13 +70,20 @@ class LatexCode(object):
     # If you have any idea how to keep track of the comments without slow down the process, please send a patch :)
 
     # However it is possible to keep the comments using 'keep_comments=True'.
-    def __init__(self, given_text, filename=None, oldLaTeX=None, keep_comments=False):
+    def __init__(self, 
+                 given_text,
+                 filepath:Optional[Path]=None, 
+                 oldLaTeX=None, 
+                 keep_comments=False):
         """
-        self.text_brut          contains the tex code as given, with or without the comments, depending on 'keep_comments'
+        self.text_brut          
+                contains the tex code as given, with or without the comments, 
+                depending on 'keep_comments'
 
-        If one create a codeLaTeX from an other, use derive_from by passing oldLaTeX to __init__
+        If one creates a codeLaTeX from an other, use derive_from by passing oldLaTeX to __init__
         """
         # If you change something here, it has to be changed in append_file.
+        self.options = get_options()
         self.given_text = given_text
         if keep_comments:
             self.text_brut = self.given_text
@@ -72,7 +91,7 @@ class LatexCode(object):
             self.text_brut = RemoveComments(self.given_text)
         self._dict_of_definition_macros = {}
         self._list_of_input_files = []
-        self.filename = filename
+        self.filepath = filepath
         # When the code is created from files, the filename are recorded here.
         self.included_file_list = []
         if oldLaTeX:
@@ -98,7 +117,7 @@ class LatexCode(object):
         A.input_paths = self.input_paths
         return A
 
-    def save(self, filename=None, preamble=True):
+    def save(self, filepath:Optional[Path]=None, preamble=True):
         """
         Save the code in a file.
 
@@ -117,13 +136,10 @@ class LatexCode(object):
         written_text = self.text_brut
         if preamble:
             written_text = preamble+written_text
-        if filename:
-            self.filename = filename
-        else:
-            filename = self.filename
-        f = codecs.open(filename, "w", "utf_8")
-        f.write(written_text)
-        f.close()
+        if filepath:
+            self.filepath = filepath
+        assert self.filepath
+        self.filepath.write_text(written_text)
 
     def get_newlabel_value(self, label_name):
         r"""
@@ -134,15 +150,17 @@ class LatexCode(object):
         If not found, raise an newlabelNotFound exception
         """
         list_newlabel = self.analyse_use_of_macro("\\newlabel", 2)
-        if label_name not in [x.name for x in list_newlabel]:
-            raise newlabelNotFound(label_name)
         list_interesting = [x for x in list_newlabel if x.name == label_name]
-        if len(list_interseting) > 1:
+        if len(list_interesting) > 1:
             print("Warning : label %s has %s different values" %
                   (label_name, str(len(list_interesting))))
         return list_interesting[-1].value
 
-    def search_use_of_macro(self, name, number_of_arguments=None, give_configuration=False, fast=False):
+    def search_use_of_macro(self, 
+                            name:str, 
+                            number_of_arguments=None, 
+                            give_configuration=False, 
+                            fast=False)->list['Occurrence']:
         r"""
         Return a list of Occurrence of a given macro. You have to include the "\" in the name, for example
         codeLaTeX.search_use_of_macro("\MyMacro",2)
@@ -163,7 +181,6 @@ class LatexCode(object):
         """
         # Why should I explicitly write the "\" in the macro name ?
         # I don't remember, but it was an issue.
-        from pytex.src.MacroUse import SearchUseOfMacro
         return SearchUseOfMacro(self, name, number_of_arguments, give_configuration, fast=fast)
 
     def analyse_use_of_macro(self, name, number_of_arguments=None):
@@ -252,11 +269,18 @@ class LatexCode(object):
         # searching for the occurrence of \addInputPath in the file to be
         # expanded, so that we know in which directory we have
         # to search for the files that are inputed.
-        list_addInputPath =\
-            [x.analyse() for x in
-                A.search_use_of_macro(r"\addInputPath", 1, fast=fast)]
+
+        list_addInputPath = []
+        for x in A.search_use_of_macro(r"\addInputPath", 1, fast=fast):
+            dprint(f"un x est : {x} -- {type(x)}")
+            analyse = x.analyse()
+            dprint(f"son analyse est : {analyse}")
+            dprint(f"son analyse est : {type(analyse)}")
+            list_addInputPath.append(analyse)
         for occ in list_addInputPath:
-            input_paths.append(occ.directory)
+            str_dir = occ.directory
+            abs_dir = self.options.pwd / str_dir
+            input_paths.append(abs_dir)
         list_input = []
         for x in A.search_use_of_macro("\input", 1, fast=fast):
             y = x.analyse()
@@ -361,7 +385,7 @@ class LatexCode(object):
         textA = self.text_brut
         return textA.splitlines()
 
-    def append_file(self, filename=None, filenames=None):
+    def append_file(self, filename:Optional[Path]=None, filenames=None):
         """
         Append the content of a file to the current LaTeX code. Return a new object.
 
@@ -381,17 +405,18 @@ class LatexCode(object):
                     filenames[i] = filenames[i]+".tex"
             a = ""
             for f in filenames:
-                a = a+FileToText(f)
+                a = a+ f.read_text()
             add_given_text = a
             self.__init__(self.given_text+add_given_text)
 
-    def rough_source(self, filename, bibliography_bbl_filename=None, index_ind_filename=None, fast=False):
+    def rough_source(self, filepath:Path, bibliography_bbl_filename=None, index_ind_filename=None, fast=False):
         """
         Return the name of a file where there is a rough latex
         code ready to be published to Arxiv
         """
+        assert isinstance(filepath, Path)
         a = LatexCodeToRoughSource(
-            self, filename, bibliography_bbl_filename, index_ind_filename, fast=fast)
+            self, filepath, bibliography_bbl_filename, index_ind_filename, fast=fast)
         return a
 
     def __add__(self, other):

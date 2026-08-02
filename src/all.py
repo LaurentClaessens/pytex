@@ -15,19 +15,28 @@
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
 
-# copyright (c) Laurent Claessens, 2010,2012-2017, 2019-2020
+# copyright (c) Laurent Claessens, 2010,2012-2017, 2019-2020, 2026
 # email: laurent@claessens-donadello.eu
 
 import os.path
+from pathlib import Path
 import codecs
+from typing import TYPE_CHECKING
 from pytex.src.log_code import LogCode
 from pytex.src.LatexCode import LatexCode
 
-def FileToLatexCode(name,fast=False,keep_comments=False):
+
+if TYPE_CHECKING:
+    pass
+
+
+
+def FileToLatexCode(filename:Path, fast=False,keep_comments=False):
     """ return a codeLaTeX from a file """
-    content = FileToText(name)
-    A = LatexCode(content,filename=name,keep_comments=keep_comments)
-    A.included_file_list=[name]
+    _ = fast
+    content = filename.read_text()
+    A = LatexCode(content, filepath=filename,keep_comments=keep_comments)
+    A.included_file_list=[filename]
     return A
 
 def FileToText(name):
@@ -45,6 +54,7 @@ def FileToText(name):
 def string_to_latex_code(s):
     return LatexCode(s)
 
+
 def FileToLogCode(options, stop_on_first=False):
     """ return a codeLog from a file """
     name = options.log_filename
@@ -54,7 +64,6 @@ def FileToLogCode(options, stop_on_first=False):
     except UnicodeDecodeError :
         print("Problem with",name)
         list_content = list(codecs.open(name,"r",encoding="iso8859-1"))
-    a="".join(list_content)
     return LogCode("".join(list_content),
                    options=options,
                    filename=name,

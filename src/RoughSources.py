@@ -1,5 +1,3 @@
-# -*- coding: utf8 -*-
-
 ###########################################################################
 #   This is the package latexparser
 #
@@ -17,13 +15,19 @@
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
 
-# copyright (c) Laurent Claessens, 2010,2012-2017
+# copyright (c) Laurent Claessens, 2010,2012-2017,2026
 # email: laurent@claessens-donadello.eu
 
 import re
+from pathlib import Path
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from pytex.src.LatexCode import LatexCode
+
 
 # TODO : this function is buggy when fast=True
-def LatexCodeToRoughSource(codeLaTeX,filename,bibliography_bbl_filename=None,index_ind_filename=None,fast=False):
+def LatexCodeToRoughSource(codeLaTeX:'LatexCode',filepath:Path,bibliography_bbl_filename=None,index_ind_filename=None,fast=False):
     """
     Return a file containing rough self-contained sources that are ready for upload to Arxiv.
     What it does
@@ -68,6 +72,6 @@ def LatexCodeToRoughSource(codeLaTeX,filename,bibliography_bbl_filename=None,ind
 
     if resultIndex != None :
         new_code = new_code.replace(printindex,code_index.text_brut)
-    new_code.filename = filename
+    new_code.filepath = filepath
     new_code.save()
     return new_code

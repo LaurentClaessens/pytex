@@ -15,12 +15,11 @@
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
 
-# copyright (c) Laurent Claessens, 2016-2017, 2019
+# copyright (c) Laurent Claessens, 2016-2017, 2019, 2026
 # email: laurent@claessens-donadello.eu
 
-import os.path
+from pathlib import Path
 
-dprint = print
 
 
 class InputPaths(object):
@@ -29,12 +28,13 @@ class InputPaths(object):
     """
 
     def __init__(self):
-        self.directory_list = ["."]
+        self.directory_list:list[Path] = [Path(".").resolve()]
 
-    def append(self, dirname):
+    def append(self, dirname:Path):
+        assert isinstance(dirname, Path)
         self.directory_list.append(dirname)
 
-    def get_file(self, filename):
+    def get_file(self, filename:str):
         """
         - `filename` : a file name like "foo.tex"
 
@@ -42,9 +42,9 @@ class InputPaths(object):
         and return the first found.
         """
         for directory in self.directory_list:
-            fn = os.path.join(directory, filename)
-            if os.path.exists(fn):
-                return fn
+            filepath = directory / filename
+            if filepath.is_file():
+                return filepath
         raise NameError("No file found with name ", filename)
 
     def __str__(self):

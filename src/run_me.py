@@ -2,7 +2,7 @@ import sys
 
 from pytex.src.options import Options
 from pytex.src.all import FileToLogCode
-from pytex.src.utilities_b import verif_grep
+from pytex.src.utilities_c import verif_grep
 from pytex.src.future_verification import future_reference_verification
 _ = [sys]
 

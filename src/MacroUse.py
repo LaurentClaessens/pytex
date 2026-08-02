@@ -154,17 +154,21 @@ def NextMacroCandidate(s,macro_name,search_macro_name=None):
 
 def SearchUseOfMacro(code,macro_name,number_of_arguments=None,give_configuration=False,fast=False):
     r"""
-    <macro_name> has to contain the initial \ of the macro. I you want to search for \MyMacro, ask for "\MyMacro"; not only "MyMacro"
+    <macro_name> has to contain the initial \ of the macro. I you want to search 
+    for \MyMacro, ask for "\MyMacro"; not only "MyMacro"
 
     number_of_arguments is the number of arguments expected.
-                Giving a too large number produces wrong results in the following example case where \MyMacro
-                is supposed to have 3 arguments :
+                Giving a too large number produces wrong results in the following
+                example case where \MyMacro is supposed to have 3 arguments :
                 \MyMacro{A}{B}{C}
                 {\bf An other text}
-                The {\bf ...} group is not a parameter of \MyMacro, while it will be fitted as a parameter.
-            It None is given, we search first for the definition and then the expected number of arguments is deduced.
+                The {\bf ...} group is not a parameter of \MyMacro, while it will 
+                be fitted as a parameter.
+            It None is given, we search first for the definition and then the 
+            expected number of arguments is deduced.
 
-            Notice that the number_of_arguments is supposed to be the number of non optional arguments. We do not count the arguments
+            Notice that the number_of_arguments is supposed to be the
+            number of non optional arguments. We do not count the arguments
             within [] in the number.
     We do not fit the macros that are used in the comments.
 
@@ -179,6 +183,10 @@ def SearchUseOfMacro(code,macro_name,number_of_arguments=None,give_configuration
     If fast is true, make more assumptions on the LaTeX code. Like no space, no \ and no {} inside or between the arguments.
              Only works with exactly one argument up to now :
     """
+    assert fast==False
+    dprint("si tout va bien on pourra supprimer la possibilité fast=True")
+    assert give_configuration==False
+    dprint("si tout va bien on pourra supprimer la possibilité give_configuration=True")
     use=[]
     s = code.text_brut
     if fast :
@@ -210,10 +218,10 @@ def SearchUseOfMacro(code,macro_name,number_of_arguments=None,give_configuration
         boo,offset,in_comment = NextMacroCandidate(remaining,macro_name,search_macro_name=search_macro_name)
         if boo :
             turtle = turtle+offset+len(macro_name)
-            remaining=s[turtle:]
+            remaining = s[turtle:]
             if not in_comment :
                 try :
-                    arguments,as_written=SearchArguments(remaining,number_of_arguments)
+                    arguments,as_written = SearchArguments(remaining,number_of_arguments)
                 except TypeError:
                     print(number_of_arguments)
                     print(remaining[0:30])

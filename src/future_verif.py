@@ -1,4 +1,4 @@
-# Copyright 2015-2017, 2019-2020
+# Copyright 2015-2017, 2019-2020, 2026
 # Laurent Claessens
 # contact : laurent@claessens-donadello.eu
 
@@ -9,13 +9,18 @@
 import re
 import os
 import hashlib
+from typing import TYPE_CHECKING
+
 from types import SimpleNamespace
 
 from pytex.src.utilities import ReferenceNotFoundException
 from pytex.src.future_reference import FutureReference
+from pytex.src.utilities import dprint
+from pytex.src.utilities import dprint_json
 import pytex.src.pygrep as pygrep
 
-dprint = print
+if TYPE_CHECKING:
+    from pytex.src.LatexCode import LatexCode
 
 
 def is_tex_file(filename):
@@ -27,7 +32,7 @@ def is_tex_file(filename):
     return True
 
 
-def get_future_warning(rough_code, label_dict,
+def get_future_warning(rough_code:'LatexCode', label_dict,
                        tested_label, reference, myRequest):
     """Return the warning corresponding."""
     label_pos = label_dict[tested_label].position
@@ -51,6 +56,12 @@ def get_future_warning(rough_code, label_dict,
 
     # 'star' is the list of files in which we are going to grep.
     star = []
+
+    dprint("pour info les input_paths sont : ")
+    dprint_json(rough_code.input_paths)
+    dprint(f"et rough_code est : {type(rough_code)}")
+
+
     for directory in rough_code.input_paths:
         all_files = os.listdir(directory)
         star.extend([os.path.join(directory, x) for x in all_files

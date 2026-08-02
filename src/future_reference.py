@@ -1,4 +1,4 @@
-# Copyright 2015-2017, 2019-2020
+# Copyright 2015-2017, 2019-2020, 2026
 # Laurent Claessens
 # contact : laurent@claessens-donadello.eu
 
@@ -25,7 +25,10 @@ class FutureReference:
         print("")
         print("----------------------------")
         print("")
-        print(f"{self.ref_line.filename} : {self.ref_line.linenumber}")
+        linenumber = self.ref_line.linenumber
+        rel_path = self.ref_line.filename
+        filepath = rel_path
+        print(f"+{linenumber}  {filepath}")
         colored_label = f"\033[0;33;33m{self.tested_label}\033[0;47;33m"
         str_line = self.ref_line.string
         print(str_line.replace(self.tested_label, colored_label))

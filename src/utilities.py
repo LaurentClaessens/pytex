@@ -15,7 +15,7 @@
 #   along with phystricks.py.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
 
-# copyright (c) Laurent Claessens, 2010-2017, 2019, 2023
+# copyright (c) Laurent Claessens, 2010-2017, 2019, 2023, 2026
 # email: laurent@claessens-donadello.eu
 
 import re
@@ -31,8 +31,10 @@ import json
 import random
 import string
 import hashlib
+import contextlib
 
 from typing import Optional
+from typing import Union
 from typing import TextIO
 
 from colorama import Fore, Back, Style
@@ -41,6 +43,8 @@ LOGGING_FILENAME = ".pytex.log"
 
 
 # If one moves the class 'ReferenceNotFoundException', one has to update the message in pytex.
+
+PathOrStr = Union[Path,str]
 
 
 class IndentPrint:
@@ -239,21 +243,9 @@ def human_timestamp(now=None):
     return time.strftime("%Z - %A  %Y/%B/%d, %H:%M:%S", local_time)
 
 
-def json_serial(obj):
-    """Serialize the datetime."""
-    if isinstance(obj, datetime.datetime):
-        timestamp = obj.timestamp()
-        return human_timestamp(timestamp)
-    return str(obj)
 
-
-def read_json_file(json_path, default=None):
-    """
-    Return the given json file as dictionary.
-
-    @param {string} `json_path`
-    @return {dictionary}
-    """
+def read_json_file(json_path: PathOrStr, default=None):
+    """ Return the given json file as dictionary."""
     json_path = Path(json_path)
     if not json_path.is_file():
         if default is None:
@@ -261,34 +253,8 @@ def read_json_file(json_path, default=None):
                              f"The file does not exist and you "
                              f"furnished no default.")
         return default
-    with open(json_path, 'r') as json_data:
-        try:
-            answer = json.load(json_data)
-        except json.decoder.JSONDecodeError as err:
-            print("JSONDecodeError:", err)
-            message = f"Json error in {json_path}:\n {err}"
-            raise ValueError(message) from err
+    answer = read_json_string(json_path.read_text())
     return answer
-
-
-def json_to_str(json_dict, pretty=False, default=None):
-    """Return a string representation of the given json."""
-    if pretty:
-        return json.dumps(json_dict,
-                          sort_keys=True,
-                          indent=4,
-                          default=json_serial)
-    return json.dumps(json_dict, default=default)
-
-
-def write_json_file(json_dict,
-                    filename,
-                    pretty=False,
-                    default=None):
-    """Write the dictionary in the given file."""
-    my_str = json_to_str(json_dict, pretty=pretty, default=default)
-    with open(filename, 'w') as json_file:
-        json_file.write(my_str)
 
 
 def text_hash(text):
@@ -348,7 +314,60 @@ class ColorOutput:
         return wrapper
 
 
+def json_serial(obj):
+    """Serialize the datetime."""
+    if isinstance(obj, datetime.datetime):
+        timestamp = obj.timestamp()
+        return human_timestamp(timestamp)
+    with contextlib.suppress(AttributeError):
+        return obj.to_json()
+    return str(obj)
+
+
+def json_to_str(json_dict, pretty=False, ensure_ascii=True):
+    """Return a string representation of the given json."""
+    if pretty:
+        return json.dumps(json_dict,
+                          sort_keys=True,
+                          indent=4,
+                          default=json_serial,
+                          ensure_ascii=ensure_ascii)
+    return json.dumps(json_dict, default=json_serial, ensure_ascii=ensure_ascii)
+
+
+def print_json(json_dict, pretty=True):
+    """Print the given json."""
+    text = json_to_str(json_dict, pretty)
+    print(text)
+
+
 dprint = print
+dprint_json = print_json
+
+
+def write_json_file(json_dict,
+                    filename,
+                    pretty=False,
+                    parents=True):
+    """Write the dictionary in the given file."""
+    filename = Path(filename)
+    if parents:
+        parent = filename.parent
+        parent.mkdir(parents=True, exist_ok=True)
+    my_str = json_to_str(json_dict, pretty=pretty)
+    filename.write_text(my_str)
+
+
+def read_json_string(json_string: str):
+    """Interpret a string as json."""
+    try:
+        return json.loads(json_string)
+    except json.decoder.JSONDecodeError as err:
+        print("JSONDecodeError:", err)
+        message = f"Error in the json string: {json_string}"
+        raise ValueError(message) from err
+
+
 
 
 def ciao(message=None, color=None):

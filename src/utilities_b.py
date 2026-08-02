@@ -3,10 +3,7 @@
 
 import os
 import sys
-import subprocess
 
-from pytex.src.all import FileToLogCode
-from pytex.src.all import string_to_latex_code
 
 
 class FileOutput(object):
@@ -46,37 +43,6 @@ def ecrire(texte, couleur, output=None):
     else:
         output(string)
 
-def verif_grep(options):
-    if options.nombre_prob > 1:
-        options.output("Still "+str(options.nombre_prob) +
-                       " problems to be fixed. Good luck !")
-    if options.nombre_prob == 1:
-        options.output(
-            "Only one problem to be fixed. Next to perfection !!")
-    x = FileToLogCode(options)
-    options.output(x)
-
-
-
-
-
-def ProduceIntermediateCode(options):
-    codeLaTeX = string_to_latex_code(options.text_before_pytex)
-    if options.Compil.tout == 0:
-        list_input = codeLaTeX.search_use_of_macro(r"\input", 1)
-        begin_document = codeLaTeX.find("\\begin{document}")
-        for occurrence in list_input:
-            A = occurrence.analyse()
-            # If an "\input" is before "\begin{document}", we keep it.
-            # This behaviour is due to the fact that some
-            # "\input" are in the preamble,
-            # inside \newcommand for example.
-            if A.position > begin_document:
-                if not options.accept_input(A.filename):
-                    codeLaTeX = codeLaTeX.replace(occurrence.as_written, "%")
-                else:
-                    pass
-    return codeLaTeX
 
 
 def ProducePytexCode(options):
@@ -131,7 +97,7 @@ def randombase(n=6):
     import random
     import string
     rb = ""
-    for i in range(0, n):
+    for _ in range(0, n):
         rb = rb+random.choice(string.ascii_letters)
     return rb
 

@@ -13,21 +13,19 @@ from pytex.src.utilities_b import arg_to_output
 from pytex.src.utilities_b import SummaryOutput
 from pytex.src.utilities_b import set_no_useexternal
 from pytex.src.utilities_b import CreateRoughCode
-from pytex.src.utilities_b import ProduceIntermediateCode
 from pytex.src.utilities_b import ProducePytexCode
 from pytex.src.utilities_b import randombase
+from pytex.src.utilities_d import ProduceIntermediateCode
 from pytex.src.grep_wrapper import PytexGrep
-from pytex.src.all import FileToLatexCode
 from pytex.src.utilities import logging
 from pytex.src.utilities import ciao
-from pytex.src.all import FileToText
 from pytex.src.PytexTools import Compilation
 _:Any = ciao
 
 
 
 
-class Options(object):
+class Options:
     r"""
     self.original_file : the original file, written by hand
     self.intermediate_code() : LatexCode object containing the same
@@ -43,11 +41,21 @@ class Options(object):
                 bibliography and the index.  The comments are removed.
                 This is for Arxiv.
     """
+    ___instance = None
+
+    @staticmethod
+    def get_instance()->'Options':
+        if Options.___instance is not None:
+            return Options.___instance
+        raise ValueError("Il faut d'abord avoir crée l'objet Options.")
 
     def __init__(self, my_request):
 
+        if Options.___instance is not None:
+            raise ValueError("Ceci est supposé être un singleton")
+        Options.___instance = self
         self.my_request = my_request
-        self.pwd = subprocess.getoutput("pwd")  # .decode("utf8")
+        self.pwd = subprocess.getoutput("pwd") 
         self._pytex_file = None
         self._intermediate_code = None
         # Cette liste sont les fichiers .tex à accepter par input
@@ -109,7 +117,8 @@ class Options(object):
         return True
 
     def rough_code(self, options, fast=False):
-        codeLaTeX = FileToLatexCode(options.pytex_file())
+        from pytex.src.all import FileToLatexCode       # avoid cyclic import
+        codeLaTeX = FileToLatexCode(options.pytex_file(), options)
         print("Creating rough code")
         rough_code = codeLaTeX.rough_source(
             options.source_filename,
@@ -253,14 +262,12 @@ class Options(object):
         if self._pytex_file:
             return self._pytex_file
 
-        A = FileToText(self.original_file)
-
+        A = self.original_file.read_text()
         A = self.apply_plugin(A, "before_pytex")
         self.text_before_pytex = A
 
         # The conversion text -> LatexCode is done here
         A = ProducePytexCode(self)
-
         A = self.apply_plugin(A, "after_pytex")
 
         # Writing \UseCorrectionFile does not work because
@@ -277,7 +284,7 @@ class Options(object):
                     """.replace("AEWooFLTbT", "CorrPytexFile"+rbase+"corr"))
 
         A.save(self.pytex_filename)
-        self._pytex_file = A.filename
+        self._pytex_file = A.filepath
 
         return self.pytex_file()
 

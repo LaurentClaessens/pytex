@@ -33,7 +33,6 @@ from xml.dom import minidom
 from typing import Callable
 
 from pytex.src.utilities import get_file_hash
-from pytex.src.all import FileToText
 from pytex.src.LatexCode import LatexCode
 from pytex.create_bbl import get_bbl_code
 from pytex.src.utilities import read_json_file
@@ -237,11 +236,11 @@ class CodeBox(dict):
         return A
 
 
-def FileToCodeBox(filename, boxname):
+def FileToCodeBox(filename:Path, boxname):
     """
     Return a CodeBox object fed by the content of the given file.
     """
-    magic_box_code = FileToText(filename)
+    magic_box_code = filename.read_text()
     magic_box = CodeBox(boxname)
     magic_box.feed(magic_box_code)
     return magic_box

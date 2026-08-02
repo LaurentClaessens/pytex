@@ -22,15 +22,14 @@
 This module furnishes some functionalities to manipulate LaTeX code.
 """
 
-import os
-import re
+from pathlib import Path
 import codecs
 
 definition_commands = [ "\\newcommand","\\renewcommand" ]   # In the method dict_of_definition_macros, I hard-code the fact that 
                                 # these definition commands have 3 arguments.
-def FileToCodeBibtex(name):
+def FileToCodeBibtex(name:Path):
     """ return a codeBibtex from a file """
-    content = FileToText(name)
+    content = name.read_text()
     return CodeBibtex(content,filename=name)
 
 def MacroDefinition(code,name):

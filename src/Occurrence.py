@@ -24,7 +24,8 @@ from pytex.src.InputPaths import InputPaths
 
 class Occurrence(object):
     """
-    self.as_written : the code as it appears in the file, including \MyMacro, including the backslash.
+    self.as_written : the code as it appears in the file, including \MyMacro, 
+    including the backslash.
     self.position : the position at which this occurrence appears.
         Example, if we look at the LatexCode
 
@@ -189,8 +190,6 @@ class Occurrence_input(Occurrence):
         See the macro `\addInputPath` in the file
         https://github.com/LaurentClaessens/mazhe/blob/master/configuration.tex
         """
-        import os.path
-
         excluded = ["\\", "#"]
         for c in excluded:
             if c in self.filename:
