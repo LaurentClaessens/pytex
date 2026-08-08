@@ -183,10 +183,7 @@ def SearchUseOfMacro(code,macro_name,number_of_arguments=None,give_configuration
     If fast is true, make more assumptions on the LaTeX code. Like no space, no \ and no {} inside or between the arguments.
              Only works with exactly one argument up to now :
     """
-    assert fast==False
-    dprint("si tout va bien on pourra supprimer la possibilité fast=True")
     assert give_configuration==False
-    dprint("si tout va bien on pourra supprimer la possibilité give_configuration=True")
     use=[]
     s = code.text_brut
     if fast :

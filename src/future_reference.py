@@ -2,6 +2,8 @@
 # Laurent Claessens
 # contact : laurent@claessens-donadello.eu
 
+from pathlib import Path
+
 """Abstraction around a future reference."""
 
 
@@ -13,7 +15,7 @@ class FutureReference:
         self.tested_label = tested_label
         self.label_line = label_line
         self.ref_line = ref_line
-        self.concerned_files = [self.label_line.filename,
+        self.concerned_files:list[Path] = [self.label_line.filename,
                                 self.ref_line.filename]
         self.hexdigest = hexdigest
 

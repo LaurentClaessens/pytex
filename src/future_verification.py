@@ -1,5 +1,6 @@
 """Check the references to the future."""
 
+from pathlib import Path
 
 from pytex.src.future_verif import get_future_warning
 from pytex.src.LatexCode import LatexCode
@@ -88,7 +89,7 @@ def future_reference_verification(options, fast=True):
             if warning:
                 future_warnings.append(warning)
 
-    concerned_files = set()
+    concerned_files:set[Path] = set()
     total_futur = 0
     hexdigests = []
     for warning in future_warnings:
@@ -105,6 +106,9 @@ def future_reference_verification(options, fast=True):
     for hexdigest in hexdigests:
         print(hexdigest)
     print(f"Number of future references: {total_futur}")
-    print("concernd files:")
-    for futur_file in concerned_files:
+    print("concerend files:")
+
+    cf = list(concerned_files)
+    cf.sort(key=lambda x:x.name)
+    for futur_file in cf:
         print(futur_file)

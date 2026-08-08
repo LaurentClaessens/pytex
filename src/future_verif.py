@@ -7,8 +7,9 @@
 
 
 import re
-import os
+from pathlib import Path
 import hashlib
+from typing import Any
 from typing import TYPE_CHECKING
 
 from types import SimpleNamespace
@@ -17,19 +18,12 @@ from pytex.src.utilities import ReferenceNotFoundException
 from pytex.src.future_reference import FutureReference
 from pytex.src.utilities import dprint
 from pytex.src.utilities import dprint_json
+from pytex.src.utilities_b import get_tex_files
 import pytex.src.pygrep as pygrep
+_:Any = dprint, dprint_json
 
 if TYPE_CHECKING:
     from pytex.src.LatexCode import LatexCode
-
-
-def is_tex_file(filename):
-    """Say if the given filename is to be considered."""
-    if not filename.endswith(".tex"):
-        return False
-    if "-source-" in filename:
-        return False
-    return True
 
 
 def get_future_warning(rough_code:'LatexCode', label_dict,
@@ -55,17 +49,11 @@ def get_future_warning(rough_code:'LatexCode', label_dict,
         return None
 
     # 'star' is the list of files in which we are going to grep.
-    star = []
-
-    dprint("pour info les input_paths sont : ")
-    dprint_json(rough_code.input_paths)
-    dprint(f"et rough_code est : {type(rough_code)}")
-
+    star:list[Path] = []
 
     for directory in rough_code.input_paths:
-        all_files = os.listdir(directory)
-        star.extend([os.path.join(directory, x) for x in all_files
-                     if is_tex_file(x)])
+        dir_files = get_tex_files(directory)
+        star.extend(dir_files)
 
     label_lines = pygrep.grep(re.escape(line_label), star,
                               first_result=True)

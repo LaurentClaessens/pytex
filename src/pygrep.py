@@ -2,12 +2,14 @@
 # http://bytes.com/topic/python/answers/169012-grep
 
 import re
-import os
-import codecs
+from pathlib import Path
 
+from pytex.src.utilities import dprint
+from pytex.src.utilities_b import is_tex_file
+_ = dprint
 
 class GrepElement(object):
-    def __init__(self, filename, linenumber, s):
+    def __init__(self, filename:Path, linenumber, s):
         self.filename = filename
         self.linenumber = linenumber
         self.s = s
@@ -25,7 +27,7 @@ class GrepElement(object):
         return self.__str__().encode("utf8")
 
 
-def grep(pattern, files, first_result=False):
+def grep(pattern, files:list[Path], first_result=False):
     """
     If `first_result` is True, stop the search after the
     first found result and return a list with only one element.
@@ -33,8 +35,10 @@ def grep(pattern, files, first_result=False):
     search = re.compile(pattern).search
     l = []
     for f in files:
-        a = codecs.open(f, "r", encoding="utf8")
-        for index, line in enumerate(codecs.open(f, "r", encoding="utf8")):
+        if not is_tex_file(f):
+            continue
+        lines = f.read_text().split("\n")
+        for index, line in enumerate(lines):
             s = search(line)
             if s:
                 l.append(GrepElement(f, index+1, s))

@@ -3,8 +3,11 @@
 
 import os
 import sys
+from pathlib import Path
 
+from pytex.src.utilities import dprint
 
+_ = dprint
 
 class FileOutput(object):
     """
@@ -142,3 +145,23 @@ def arg_to_output(arg):
     """
     filename = arg.split("=")[1]
     return SummaryOutput(FileOutput(filename))
+
+
+def is_tex_file(elem:Path):
+    """Say if the given filename is to be considered."""
+    if not elem.is_file():
+        return False
+    if elem.suffix != ".tex":
+        return False
+    if "-source-" in str(elem):
+        return False
+    return True
+
+
+def get_tex_files(directory:Path)->list[Path]:
+    """Retutn the list of tex files in the given directory."""
+    answer:list[Path] = []
+    for elem in directory.iterdir():
+        if is_tex_file(elem):
+            answer.append(elem)
+    return answer

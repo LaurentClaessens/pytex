@@ -3,7 +3,6 @@
 
 import os
 import sys
-import subprocess
 from typing import Any
 from pathlib import Path
 
@@ -55,7 +54,7 @@ class Options:
             raise ValueError("Ceci est supposé être un singleton")
         Options.___instance = self
         self.my_request = my_request
-        self.pwd = subprocess.getoutput("pwd") 
+        self.pwd = Path('.').resolve()
         self._pytex_file = None
         self._intermediate_code = None
         # Cette liste sont les fichiers .tex à accepter par input
@@ -95,11 +94,10 @@ class Options:
             self.pwd) / f"{self.prefix}-source-{self.original_file.name}"
 
         if self.Compil.tout == 1:
-            self.source_filename = self.pwd+"/all-" + \
-                os.path.basename(self.original_file)
-            self.pytex_filename = self.pwd+"/all-" + \
-                os.path.basename(self.original_file).replace(
-                    ".tex", "_pytex.tex")
+            base = os.path.basename(self.original_file)
+            p_base = base.replace(".tex", "_pytex.tex")
+            self.source_filename = self.pwd / f"all-{base}" 
+            self.pytex_filename = self.pwd / f"/all-{p_base}" 
 
         self.log_filename = self.pytex_filename.parent / \
             f"{self.pytex_filename.stem}.log"
